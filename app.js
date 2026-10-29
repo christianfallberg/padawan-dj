@@ -407,6 +407,62 @@ masterAnalyser.fftSize = 256;
 masterGain.gain.value = 0.85;
 masterGain.connect(masterAnalyser);
 masterAnalyser.connect(audioContext.destination);
+const cueBus = audioContext.createGain();
+const cueStream = audioContext.createMediaStreamDestination();
+cueBus.connect(cueStream);
+cueBus.gain.value = 0.65;
+const cueAudio = new Audio();
+cueAudio.srcObject = cueStream.stream;
+cueAudio.muted = true; // Fail closed: CUE must never play through default speakers.
+cueAudio.playsInline = true;
+const cueGains = {};
+let cueDeviceId = null;
+let cueEnabled = false;
+
+function refreshCueGates() {
+  for (const [id, gain] of Object.entries(cueGains)) {
+    const active = document.querySelector(`.mixer-channel[data-deck="${id}"] .cue-monitor`)?.classList.contains('active');
+    gain.gain.setTargetAtTime(active ? 1 : 0, audioContext.currentTime, 0.01);
+  }
+}
+
+async function listCueDevices() {
+  const select = $('#headphoneOutput');
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    select.replaceChildren(new Option('Audio device selection unavailable', ''));
+    return;
+  }
+  const previous = select.value || cueDeviceId;
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === 'audiooutput' && !['default', 'communications'].includes(device.deviceId));
+  select.replaceChildren(new Option('Select USB headphones / audio interface', ''));
+  for (const [index, device] of devices.entries()) select.add(new Option(device.label || `Audio output ${index + 1}`, device.deviceId));
+  if (devices.some((device) => device.deviceId === previous)) select.value = previous;
+}
+
+async function enableCueOutput(deviceId) {
+  if (!deviceId || typeof cueAudio.setSinkId !== 'function') throw new Error('This browser cannot select a separate headphone output. Try Chrome or Edge.');
+  cueAudio.muted = true;
+  cueEnabled = false;
+  cueAudio.pause();
+  await ensureAudioReady();
+  await cueAudio.setSinkId(deviceId);
+  cueDeviceId = deviceId;
+  await cueAudio.play();
+  cueAudio.muted = false;
+  cueEnabled = true;
+  $('#cueOutputStatus').textContent = 'Headphone monitoring enabled';
+  showToast('Headphone CUE enabled');
+}
+
+function disableCueOutput() {
+  cueAudio.muted = true;
+  cueAudio.pause();
+  cueEnabled = false;
+  cueDeviceId = null;
+  $('#cueOutputStatus').textContent = 'Headphone monitoring disabled';
+  showToast('Headphone CUE disabled');
+}
+
 
 class Deck {
   constructor(id) {
@@ -441,6 +497,11 @@ class Deck {
     this.mid.connect(this.high);
     this.high.connect(this.trimGain);
     this.trimGain.connect(this.channelGain);
+    this.cueGain = audioContext.createGain();
+    this.cueGain.gain.value = 0;
+    this.trimGain.connect(this.cueGain); // PFL: before channel fader and crossfader.
+    this.cueGain.connect(cueBus);
+    cueGains[id] = this.cueGain;
     this.channelGain.connect(this.crossGain);
     this.crossGain.connect(masterGain);
 
@@ -1730,13 +1791,52 @@ function bindEvents() {
   window.addEventListener('offline', () => { updateNetworkStatus(); showToast('Offline mode — local library is still available', 2600); });
 
   $('#helpButton').addEventListener('click', () => ui.helpDialog.showModal());
-  $$('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
+  $('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
     const deckId = button.closest('.mixer-channel')?.dataset.deck;
     if (!deckId) return;
-    $$('.cue-monitor').forEach((item) => item.classList.toggle('active', item === button));
+    button.classList.toggle('active');
+    refreshCueGates();
     setSelectedDeck(deckId);
-    showToast(`Deck ${deckId === 'A' ? '1' : '2'} selected for cue monitoring`, 1400);
+    showToast(`Deck ${deckId === 'A' ? '1' : '2'} cue ${button.classList.contains('active') ? 'on' : 'off'}${cueEnabled ? '' : ' — configure headphones in AUDIO OUTPUT'}`, 2000);
   }));
+  $('#audioOutputButton').addEventListener('click', () => {
+    listCueDevices().catch(console.error);
+    $('#audioOutputDialog').showModal();
+  });
+  $('#closeAudioOutput').addEventListener('click', () => $('#audioOutputDialog').close());
+  $('#cueVolume').addEventListener('input', (event) => {
+    cueBus.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01);
+  });
+  $('#enableHeadphones').addEventListener('click', async () => {
+    const status = $('#cueOutputStatus');
+    try {
+      let id = $('#headphoneOutput').value;
+      if (navigator.mediaDevices?.selectAudioOutput) {
+        const device = await navigator.mediaDevices.selectAudioOutput(id ? { deviceId: id } : {});
+        id = device.deviceId;
+      }
+      if (!id) throw new Error('Select a separate headphone device first.');
+      await enableCueOutput(id);
+      await listCueDevices();
+      $('#headphoneOutput').value = id;
+    } catch (error) {
+      cueAudio.muted = true;
+      cueAudio.pause();
+      cueEnabled = false;
+      status.textContent = error.message || 'Could not enable headphones';
+      showToast('Headphone output failed — see Audio Output settings', 3000);
+      console.error(error);
+    }
+  });
+  $('#disableHeadphones').addEventListener('click', disableCueOutput);
+  navigator.mediaDevices?.addEventListener?.('devicechange', () => {
+    listCueDevices().then(() => {
+      if (cueEnabled && !Array.from($('#headphoneOutput').options).some((option) => option.value === cueDeviceId)) {
+        disableCueOutput();
+        $('#cueOutputStatus').textContent = 'Headphones disconnected — monitoring disabled';
+      }
+    }).catch(console.error);
+  });
   $('#crossfader').addEventListener('input', (event) => applyCrossfader(event.target.value));
   $('#masterVolume').addEventListener('input', (event) => masterGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $('#masterA').addEventListener('click', () => setMasterDeck('A'));
@@ -1886,6 +1986,7 @@ async function init() {
   bindDeckControls(decks.B);
   setupInstallPrompt();
   bindEvents();
+  refreshCueGates();
   updateNetworkStatus();
   setWaveformZoom(DEFAULT_WAVEFORM_WINDOW_SECONDS);
   applyCrossfader(0);
