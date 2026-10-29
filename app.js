@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.6';
+const APP_VERSION = '6.2.7';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -425,7 +425,9 @@ let cueEnabled = false;
 
 function refreshCueGates() {
   for (const [id, gain] of Object.entries(cueGains)) {
-    const active = document.querySelector(`.mixer-channel[data-deck="${id}"] .cue-monitor`)?.classList.contains('active');
+    const button = document.querySelector(`.mixer-channel[data-deck="${id}"] .cue-monitor`);
+    const active = Boolean(button?.classList.contains('active'));
+    button?.setAttribute('aria-pressed', String(active));
     gain.gain.setTargetAtTime(active ? 1 : 0, audioContext.currentTime, 0.01);
   }
 }
@@ -883,6 +885,7 @@ class Deck {
     const playButton = $(`#play${this.id}`);
     playButton.textContent = isPlaying ? 'Ⅱ' : '▶';
     playButton.classList.toggle('active', isPlaying);
+    playButton.setAttribute('aria-pressed', String(isPlaying));
     $(`#jog${this.id}`).classList.toggle('is-playing', isPlaying);
   }
 }
@@ -910,8 +913,12 @@ function setSelectedDeck(id) {
 
 function setMasterDeck(id) {
   state.masterDeck = id;
-  $('#masterA').classList.toggle('active', id === 'A');
-  $('#masterB').classList.toggle('active', id === 'B');
+  for (const deckId of ['A', 'B']) {
+    const button = $(`#master${deckId}`);
+    const active = id === deckId;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
 }
 state.masterDeck = 'A';
 
@@ -2248,6 +2255,7 @@ async function init() {
   setWaveformZoom(DEFAULT_WAVEFORM_WINDOW_SECONDS);
   applyCrossfader(0);
   setSelectedDeck('A');
+  setMasterDeck('A');
   decks.A.updateTrackUi();
   decks.B.updateTrackUi();
   renderPlaylistList();
