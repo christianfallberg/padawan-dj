@@ -14,7 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
-  <link rel="stylesheet" href="styles.css?v=6.2.0">
+  <link rel="stylesheet" href="styles.css?v=6.2.1">
 </head>
 <body>
   <div class="app-shell">
@@ -133,13 +133,13 @@
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playA" class="round-button play-button" type="button" aria-label="Play deck 1">▶</button>
+                <button id="syncA" class="sync-button" type="button" title="Beat sync to master deck">SYNC</button>
               </div>
             </div>
 
             <div class="tempo-panel">
               <div class="section-label">TEMPO</div>
               <input id="tempoA" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 1 tempo">
-              <button id="syncA" class="sync-button" type="button">BEAT<br>SYNC</button>
               <button class="reset-tempo" data-deck="A" type="button">RESET</button>
             </div>
           </div>
@@ -206,7 +206,6 @@
             <div class="tempo-panel mirrored">
               <div class="section-label">TEMPO</div>
               <input id="tempoB" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 2 tempo">
-              <button id="syncB" class="sync-button" type="button">BEAT<br>SYNC</button>
               <button class="reset-tempo" data-deck="B" type="button">RESET</button>
             </div>
 
@@ -223,6 +222,7 @@
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playB" class="round-button play-button" type="button" aria-label="Play deck 2">▶</button>
+                <button id="syncB" class="sync-button" type="button" title="Beat sync to master deck">SYNC</button>
               </div>
             </div>
 
@@ -407,6 +407,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.2.0"></script>
+  <script src="app.js?v=6.2.1"></script>
 </body>
 </html>
