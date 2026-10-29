@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.1.8';
+const APP_VERSION = '6.2.0';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1247,7 +1247,7 @@ function drawWaveform(deck) {
     }
   }
 
-  const primary = deck.id === 'A' ? '#137ff0' : '#ff9718';
+  const primary = deck.id === 'A' ? '#16a9ff' : '#fc388f';
   const secondary = deck.id === 'A' ? '#ff9918' : '#2388ff';
   const peaks = track.peaks;
   const duration = track.duration || 1;
@@ -1302,7 +1302,7 @@ function drawOverview(deck) {
   if (!deck.track?.peaks) return;
   const peaks = deck.track.peaks;
   const center = height / 2;
-  const primary = deck.id === 'A' ? '#218cff' : '#ffa025';
+  const primary = deck.id === 'A' ? '#16c8ff' : '#f73597';
   ctx.fillStyle = primary;
   for (let x = 0; x < width; x += 1) {
     const index = Math.floor((x / width) * peaks.length);
@@ -1905,7 +1905,7 @@ function bindEvents() {
   ui.importButton.addEventListener('click', () => ui.fileInput.click());
   const resetImportDropState = () => {
     ui.importButton.classList.remove('drop-target');
-    ui.importButton.textContent = 'IMPORT / DROP TRACKS';
+    ui.importButton.textContent = '＋ ADD TRACKS';
   };
   ui.importButton.addEventListener('dragenter', (event) => {
     if (![...event.dataTransfer.types].includes('Files')) return;
@@ -1973,6 +1973,22 @@ function bindEvents() {
     }
   }
 
+  // Only working navigation targets: library, mixer, and audio outputs.
+  const activateNavigation = (id) => {
+    $$('.app-navigation .nav-pill').forEach((button) => button.classList.toggle('active', button.id === id));
+  };
+  $('#navLibrary').addEventListener('click', () => {
+    activateNavigation('navLibrary');
+    $('#searchInput').focus({ preventScroll: true });
+  });
+  $('#navMixer').addEventListener('click', () => {
+    activateNavigation('navMixer');
+    $('#crossfader').focus({ preventScroll: true });
+  });
+  $('#navAudio').addEventListener('click', () => {
+    activateNavigation('navAudio');
+    $('#audioOutputButton').click();
+  });
   $('#helpButton').addEventListener('click', () => {
     showHelpTab('shortcuts');
     ui.helpDialog.showModal();
