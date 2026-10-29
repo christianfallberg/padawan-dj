@@ -28,12 +28,28 @@
         <button id="installButton" class="top-action install-action" type="button" hidden>INSTALL APP</button>
         <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL</span><strong id="storageCompact">--</strong></button>
         <button id="importButton" class="top-action primary" type="button">IMPORT / DROP TRACKS</button>
+        <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing">AUDIO OUTPUT</button>
         <button id="helpButton" class="top-action" type="button" aria-label="Keyboard shortcuts">?</button>
         <time id="clock">--:--</time>
       </div>
       <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
     </header>
 
+    <dialog id="audioOutputDialog" class="audio-output-dialog" aria-labelledby="audioOutputTitle">
+      <h2 id="audioOutputTitle">AUDIO OUTPUT</h2>
+      <p>Master plays through the system default speakers. Keep your iMac speakers selected in macOS Sound settings.</p>
+      <label for="headphoneOutput">HEADPHONE CUE OUTPUT</label>
+      <select id="headphoneOutput"><option value="">Select USB headphones / audio interface</option></select>
+      <p class="audio-output-note">Use a DIFFERENT output from Master. The browser may ask for permission. CUE is muted until you enable it.</p>
+      <label for="cueVolume">HEADPHONE VOLUME</label>
+      <input type="range" id="cueVolume" min="0" max="1" step="0.01" value="0.65">
+      <p id="cueOutputStatus" role="status">Headphone monitoring disabled</p>
+      <div class="audio-output-actions">
+        <button id="enableHeadphones" type="button">ENABLE HEADPHONES</button>
+        <button id="disableHeadphones" type="button">DISABLE</button>
+        <button id="closeAudioOutput" type="button">CLOSE</button>
+      </div>
+    </dialog>
     <main class="workspace">
       <section class="waveform-stage" aria-label="Parallel waveforms">
         <div class="waveform-ruler">
