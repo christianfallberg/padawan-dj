@@ -489,3 +489,36 @@ kbd { height: 26px; margin: 3px 0; border: 1px solid #4b545e; border-radius: 3px
 .audio-output-dialog .audio-detect-button { display: block; margin-top: 8px; cursor: pointer; padding: 9px 12px; background: var(--panel-3); border: 1px solid #3c4752; border-radius: 5px; font-size: 11px; font-weight: 800; }
 .audio-output-dialog .audio-detect-button:hover { filter: brightness(1.2); }
 .audio-output-dialog #cueOutputStatus { overflow-wrap: anywhere; color: #d5dce6; }
+
+/* v6.1.8 – branded help / about */
+.brand-icon { width: 27px; height: 27px; flex: none; border-radius: 6px; }
+.help-dialog-heading { display: flex; align-items: center; gap: 10px; }
+.help-dialog-heading > div { display: flex; flex-direction: column; gap: 3px; }
+.help-dialog-heading small { font-size: 8px; font-weight: 800; letter-spacing: .16em; color: #7e939f; }
+#helpDialog form { max-height: min(90vh, 780px); display: flex; flex-direction: column; }
+#helpDialog [hidden] { display: none !important; }
+.help-tabs { display: flex; gap: 4px; padding: 11px 24px 0; background: #171b20; border-bottom: 1px solid #343c45; }
+.help-tabs .help-tab { cursor: pointer; background: transparent; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 14px 12px; color: #8996a3; font-size: 9px; font-weight: 800; letter-spacing: .09em; box-shadow: none; }
+.help-tabs .help-tab.active { color: #e8f9ff; border-bottom-color: #39baff; }
+.help-tabs .help-tab:hover { color: #fff; }
+.help-tab-panel { overflow-y: auto; min-height: 0; }
+.about-panel { padding: 22px 26px 24px; color: #d9e1e9; }
+.about-brand { display: flex; align-items: center; gap: 18px; padding-bottom: 22px; border-bottom: 1px solid #313c47; }
+.about-brand img { flex: none; width: 82px; height: 82px; border-radius: 18px; }
+.about-eyebrow { font-size: 8px; font-weight: 850; letter-spacing: .19em; color: #6fcfff; }
+.about-brand h2 { margin: 7px 0 6px; color: #f4f9fc; font-size: 27px; line-height: 1; font-weight: 850; letter-spacing: .07em; }
+.about-brand h2 em { color: #37bdff; font-style: normal; }
+.about-brand .about-version { display: inline-flex; gap: 5px; align-items: center; padding: 4px 8px; border: 1px solid #34516b; border-radius: 4px; color: #9fc6e4; font-size: 9px; font-weight: 850; letter-spacing: .06em; }
+.about-brand p { margin: 8px 0 0; padding: 0; border: 0; background: transparent; font-size: 10px; }
+.about-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 0; }
+.about-card { min-width: 0; padding: 15px; background: #141a21; border: 1px solid #313c47; border-radius: 6px; }
+.about-card h3 { margin: 0 0 10px; font-size: 10px; letter-spacing: .09em; color: #84cafa; }
+.about-item { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; font-size: 11px; line-height: 1.4; }
+.about-item strong { color: #edf5fb; font-size: 10px; }
+.about-item span { color: #9da9b4; }
+.about-item code { font-family: inherit; font-size: inherit; }
+.about-diagnostics { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 6px; }
+.about-diagnostics > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 10px 11px; border: 1px solid #313c47; border-radius: 5px; background: #10161d; }
+.about-diagnostics span { font-size: 8px; color: #8fa0ae; letter-spacing: .09em; }
+.about-diagnostics strong { font-size: 10px; color: #ddf1ff; overflow-wrap: anywhere; }
+.about-panel .about-footer { margin-top: 14px; font-size: 10px; color: #8494a1; line-height: 1.5; }
