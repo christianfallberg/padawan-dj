@@ -14,7 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
-  <link rel="stylesheet" href="styles.css?v=6.2.8">
+  <link rel="stylesheet" href="styles.css?v=6.2.9">
 </head>
 <body>
   <div class="app-shell">
@@ -84,6 +84,7 @@
 
       <section class="decks-section">
         <article class="deck-panel deck-a" data-deck="A">
+          <div class="deck-display" aria-label="Deck 1 track display">
           <header class="deck-header">
             <span class="deck-number">1</span>
             <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt=""><span id="coverFallbackA">1</span></div>
@@ -97,13 +98,19 @@
             </div>
             <button class="master-button active" id="masterA" type="button">MASTER</button>
           </header>
-
           <div class="overview-strip" data-deck="A" title="Click or drag to move quickly through the complete track">
             <canvas id="overviewA" tabindex="0" aria-label="Deck 1 complete track waveform. Click or drag to seek."></canvas>
-            <div id="overviewProgressA" class="overview-progress"></div>
-            <span class="overview-hint">FULL TRACK · CLICK / DRAG</span>
+            <div id="overviewPlayheadA" class="overview-playhead" aria-hidden="true"></div>
           </div>
-
+          <div class="display-timeline">
+            <button id="startA" class="display-elapsed-button" type="button" title="Click elapsed time to return to the start of the track"><span id="elapsedA">00:00.0</span></button>
+            <div class="display-seek-rail">
+              <div id="overviewProgressA" class="overview-progress" aria-hidden="true"></div>
+              <input id="overviewSeekA" class="display-seek-input" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek within Deck 1 track">
+            </div>
+            <strong id="remainingA" class="display-remaining">−00:00.0</strong>
+          </div>
+          </div>
           <div class="deck-main">
             <section class="eq-panel" aria-label="Deck 1 equalizer">
               <div class="section-label">EQ</div>
@@ -135,11 +142,6 @@
               </div>
             </section>
             <div class="transport-panel">
-              <div class="time-row">
-                <div><small>ELAPSED</small><strong id="elapsedA">00:00.0</strong></div>
-                <button id="startA" class="track-start-button" type="button" title="Jump to the start of the track">↤ 0:00</button>
-                <div class="remaining"><small>REMAIN</small><strong id="remainingA">−00:00.0</strong></div>
-              </div>
               <div class="transport-cluster">
                 <div class="hotcue-strip" role="group" aria-label="Deck 1 Hot Cues">
                   <button class="hotcue-button" data-deck="A" data-cue="A" type="button" aria-label="Deck 1 Hot Cue 1" title="Click to set / trigger Hot Cue 1 · Shift-click or right-click to remove">1</button>
@@ -219,6 +221,7 @@
         </aside>
 
         <article class="deck-panel deck-b" data-deck="B">
+          <div class="deck-display" aria-label="Deck 2 track display">
           <header class="deck-header">
             <span class="deck-number">2</span>
             <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt=""><span id="coverFallbackB">2</span></div>
@@ -232,13 +235,19 @@
             </div>
             <button class="master-button" id="masterB" type="button">MASTER</button>
           </header>
-
           <div class="overview-strip" data-deck="B" title="Click or drag to move quickly through the complete track">
             <canvas id="overviewB" tabindex="0" aria-label="Deck 2 complete track waveform. Click or drag to seek."></canvas>
-            <div id="overviewProgressB" class="overview-progress"></div>
-            <span class="overview-hint">FULL TRACK · CLICK / DRAG</span>
+            <div id="overviewPlayheadB" class="overview-playhead" aria-hidden="true"></div>
           </div>
-
+          <div class="display-timeline">
+            <button id="startB" class="display-elapsed-button" type="button" title="Click elapsed time to return to the start of the track"><span id="elapsedB">00:00.0</span></button>
+            <div class="display-seek-rail">
+              <div id="overviewProgressB" class="overview-progress" aria-hidden="true"></div>
+              <input id="overviewSeekB" class="display-seek-input" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek within Deck 2 track">
+            </div>
+            <strong id="remainingB" class="display-remaining">−00:00.0</strong>
+          </div>
+          </div>
           <div class="deck-main">
             <section class="eq-panel" aria-label="Deck 2 equalizer">
               <div class="section-label">EQ</div>
@@ -280,11 +289,6 @@
             </div>
 
             <div class="transport-panel">
-              <div class="time-row">
-                <div><small>ELAPSED</small><strong id="elapsedB">00:00.0</strong></div>
-                <button id="startB" class="track-start-button" type="button" title="Jump to the start of the track">↤ 0:00</button>
-                <div class="remaining"><small>REMAIN</small><strong id="remainingB">−00:00.0</strong></div>
-              </div>
               <div class="transport-cluster">
                 <div class="hotcue-strip" role="group" aria-label="Deck 2 Hot Cues">
                   <button class="hotcue-button" data-deck="B" data-cue="A" type="button" aria-label="Deck 2 Hot Cue 1" title="Click to set / trigger Hot Cue 1 · Shift-click or right-click to remove">1</button>
@@ -471,6 +475,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.2.8"></script>
+  <script src="app.js?v=6.2.9"></script>
 </body>
 </html>
