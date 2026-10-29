@@ -429,14 +429,69 @@ function refreshCueGates() {
 async function listCueDevices() {
   const select = $('#headphoneOutput');
   if (!navigator.mediaDevices?.enumerateDevices) {
-    select.replaceChildren(new Option('Audio device selection unavailable', ''));
-    return;
+    select.replaceChildren(new Option('Device selection not available in this browser', ''));
+    return [];
   }
   const previous = select.value || cueDeviceId;
-  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === 'audiooutput' && !['default', 'communications'].includes(device.deviceId));
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
+    (device) => device.kind === 'audiooutput' && device.deviceId && !['default', 'communications'].includes(device.deviceId)
+  );
   select.replaceChildren(new Option('Select USB headphones / audio interface', ''));
-  for (const [index, device] of devices.entries()) select.add(new Option(device.label || `Audio output ${index + 1}`, device.deviceId));
+  for (const [index, device] of devices.entries()) {
+    select.add(new Option(device.label || `Audio output ${index + 1} (permission needed)`, device.deviceId));
+  }
   if (devices.some((device) => device.deviceId === previous)) select.value = previous;
+  return devices;
+}
+
+// On Chrome, requesting microphone permission exposes the full audio output list.
+// The stream is immediately stopped and is never connected to the DJ audio graph.
+async function discoverCueDevices() {
+  const status = $('#cueOutputStatus');
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone permission API is not available in this browser.');
+  status.textContent = 'Requesting temporary audio device permission…';
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } finally {
+    stream?.getTracks().forEach((track) => track.stop());
+  }
+  const devices = await listCueDevices();
+  status.textContent = devices.length
+    ? `${devices.length} output device(s) detected. Select your USB-C headphones, then enable.`
+    : 'No separate output detected. Check the USB-C headphones in macOS Sound settings.';
+}
+
+// Errors must be visible in the panel, not just buried in the Console.
+function describeCueError(error) {
+  const label = error?.name || 'Error';
+  const detail = error?.message || 'Unknown audio routing error';
+  const advice = {
+    NotAllowedError: 'Allow audio device access in Chrome or macOS; then use DETECT OUTPUTS.',
+    NotFoundError: 'Selected device is missing. Reconnect the USB-C headphones and detect outputs again.',
+    AbortError: 'The audio device could not be switched. Reconnect it and retry.',
+    NotReadableError: 'The audio device is unavailable or in use by another application.',
+    NotSupportedError: 'Try the latest Chrome or Edge on desktop.'
+  }[label] || '';
+  return `${label}: ${detail}${advice ? ' — ' + advice : ''}`;
+}
+
+function testCueOutput() {
+  if (!cueEnabled) {
+    $('#cueOutputStatus').textContent = 'Enable a separate headphone output before testing.';
+    return;
+  }
+  const tone = audioContext.createOscillator();
+  const volume = audioContext.createGain();
+  tone.type = 'sine';
+  tone.frequency.value = 440;
+  volume.gain.value = 0.035;
+  tone.connect(volume);
+  volume.connect(cueBus);
+  tone.start();
+  tone.stop(audioContext.currentTime + 0.35);
+  tone.onended = () => { tone.disconnect(); volume.disconnect(); };
+  $('#cueOutputStatus').textContent = 'Test tone sent to the selected headphones.';
 }
 
 async function enableCueOutput(deviceId) {
@@ -1810,6 +1865,13 @@ function bindEvents() {
     $('#audioOutputDialog').showModal();
   });
   $('#closeAudioOutput').addEventListener('click', () => $('#audioOutputDialog').close());
+  $('#detectHeadphones').addEventListener('click', () => {
+    discoverCueDevices().catch((error) => {
+      $('#cueOutputStatus').textContent = describeCueError(error);
+      console.error('Audio device discovery failed:', error);
+    });
+  });
+  $('#testHeadphones').addEventListener('click', testCueOutput);
   $('#cueVolume').addEventListener('input', (event) => {
     cueBus.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01);
   });
@@ -1829,9 +1891,9 @@ function bindEvents() {
       cueAudio.muted = true;
       cueAudio.pause();
       cueEnabled = false;
-      status.textContent = error.message || 'Could not enable headphones';
-      showToast('Headphone output failed — see Audio Output settings', 3000);
-      console.error(error);
+      status.textContent = describeCueError(error);
+      showToast(`Headphone output failed: ${error.name || 'error'} — see Audio Output`, 3500);
+      console.error('Headphone output failed:', error);
     }
   });
   $('#disableHeadphones').addEventListener('click', disableCueOutput);
