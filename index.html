@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b0f">
+  <meta name="description" content="A local-first two-deck DJ performance web app with waveforms, hot cues, mixing and an offline music library.">
+  <meta name="application-name" content="Padawan DJ">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Padawan DJ">
+  <title>Padawan DJ</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="brand-name">PADAWAN <strong>DJ</strong></span>
+      </div>
+      <div class="topbar-center">
+        <span id="libraryStatus" class="status-text">0 TRACKS</span>
+      </div>
+      <div class="topbar-right">
+        <button id="installButton" class="top-action install-action" type="button" hidden>INSTALL APP</button>
+        <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL</span><strong id="storageCompact">--</strong></button>
+        <button id="importButton" class="top-action primary" type="button">IMPORT / DROP TRACKS</button>
+        <button id="helpButton" class="top-action" type="button" aria-label="Keyboard shortcuts">?</button>
+        <time id="clock">--:--</time>
+      </div>
+      <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
+    </header>
+
+    <main class="workspace">
+      <section class="waveform-stage" aria-label="Parallel waveforms">
+        <div class="waveform-ruler">
+          <div class="waveform-ruler-marks" aria-hidden="true"><span>−16</span><span>−12</span><span>−8</span><span>−4</span><span>0</span><span>+4</span><span>+8</span><span>+12</span><span>+16</span></div>
+          <div class="waveform-zoom" aria-label="Waveform zoom">
+            <button id="waveZoomOut" type="button" title="Zoom out">−</button>
+            <button id="waveZoomReset" type="button" title="Reset waveform zoom"><span id="waveZoomLabel">32s</span></button>
+            <button id="waveZoomIn" type="button" title="Zoom in">＋</button>
+          </div>
+        </div>
+        <div class="waveform-row deck-a-waveform">
+          <div class="waveform-label">1</div>
+          <canvas id="waveformA" tabindex="0" aria-label="Deck 1 waveform. Click to seek or drag horizontally to scrub."></canvas>
+          <span class="waveform-interaction-hint">CLICK TO SEEK · DRAG TO SCRUB</span>
+        </div>
+        <div class="waveform-row deck-b-waveform">
+          <div class="waveform-label">2</div>
+          <canvas id="waveformB" tabindex="0" aria-label="Deck 2 waveform. Click to seek or drag horizontally to scrub."></canvas>
+          <span class="waveform-interaction-hint">CLICK TO SEEK · DRAG TO SCRUB</span>
+        </div>
+        <div class="playhead" aria-hidden="true"><span></span></div>
+      </section>
+
+      <section class="decks-section">
+        <article class="deck-panel deck-a" data-deck="A">
+          <header class="deck-header">
+            <span class="deck-number">1</span>
+            <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt=""><span id="coverFallbackA">1</span></div>
+            <div class="track-identification">
+              <strong id="titleA">No track loaded</strong>
+              <span id="artistA">Import music and load a track</span>
+            </div>
+            <div class="deck-key">
+              <small>KEY</small>
+              <strong id="keyA">--</strong>
+            </div>
+            <button class="master-button active" id="masterA" type="button">MASTER</button>
+          </header>
+
+          <div class="overview-strip" data-deck="A" title="Click or drag to move quickly through the complete track">
+            <canvas id="overviewA" tabindex="0" aria-label="Deck 1 complete track waveform. Click or drag to seek."></canvas>
+            <div id="overviewProgressA" class="overview-progress"></div>
+            <span class="overview-hint">FULL TRACK · CLICK / DRAG</span>
+          </div>
+
+          <div class="deck-main">
+            <div class="hotcue-panel">
+              <div class="section-label">HOT CUES</div>
+              <div class="cue-grid">
+                <button class="hotcue-button" data-deck="A" data-cue="A" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-red">A</span><span class="cue-name">Intro</span><small class="cue-time">EMPTY</small></button>
+                <button class="hotcue-button" data-deck="A" data-cue="B" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-blue">B</span><span class="cue-name">Build</span><small class="cue-time">EMPTY</small></button>
+                <button class="hotcue-button" data-deck="A" data-cue="C" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-green">C</span><span class="cue-name">Break</span><small class="cue-time">EMPTY</small></button>
+                <button class="hotcue-button" data-deck="A" data-cue="D" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-purple">D</span><span class="cue-name">Drop</span><small class="cue-time">EMPTY</small></button>
+              </div>
+              <div class="grid-controls">
+                <button class="grid-shift" data-deck="A" data-shift="-0.01" type="button">GRID −</button>
+                <button class="grid-set" data-deck="A" type="button">SET GRID</button>
+                <button class="grid-shift" data-deck="A" data-shift="0.01" type="button">GRID +</button>
+              </div>
+            </div>
+
+            <div class="transport-panel">
+              <div class="time-row">
+                <div><small>ELAPSED</small><strong id="elapsedA">00:00.0</strong></div>
+                <button id="startA" class="track-start-button" type="button" title="Jump to the start of the track">↤ 0:00</button>
+                <div class="remaining"><small>REMAIN</small><strong id="remainingA">−00:00.0</strong></div>
+              </div>
+              <div class="transport-cluster">
+                <button id="cueA" class="round-button cue-button" type="button">CUE</button>
+                <div class="jogwheel" id="jogA" tabindex="0" aria-label="Deck 1 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Centre: scratch / seek · Outer rim: nudge">
+                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverA" class="jog-cover" alt=""><span id="jogCoverFallbackA" class="jog-cover-fallback">DD</span><strong id="bpmA">128.00</strong><span id="pitchA">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
+                  <span class="jog-drop-label">DROP TRACK TO LOAD</span>
+                </div>
+                <button id="playA" class="round-button play-button" type="button" aria-label="Play deck 1">▶</button>
+              </div>
+            </div>
+
+            <div class="tempo-panel">
+              <div class="section-label">TEMPO</div>
+              <input id="tempoA" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 1 tempo">
+              <button id="syncA" class="sync-button" type="button">BEAT<br>SYNC</button>
+              <button class="reset-tempo" data-deck="A" type="button">RESET</button>
+            </div>
+          </div>
+        </article>
+
+        <aside class="mixer-panel" aria-label="Mixer">
+          <div class="mixer-heading">MIXER</div>
+          <div class="mixer-channels">
+            <div class="mixer-channel" data-deck="A">
+              <label>TRIM<input id="trimA" type="range" min="0" max="1.4" value="1" step="0.01"></label>
+              <label>HIGH<input id="highA" type="range" min="-24" max="6" value="0" step="1"></label>
+              <label>MID<input id="midA" type="range" min="-24" max="6" value="0" step="1"></label>
+              <label>LOW<input id="lowA" type="range" min="-24" max="6" value="0" step="1"></label>
+              <button class="cue-monitor" type="button">CUE</button>
+              <input id="volumeA" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 volume">
+            </div>
+            <div class="level-meter" aria-label="Master level"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="mixer-channel" data-deck="B">
+              <label>TRIM<input id="trimB" type="range" min="0" max="1.4" value="1" step="0.01"></label>
+              <label>HIGH<input id="highB" type="range" min="-24" max="6" value="0" step="1"></label>
+              <label>MID<input id="midB" type="range" min="-24" max="6" value="0" step="1"></label>
+              <label>LOW<input id="lowB" type="range" min="-24" max="6" value="0" step="1"></label>
+              <button class="cue-monitor active" type="button">CUE</button>
+              <input id="volumeB" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 2 volume">
+            </div>
+          </div>
+          <div class="crossfader-area">
+            <span>1</span><input id="crossfader" type="range" min="-1" max="1" value="0" step="0.01" aria-label="Crossfade between deck 1 and deck 2"><span>2</span>
+          </div>
+          <div class="master-volume">
+            <label for="masterVolume">MASTER</label>
+            <input id="masterVolume" type="range" min="0" max="1" value="0.85" step="0.01">
+          </div>
+        </aside>
+
+        <article class="deck-panel deck-b" data-deck="B">
+          <header class="deck-header">
+            <span class="deck-number">2</span>
+            <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt=""><span id="coverFallbackB">2</span></div>
+            <div class="track-identification">
+              <strong id="titleB">No track loaded</strong>
+              <span id="artistB">Import music and load a track</span>
+            </div>
+            <div class="deck-key">
+              <small>KEY</small>
+              <strong id="keyB">--</strong>
+            </div>
+            <button class="master-button" id="masterB" type="button">MASTER</button>
+          </header>
+
+          <div class="overview-strip" data-deck="B" title="Click or drag to move quickly through the complete track">
+            <canvas id="overviewB" tabindex="0" aria-label="Deck 2 complete track waveform. Click or drag to seek."></canvas>
+            <div id="overviewProgressB" class="overview-progress"></div>
+            <span class="overview-hint">FULL TRACK · CLICK / DRAG</span>
+          </div>
+
+          <div class="deck-main">
+            <div class="tempo-panel mirrored">
+              <div class="section-label">TEMPO</div>
+              <input id="tempoB" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 2 tempo">
+              <button id="syncB" class="sync-button" type="button">BEAT<br>SYNC</button>
+              <button class="reset-tempo" data-deck="B" type="button">RESET</button>
+            </div>
+
+            <div class="transport-panel">
+              <div class="time-row">
+                <div><small>ELAPSED</small><strong id="elapsedB">00:00.0</strong></div>
+                <button id="startB" class="track-start-button" type="button" title="Jump to the start of the track">↤ 0:00</button>
+                <div class="remaining"><small>REMAIN</small><strong id="remainingB">−00:00.0</strong></div>
+              </div>
+              <div class="transport-cluster">
+                <button id="cueB" class="round-button cue-button" type="button">CUE</button>
+                <div class="jogwheel" id="jogB" tabindex="0" aria-label="Deck 2 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Centre: scratch / seek · Outer rim: nudge">
+                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverB" class="jog-cover" alt=""><span id="jogCoverFallbackB" class="jog-cover-fallback">DD</span><strong id="bpmB">128.00</strong><span id="pitchB">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
+                  <span class="jog-drop-label">DROP TRACK TO LOAD</span>
+                </div>
+                <button id="playB" class="round-button play-button" type="button" aria-label="Play deck 2">▶</button>
+              </div>
+            </div>
+
+            <div class="hotcue-panel">
+              <div class="section-label">HOT CUES</div>
+              <div class="cue-grid">
+                <button class="hotcue-button" data-deck="B" data-cue="A" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-red">A</span><span class="cue-name">Intro</span><small class="cue-time">EMPTY</small></button>
+                <button class="hotcue-button" data-deck="B" data-cue="B" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-blue">B</span><span class="cue-name">Build</span><small class="cue-time">EMPTY</small></button>
+                <button class="hotcue-button" data-deck="B" data-cue="C" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-green">C</span><span class="cue-name">Break</span><small class="cue-time">EMPTY</small></button>
+                <button class="hotcue-button" data-deck="B" data-cue="D" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-purple">D</span><span class="cue-name">Drop</span><small class="cue-time">EMPTY</small></button>
+              </div>
+              <div class="grid-controls">
+                <button class="grid-shift" data-deck="B" data-shift="-0.01" type="button">GRID −</button>
+                <button class="grid-set" data-deck="B" type="button">SET GRID</button>
+                <button class="grid-shift" data-deck="B" data-shift="0.01" type="button">GRID +</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="library-section">
+        <aside class="browser-sidebar">
+          <div class="sidebar-title">BROWSER</div>
+          <button class="source-item active" data-source="collection" type="button"><span>▦</span>Collection</button>
+          <button class="source-item" data-source="recent" type="button"><span>◷</span>Recently Added</button>
+          <button class="source-item" data-source="history" type="button"><span>↺</span>History</button>
+          <div class="playlist-heading">PLAYLISTS <button id="addPlaylist" type="button">＋</button></div>
+          <div id="playlistList" class="playlist-list"></div>
+          <div class="sidebar-footer">
+            <button id="loadDemosButton" type="button">LOAD DEMO TRACKS</button>
+            <button id="clearLibraryButton" type="button">CLEAR LIBRARY</button>
+          </div>
+        </aside>
+
+        <div class="track-browser">
+          <header class="browser-toolbar">
+            <div class="browser-title"><strong id="browserHeading">Collection</strong><span id="browserCount">0 tracks</span></div>
+            <div class="browser-actions">
+              <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search title or artist"></label>
+            </div>
+          </header>
+          <div class="track-table-wrap">
+            <table class="track-table">
+              <thead>
+                <tr>
+                  <th class="load-column">DECK / REMOVE</th>
+                  <th data-sort="title">TITLE <span>↕</span></th>
+                  <th data-sort="artist">ARTIST <span>↕</span></th>
+                  <th data-sort="bpm" class="numeric">BPM <span>↕</span></th>
+                  <th data-sort="key">KEY <span>↕</span></th>
+                  <th data-sort="duration" class="numeric">TIME <span>↕</span></th>
+                  <th data-sort="addedAt">ADDED <span>↕</span></th>
+                </tr>
+              </thead>
+              <tbody id="trackTableBody">
+                <tr class="empty-state"><td colspan="7">Import audio files or load the included demo tracks.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <footer class="browser-footer">
+            <span id="selectionHint">Double-click to load, or drag a track directly onto a jog wheel.</span>
+            <span id="totalDuration">00:00 total</span>
+          </footer>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="helpDialog" class="hardware-dialog help-dialog">
+    <form method="dialog">
+      <header><strong>Keyboard shortcuts</strong><button type="submit">×</button></header>
+      <div class="shortcut-grid">
+        <kbd>1</kbd><span>Select Deck 1</span>
+        <kbd>2</kbd><span>Select Deck 2</span>
+        <kbd>Space</kbd><span>Play / pause selected deck</span>
+        <kbd>C</kbd><span>Cue selected deck</span>
+        <kbd>S</kbd><span>Sync selected deck to master</span>
+        <kbd>← / →</kbd><span>Seek five seconds</span>
+        <kbd>Enter</kbd><span>Load selected library track</span>
+        <kbd>Hot Cue A–D</kbd><span>Click an empty pad to set it; click a saved pad to jump and play. Shift-click or right-click deletes it.</span>
+        <kbd>Large waveform</kbd><span>Click to jump or drag horizontally to scrub. Use the zoom controls above it.</span>
+        <kbd>Small waveform</kbd><span>Click or drag to move quickly across the complete track.</span>
+        <kbd>↤ 0:00</kbd><span>Jump directly back to the beginning of the track.</span>
+        <kbd>Track row → jog</kbd><span>Drag a track from Collection and drop it directly on Deck 1 or Deck 2 jog wheel.</span>
+        <kbd>Import button</kbd><span>Drop audio files directly onto IMPORT / DROP TRACKS</span>
+        <kbd>Jog centre</kbd><span>Drag clockwise or anticlockwise to scratch / seek</span>
+        <kbd>Jog rim</kbd><span>Drag for fine beat nudging</span>
+        <kbd>Mouse wheel</kbd><span>Fine seek while hovering over a jog wheel</span>
+      </div>
+      <p>Tip: hold Shift while dragging a jog wheel for extra-fine movement. Chrome or Edge gives the most consistent Web Audio performance.</p>
+    </form>
+  </dialog>
+
+
+  <dialog id="storageDialog" class="hardware-dialog storage-dialog">
+    <form method="dialog">
+      <header><div><strong>Local storage</strong><span id="storageOrigin">This browser</span></div><button type="submit" aria-label="Close">×</button></header>
+      <div class="storage-content">
+        <div class="storage-stat-grid">
+          <div class="storage-stat"><span>TRACKS</span><strong id="storageTrackCount">0</strong><small>saved locally</small></div>
+          <div class="storage-stat"><span>MUSIC FILES</span><strong id="storageLibrarySize">0 B</strong><small>audio + artwork</small></div>
+          <div class="storage-stat"><span>ORIGIN USED</span><strong id="storageUsed">0 B</strong><small>including app cache</small></div>
+          <div class="storage-stat"><span>AVAILABLE QUOTA</span><strong id="storageQuota">Unknown</strong><small>browser estimate</small></div>
+        </div>
+        <div class="storage-meter" aria-label="Storage usage"><span id="storageMeterFill"></span></div>
+        <div class="storage-status-row"><span>Persistent storage</span><strong id="persistentStatus" class="storage-badge">CHECKING</strong></div>
+        <div class="storage-status-row"><span>Offline app shell</span><strong id="offlineStatus" class="storage-badge">CHECKING</strong></div>
+        <p class="storage-note">Your tracks, artwork, playlists and Hot Cues stay inside this browser profile for this exact domain. Audio files are never uploaded by this app.</p>
+        <div class="storage-actions">
+          <button id="requestPersistenceButton" class="storage-primary" type="button">REQUEST PERSISTENT STORAGE</button>
+          <button id="exportLibraryButton" type="button">EXPORT LIBRARY DATA</button>
+          <button id="clearLibraryDialogButton" class="storage-danger" type="button">CLEAR LOCAL LIBRARY</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="actionDialog" class="hardware-dialog action-dialog">
+    <form id="actionDialogForm">
+      <header>
+        <div><small id="actionDialogCode">SYSTEM ACTION</small><strong id="actionDialogTitle">Confirm action</strong></div>
+        <button id="actionDialogClose" type="button" aria-label="Cancel">×</button>
+      </header>
+      <div class="action-dialog-content">
+        <p id="actionDialogMessage"></p>
+        <label id="actionDialogField" class="industrial-field" hidden>
+          <span id="actionDialogLabel"></span>
+          <input id="actionDialogInput" autocomplete="off">
+        </label>
+      </div>
+      <footer>
+        <button id="actionDialogCancel" type="button">CANCEL</button>
+        <button id="actionDialogConfirm" class="dialog-confirm" type="submit">CONFIRM</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
