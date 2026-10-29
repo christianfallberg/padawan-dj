@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.11';
+const APP_VERSION = '6.2.12';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1255,14 +1255,14 @@ function drawWaveform(deck) {
     ctx.fillStyle = isBar ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.09)';
     ctx.fillRect(Math.round(x), 0, isBar ? 1.4 * ratio : 0.7 * ratio, height);
     if (isBar) {
-      ctx.fillStyle = deck.id === 'A' ? '#4fa9ff' : '#ffb347';
+      ctx.fillStyle = deck.id === 'A' ? '#70e0ff' : '#ff77bd';
       ctx.font = `${7 * ratio}px ui-monospace`;
       ctx.fillText(String(Math.floor(beat / 4) + 1), x + 3 * ratio, 9 * ratio);
     }
   }
 
-  const primary = deck.id === 'A' ? '#16a9ff' : '#fc388f';
-  const secondary = deck.id === 'A' ? '#ff9918' : '#2388ff';
+  const primary = deck.id === 'A' ? '#16c8ff' : '#f73597';
+  const secondary = deck.id === 'A' ? '#77e6ff' : '#ff8acb';
   const peaks = track.peaks;
   const duration = track.duration || 1;
   const step = Math.max(1, Math.floor(ratio));
