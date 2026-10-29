@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.9';
+const APP_VERSION = '6.2.10';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1311,7 +1311,7 @@ function drawOverview(deck) {
   const ctx = canvas.getContext('2d');
   const { width, height } = canvasSize(canvas);
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = '#05070a';
+  ctx.fillStyle = '#000204';
   ctx.fillRect(0, 0, width, height);
   if (!deck.track?.peaks) return;
   const peaks = deck.track.peaks;
