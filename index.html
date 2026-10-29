@@ -14,7 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
-  <link rel="stylesheet" href="styles.css?v=6.1.8">
+  <link rel="stylesheet" href="styles.css?v=6.2.0">
 </head>
 <body>
   <div class="app-shell">
@@ -23,13 +23,16 @@
         <img class="brand-icon" src="icons/padawan-mark.svg" alt="" width="27" height="27">
         <span class="brand-name">PADAWAN <strong>DJ</strong></span>
       </div>
-      <div class="topbar-center">
-        <span id="libraryStatus" class="status-text">0 TRACKS</span>
-      </div>
+      <nav class="topbar-center app-navigation" aria-label="App navigation">
+        <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><span aria-hidden="true">♫</span> LIBRARY</button>
+        <button id="navMixer" class="nav-pill" type="button" title="Focus the mixer"><span aria-hidden="true">☷</span> MIXER</button>
+        <button id="navAudio" class="nav-pill" type="button" title="Audio and headphone settings"><span aria-hidden="true">◉</span> AUDIO</button>
+      </nav>
       <div class="topbar-right">
+        <span id="libraryStatus" class="status-text">0 TRACKS</span>
         <button id="installButton" class="top-action install-action" type="button" hidden>INSTALL APP</button>
         <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL</span><strong id="storageCompact">--</strong></button>
-        <button id="importButton" class="top-action primary" type="button">IMPORT / DROP TRACKS</button>
+        <button id="importButton" class="top-action primary" type="button">＋ ADD TRACKS</button>
         <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing">AUDIO OUTPUT</button>
         <button id="helpButton" class="top-action" type="button" aria-label="Help and About Padawan DJ" title="Help, About and system requirements">?</button>
         <time id="clock">--:--</time>
@@ -243,8 +246,8 @@
 
       <section class="library-section">
         <aside class="browser-sidebar">
-          <div class="sidebar-title">BROWSER</div>
-          <button class="source-item active" data-source="collection" type="button"><span>▦</span>Collection</button>
+          <div class="sidebar-title">MUSIC LIBRARY</div>
+          <button class="source-item active" data-source="collection" type="button"><span>▦</span>All Tracks</button>
           <button class="source-item" data-source="recent" type="button"><span>◷</span>Recently Added</button>
           <button class="source-item" data-source="history" type="button"><span>↺</span>History</button>
           <div class="playlist-heading">PLAYLISTS <button id="addPlaylist" type="button">＋</button></div>
@@ -259,7 +262,7 @@
           <header class="browser-toolbar">
             <div class="browser-title"><strong id="browserHeading">Collection</strong><span id="browserCount">0 tracks</span></div>
             <div class="browser-actions">
-              <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search title or artist"></label>
+              <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search tracks, artists, BPM…"></label>
             </div>
           </header>
           <div class="track-table-wrap">
@@ -404,6 +407,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.1.8"></script>
+  <script src="app.js?v=6.2.0"></script>
 </body>
 </html>
