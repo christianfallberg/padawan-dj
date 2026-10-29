@@ -470,3 +470,7 @@ kbd { height: 26px; margin: 3px 0; border: 1px solid #4b545e; border-radius: 3px
 .audio-output-actions button { cursor: pointer; padding: 9px 12px; background: var(--panel-3); border: 1px solid var(--line); border-radius: 5px; font-size: 11px; font-weight: 700; }
 .audio-output-actions button:first-child { background: var(--blue); border-color: var(--blue); color: #fff; }
 .audio-output-actions button:hover { filter: brightness(1.2); }
+
+.audio-output-dialog .audio-detect-button { display: block; margin-top: 8px; cursor: pointer; padding: 9px 12px; background: var(--panel-3); border: 1px solid #3c4752; border-radius: 5px; font-size: 11px; font-weight: 800; }
+.audio-output-dialog .audio-detect-button:hover { filter: brightness(1.2); }
+.audio-output-dialog #cueOutputStatus { overflow-wrap: anywhere; color: #d5dce6; }
