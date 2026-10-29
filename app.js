@@ -6,6 +6,8 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const TAU = Math.PI * 2;
 const JOG_SCRATCH_SECONDS_PER_REVOLUTION = 1.8;
 const JOG_NUDGE_SECONDS_PER_REVOLUTION = 0.45;
+const JOG_SCRATCH_RADIUS_RATIO = 0.90; // Only the outermost 10% is nudge.
+const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal dragging.
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
 const HOT_CUE_COLORS = { A: '#ff4759', B: '#4b9dff', C: '#42dc7f', D: '#bd6cff' };
 const HOT_CUE_LABELS = { A: 'Intro', B: 'Build', C: 'Break', D: 'Drop' };
@@ -1385,17 +1387,22 @@ function bindJogControls(deck) {
     pointerId: null,
     mode: null,
     lastAngle: 0,
+    lastX: 0,
+    centreScrub: false,
     lastMoveTime: 0,
     wasPlaying: false,
   };
 
-  const finishInteraction = () => {
+  const finishInteraction = (event) => {
     if (!interaction.active) return;
+    if (event?.pointerId !== undefined && event.pointerId !== interaction.pointerId) return;
+    const pointerId = interaction.pointerId;
     const shouldResume = interaction.mode === 'scratch' && interaction.wasPlaying && deck.track;
     deck.stopScratchGrain();
     interaction.active = false;
     interaction.pointerId = null;
     jog.classList.remove('dragging', 'scratching', 'nudging');
+    if (jog.hasPointerCapture?.(pointerId)) jog.releasePointerCapture(pointerId);
     if (shouldResume) {
       deck.audio.play().catch((error) => {
         console.error(error);
@@ -1407,7 +1414,7 @@ function bindJogControls(deck) {
   };
 
   jog.addEventListener('pointerdown', (event) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (interaction.active || (event.pointerType === 'mouse' && event.button !== 0)) return;
     if (!deck.track) return showToast(`Load a track into Deck ${deck.id} first`);
     event.preventDefault();
     ensureAudioReady().catch(console.error);
@@ -1417,11 +1424,13 @@ function bindJogControls(deck) {
     interaction.active = true;
     interaction.pointerId = event.pointerId;
     interaction.lastAngle = position.angle;
+    interaction.lastX = event.clientX;
+    interaction.centreScrub = position.radiusRatio <= JOG_CENTER_RADIUS_RATIO;
     interaction.lastMoveTime = performance.now();
-    interaction.mode = position.radiusRatio <= 0.7 ? 'scratch' : 'nudge';
+    interaction.mode = position.radiusRatio <= JOG_SCRATCH_RADIUS_RATIO ? 'scratch' : 'nudge';
     interaction.wasPlaying = !deck.audio.paused && !deck.audio.ended;
 
-    jog.setPointerCapture(event.pointerId);
+    if (jog.setPointerCapture) jog.setPointerCapture(event.pointerId);
     jog.classList.add('dragging', interaction.mode === 'scratch' ? 'scratching' : 'nudging');
 
     // Touching the platter stops it, just like vinyl mode on a controller.
@@ -1437,13 +1446,18 @@ function bindJogControls(deck) {
     event.preventDefault();
     const position = pointerPositionOnJog(event, jog);
     let delta = normaliseAngleDelta(position.angle - interaction.lastAngle);
+    const deltaX = event.clientX - interaction.lastX;
     interaction.lastAngle = position.angle;
+    interaction.lastX = event.clientX;
     if (event.shiftKey) delta *= 0.25;
 
     const secondsPerRevolution = interaction.mode === 'scratch'
       ? JOG_SCRATCH_SECONDS_PER_REVOLUTION
       : JOG_NUDGE_SECONDS_PER_REVOLUTION;
-    const seconds = (delta / TAU) * secondsPerRevolution;
+    // Small offsets near the spindle can cause wild angular jumps.
+    const seconds = interaction.mode === 'scratch' && interaction.centreScrub
+      ? (deltaX / jog.getBoundingClientRect().width) * secondsPerRevolution * (event.shiftKey ? 0.25 : 1)
+      : (delta / TAU) * secondsPerRevolution;
     const now = performance.now();
     const elapsed = (now - interaction.lastMoveTime) / 1000;
     interaction.lastMoveTime = now;
@@ -1456,6 +1470,8 @@ function bindJogControls(deck) {
   jog.addEventListener('pointercancel', finishInteraction);
   jog.addEventListener('lostpointercapture', finishInteraction);
   jog.addEventListener('contextmenu', (event) => event.preventDefault());
+  // Native image drag must not steal the pointer while scratching.
+  jog.addEventListener('dragstart', (event) => event.preventDefault());
 
   jog.addEventListener('wheel', (event) => {
     if (!deck.track) return;
