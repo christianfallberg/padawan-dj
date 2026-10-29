@@ -14,7 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
-  <link rel="stylesheet" href="styles.css?v=6.2.4">
+  <link rel="stylesheet" href="styles.css?v=6.2.5">
 </head>
 <body>
   <div class="app-shell">
@@ -105,21 +105,6 @@
           </div>
 
           <div class="deck-main">
-            <div class="hotcue-panel">
-              <div class="section-label">HOT CUES</div>
-              <div class="cue-grid">
-                <button class="hotcue-button" data-deck="A" data-cue="A" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-red">A</span><span class="cue-name">Intro</span><small class="cue-time">EMPTY</small></button>
-                <button class="hotcue-button" data-deck="A" data-cue="B" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-blue">B</span><span class="cue-name">Build</span><small class="cue-time">EMPTY</small></button>
-                <button class="hotcue-button" data-deck="A" data-cue="C" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-green">C</span><span class="cue-name">Break</span><small class="cue-time">EMPTY</small></button>
-                <button class="hotcue-button" data-deck="A" data-cue="D" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-purple">D</span><span class="cue-name">Drop</span><small class="cue-time">EMPTY</small></button>
-              </div>
-              <div class="grid-controls">
-                <button class="grid-shift" data-deck="A" data-shift="-0.01" type="button">GRID −</button>
-                <button class="grid-set" data-deck="A" type="button">SET GRID</button>
-                <button class="grid-shift" data-deck="A" data-shift="0.01" type="button">GRID +</button>
-              </div>
-            </div>
-
             <div class="transport-panel">
               <div class="time-row">
                 <div><small>ELAPSED</small><strong id="elapsedA">00:00.0</strong></div>
@@ -127,6 +112,12 @@
                 <div class="remaining"><small>REMAIN</small><strong id="remainingA">−00:00.0</strong></div>
               </div>
               <div class="transport-cluster">
+                <div class="hotcue-strip" role="group" aria-label="Deck 1 Hot Cues">
+                  <button class="hotcue-button" data-deck="A" data-cue="A" type="button" aria-label="Deck 1 Hot Cue 1" title="Click to set / trigger Hot Cue 1 · Shift-click or right-click to remove">1</button>
+                  <button class="hotcue-button" data-deck="A" data-cue="B" type="button" aria-label="Deck 1 Hot Cue 2" title="Click to set / trigger Hot Cue 2 · Shift-click or right-click to remove">2</button>
+                  <button class="hotcue-button" data-deck="A" data-cue="C" type="button" aria-label="Deck 1 Hot Cue 3" title="Click to set / trigger Hot Cue 3 · Shift-click or right-click to remove">3</button>
+                  <button class="hotcue-button" data-deck="A" data-cue="D" type="button" aria-label="Deck 1 Hot Cue 4" title="Click to set / trigger Hot Cue 4 · Shift-click or right-click to remove">4</button>
+                </div>
                 <button id="cueA" class="round-button cue-button" type="button">CUE</button>
                 <div class="jogwheel" id="jogA" tabindex="0" aria-label="Deck 1 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Platter: scratch · Thin outer rim: nudge">
                   <div class="jog-ring"><div class="jog-label"><img id="jogCoverA" class="jog-cover" draggable="false" alt=""><span id="jogCoverFallbackA" class="jog-cover-fallback">DD</span><strong id="bpmA">128.00</strong><span id="pitchA">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
@@ -284,6 +275,12 @@
                 <div class="remaining"><small>REMAIN</small><strong id="remainingB">−00:00.0</strong></div>
               </div>
               <div class="transport-cluster">
+                <div class="hotcue-strip" role="group" aria-label="Deck 2 Hot Cues">
+                  <button class="hotcue-button" data-deck="B" data-cue="A" type="button" aria-label="Deck 2 Hot Cue 1" title="Click to set / trigger Hot Cue 1 · Shift-click or right-click to remove">1</button>
+                  <button class="hotcue-button" data-deck="B" data-cue="B" type="button" aria-label="Deck 2 Hot Cue 2" title="Click to set / trigger Hot Cue 2 · Shift-click or right-click to remove">2</button>
+                  <button class="hotcue-button" data-deck="B" data-cue="C" type="button" aria-label="Deck 2 Hot Cue 3" title="Click to set / trigger Hot Cue 3 · Shift-click or right-click to remove">3</button>
+                  <button class="hotcue-button" data-deck="B" data-cue="D" type="button" aria-label="Deck 2 Hot Cue 4" title="Click to set / trigger Hot Cue 4 · Shift-click or right-click to remove">4</button>
+                </div>
                 <button id="cueB" class="round-button cue-button" type="button">CUE</button>
                 <div class="jogwheel" id="jogB" tabindex="0" aria-label="Deck 2 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Platter: scratch · Thin outer rim: nudge">
                   <div class="jog-ring"><div class="jog-label"><img id="jogCoverB" class="jog-cover" draggable="false" alt=""><span id="jogCoverFallbackB" class="jog-cover-fallback">DD</span><strong id="bpmB">128.00</strong><span id="pitchB">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
@@ -294,20 +291,6 @@
               </div>
             </div>
 
-            <div class="hotcue-panel">
-              <div class="section-label">HOT CUES</div>
-              <div class="cue-grid">
-                <button class="hotcue-button" data-deck="B" data-cue="A" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-red">A</span><span class="cue-name">Intro</span><small class="cue-time">EMPTY</small></button>
-                <button class="hotcue-button" data-deck="B" data-cue="B" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-blue">B</span><span class="cue-name">Build</span><small class="cue-time">EMPTY</small></button>
-                <button class="hotcue-button" data-deck="B" data-cue="C" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-green">C</span><span class="cue-name">Break</span><small class="cue-time">EMPTY</small></button>
-                <button class="hotcue-button" data-deck="B" data-cue="D" type="button" title="Click to set or trigger · Shift-click/right-click to delete"><span class="cue-letter cue-purple">D</span><span class="cue-name">Drop</span><small class="cue-time">EMPTY</small></button>
-              </div>
-              <div class="grid-controls">
-                <button class="grid-shift" data-deck="B" data-shift="-0.01" type="button">GRID −</button>
-                <button class="grid-set" data-deck="B" type="button">SET GRID</button>
-                <button class="grid-shift" data-deck="B" data-shift="0.01" type="button">GRID +</button>
-              </div>
-            </div>
           </div>
         </article>
       </section>
@@ -382,7 +365,7 @@
         <kbd>S</kbd><span>Sync selected deck to master</span>
         <kbd>← / →</kbd><span>Seek five seconds</span>
         <kbd>Enter</kbd><span>Load selected library track</span>
-        <kbd>Hot Cue A–D</kbd><span>Click an empty pad to set it; click a saved pad to jump and play. Shift-click or right-click deletes it.</span>
+        <kbd>Hot Cues 1–4</kbd><span>Click an empty pad to set it; click a saved pad to jump and play. Shift-click or right-click deletes it.</span>
         <kbd>Large waveform</kbd><span>Click to jump or drag horizontally to scrub. Use the zoom controls above it.</span>
         <kbd>Small waveform</kbd><span>Click or drag to move quickly across the complete track.</span>
         <kbd>↤ 0:00</kbd><span>Jump directly back to the beginning of the track.</span>
@@ -477,6 +460,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.2.4"></script>
+  <script src="app.js?v=6.2.5"></script>
 </body>
 </html>
