@@ -1338,34 +1338,40 @@ function bindJogControls(deck) {
 }
 
 function bindJogDrop(deck) {
-  const jog = $(`#jog${deck.id}`);
-  const hasTrackData = (event) => [...(event.dataTransfer?.types || [])].includes('text/track-id');
-  const clear = () => jog.classList.remove('track-drop-target');
+  const jog = `#jog${deck.id}`;
+  const target = $(jog);
+  const panel = target.closest('.deck-panel');
+  const hasTrackData = (event) => {
+    const types = Array.from(event.dataTransfer?.types || []);
+    return types.includes('text/track-id') || (types.includes('text/plain') && !types.includes('Files'));
+  };
+  const clear = () => panel.classList.remove('track-drop-target');
 
-  jog.addEventListener('dragenter', (event) => {
+  // Accept a track dropped anywhere over the deck, not only a small jog element.
+  panel.addEventListener('dragenter', (event) => {
     if (!hasTrackData(event)) return;
     event.preventDefault();
-    event.stopPropagation();
-    jog.classList.add('track-drop-target');
+    panel.classList.add('track-drop-target');
   });
-  jog.addEventListener('dragover', (event) => {
+  panel.addEventListener('dragover', (event) => {
     if (!hasTrackData(event)) return;
     event.preventDefault();
-    event.stopPropagation();
     event.dataTransfer.dropEffect = 'copy';
-    jog.classList.add('track-drop-target');
+    panel.classList.add('track-drop-target');
   });
-  jog.addEventListener('dragleave', (event) => {
-    if (event.relatedTarget && jog.contains(event.relatedTarget)) return;
+  panel.addEventListener('dragleave', (event) => {
+    if (event.relatedTarget && panel.contains(event.relatedTarget)) return;
     clear();
   });
-  jog.addEventListener('drop', (event) => {
+  panel.addEventListener('drop', (event) => {
     if (!hasTrackData(event)) return;
     event.preventDefault();
     event.stopPropagation();
-    const trackId = event.dataTransfer.getData('text/track-id');
+    const trackId = event.dataTransfer.getData('text/track-id') || event.dataTransfer.getData('text/plain');
     clear();
-    if (trackId) loadTrackToDeck(trackId, deck.id).catch(console.error);
+    if (state.tracks.some((track) => track.id === trackId)) {
+      loadTrackToDeck(trackId, deck.id).catch(console.error);
+    }
   });
 }
 
@@ -1914,6 +1920,7 @@ function bindEvents() {
   ui.trackTableBody.addEventListener('dragstart', (event) => {
     const row = event.target.closest('tr[data-id]');
     if (!row) return;
+    if (!event.dataTransfer) return;
     event.dataTransfer.setData('text/track-id', row.dataset.id);
     event.dataTransfer.setData('text/plain', row.dataset.id);
     event.dataTransfer.effectAllowed = 'copy';
