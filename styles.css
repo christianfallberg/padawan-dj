@@ -2055,3 +2055,195 @@ body { overflow: visible; }
   box-shadow:inset 0 1px 3px #0008;
 }
 /* Keep the EQ, tempo and headphone faders intact; only change deck placement. */
+
+
+/* v6.2.6 — per-deck EQ/tempo placement and simplified recessed tempo slot */
+/* One intentional physical arrangement for both decks: EQ | PLATTER | TEMPO. */
+.deck-panel .deck-main,
+.deck-b .deck-main {
+  display: grid;
+  grid-template-columns: 98px minmax(0,1fr) 72px;
+  min-height: 0;
+  gap: 0;
+  align-items: stretch;
+}
+.deck-panel .deck-main > .eq-panel {
+  grid-column: 1;grid-row:1;min-width:0;min-height:0;
+}
+.deck-panel .deck-main > .transport-panel {
+  grid-column: 2;grid-row:1;min-width:0;min-height:0;
+}
+.deck-panel .deck-main > .tempo-panel {
+  grid-column: 3;grid-row:1;min-width:0;min-height:0;
+}
+/* The EQ moves out of the center mixer and sits left of its own jog wheel. */
+.eq-panel {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:0; width:100%;
+  padding: 10px 3px 14px 6px;
+  background:transparent;
+  border:0;
+}
+.eq-panel .section-label {
+  width:100%;
+  margin:0 0 9px 0;
+  color:#afbeca;
+  text-align:center;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.07em;
+}
+.eq-panel .eq-bank {
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:repeat(3,74px);
+  align-items:center;
+  justify-items:center;
+  width:88px;height:244px;min-height:244px;
+  padding: 10px 4px;
+  border:1px solid #182736;
+  border-radius:15px;
+  background:linear-gradient(90deg,#030810 0%,#060b12 45%,#040a11 100%);
+  box-shadow: inset 0 1px 3px #000b;
+}
+.eq-panel .eq-bank::before { display:none; }
+.eq-panel .eq-control {
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;
+  width:100%;height:74px;
+  margin:0;padding:0;
+  color:#e2eaf0;
+  cursor:ns-resize;
+}
+.eq-panel .eq-caption {
+  display:block;
+  color:#b9c7d3;
+  font-size:10px;
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:.045em;
+  text-align:center;
+}
+.eq-panel .eq-knob-unit { width:51px;height:48px; }
+.eq-panel .eq-knob-face { width:37px;height:37px; }
+.eq-panel .eq-knob-pointer {background:#e6f5ff;}
+.deck-b .eq-panel .eq-knob-pointer {background:#e6f5ff;}
+/* TRIM is a mixer gain control, not part of the three-band per-deck EQ. */
+.mixer-panel .mixer-channel {
+  display:grid;
+  grid-template-rows:100px 39px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  justify-items:center;
+  min-height:0;
+}
+.mixer-panel .trim-control {
+  display:grid;place-items:center;
+  align-self:start;
+  width:100%;min-width:0;height:96px;
+  padding:3px 0;
+  border:1px solid #182736;
+  border-radius:12px;
+  background:#040a11;
+  box-shadow:inset 0 1px 3px #000a;
+}
+.mixer-panel .trim-control .eq-control {
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;
+  width:100%;height:92px;min-width:0;
+  font-size:10px;
+  color:#c4d2de;
+  cursor:ns-resize;
+}
+.mixer-panel .trim-control .eq-caption {
+  font-size:10px;line-height:1.1;font-weight:700;color:#c4d2de;
+}
+.mixer-panel .trim-control .eq-knob-unit {
+  display:grid;place-items:center;width:51px;height:48px;
+}
+.mixer-panel .trim-control .eq-knob-face { width:37px;height:37px; }
+.mixer-panel .trim-control .eq-knob-input {pointer-events:none;opacity:0;}
+.mixer-panel .cue-monitor {justify-self:center;align-self:center;}
+.mixer-panel .cue-level-control {align-self:start;}
+
+/* Pitch/tempo right-hand recess: nearly black, minimally framed, just + and −. */
+.deck-panel .tempo-panel {
+  display:grid;
+  grid-template-rows:24px minmax(0,1fr) 37px;
+  align-items:center;
+  justify-items:center;
+  padding:12px 4px 14px 2px;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+}
+.deck-panel .tempo-panel .section-label {
+  margin:0;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.04em;
+  color:#b9c7d3;
+}
+.deck-panel .tempo-slot {
+  width:51px;height:259px;min-height:259px;max-height:259px;
+  border:1px solid #142130;
+  border-radius:5px;
+  background:#04080f;
+  box-shadow:inset 0 1px 4px #0009;
+}
+.deck-panel .tempo-slot::before,
+.deck-panel .tempo-slot::after {
+  left:50%;transform:translateX(-50%);
+  color:#cbd7e0;
+  font-size:16px;
+  line-height:1;
+  font-family:inherit;
+  font-weight:500;
+  text-shadow:none;
+  letter-spacing:0;
+}
+.deck-panel .tempo-slot::before {content:"+";top:9px;}
+.deck-panel .tempo-slot::after {content:"−";bottom:9px;}
+.deck-panel .tempo-ticks {
+  inset:30px 6px;
+  opacity:.38;
+  background:
+    repeating-linear-gradient(to bottom,#607184 0 1px,transparent 1px 15px) left center/7px 100% no-repeat,
+    repeating-linear-gradient(to bottom,#607184 0 1px,transparent 1px 15px) right center/7px 100% no-repeat;
+}
+.deck-panel .tempo-centre-line {
+  left:7px;right:7px;height:1px;
+  background:#506273;
+  box-shadow:none;opacity:.55;
+}
+.deck-b .tempo-centre-line {background:#506273;box-shadow:none;}
+.deck-panel .tempo-slot input.vertical-range {
+  width:28px;height:199px;min-height:199px;max-height:199px;
+  margin:0;outline-offset:2px;
+}
+.deck-panel .tempo-slot input.vertical-range::-webkit-slider-runnable-track {
+  width:7px;
+  border:0;
+  border-radius:2px;
+  background:linear-gradient(90deg,#010307,#0d1925,#010307);
+  box-shadow:inset 1px 0 2px #0008;
+}
+.deck-panel .tempo-slot input.vertical-range::-webkit-slider-thumb {
+  background:linear-gradient(180deg,#6a7b8b,#1b2835 28%,#111b27 48%,#465c6e 53%,#1a2736 76%,#677b8d);
+  border-color:#354a5d;
+  box-shadow:inset 0 1px 1px #a0b6c866,0 1px 3px #0008;
+}
+.deck-panel .tempo-slot input.vertical-range::-moz-range-thumb {
+  background:#263747;border-color:#354a5d;box-shadow:none;
+}
+.deck-panel .tempo-panel .reset-tempo {
+  width:56px;height:29px;
+  min-height:29px;padding:0;
+  border-radius:4px;
+  box-shadow:inset 0 1px 0 #cddce61b;
+  font-size:9px;font-weight:700;
+}
+/* Preserve fixed 296px jogs and 1–4 hot cue strips. */
