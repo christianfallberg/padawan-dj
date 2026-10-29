@@ -14,7 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
-  <link rel="stylesheet" href="styles.css?v=6.2.6">
+  <link rel="stylesheet" href="styles.css?v=6.2.7">
 </head>
 <body>
   <div class="app-shell">
@@ -87,7 +87,7 @@
           <header class="deck-header">
             <span class="deck-number">1</span>
             <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt=""><span id="coverFallbackA">1</span></div>
-            <div class="track-identification">
+            <div class="track-identification track-info-box">
               <strong id="titleA">No track loaded</strong>
               <span id="artistA">Import music and load a track</span>
             </div>
@@ -189,7 +189,15 @@
                 <input id="cueLevelA" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 headphone CUE volume" title="Headphone CUE level (does not affect master)">
               </div>
             </div>
-            <div class="level-meter" aria-label="Master level"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="master-volume" aria-label="Master output volume">
+              <div class="master-fader-group">
+                <label for="masterVolume">MASTER</label>
+                <div class="master-fader-well">
+                  <input id="masterVolume" type="range" min="0" max="1" value="0.85" step="0.01" aria-label="Master output volume">
+                  <div class="level-meter" aria-label="Master level"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+              </div>
+            </div>
             <div class="mixer-channel" data-deck="B">
               <div class="trim-control" aria-label="Deck 2 trim">
 <label class="eq-control">
@@ -211,17 +219,14 @@
           <div class="crossfader-area">
             <span>1</span><input id="crossfader" type="range" min="-1" max="1" value="0" step="0.01" aria-label="Crossfade between deck 1 and deck 2"><span>2</span>
           </div>
-          <div class="master-volume">
-            <label for="masterVolume">MASTER</label>
-            <input id="masterVolume" type="range" min="0" max="1" value="0.85" step="0.01">
-          </div>
+
         </aside>
 
         <article class="deck-panel deck-b" data-deck="B">
           <header class="deck-header">
             <span class="deck-number">2</span>
             <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt=""><span id="coverFallbackB">2</span></div>
-            <div class="track-identification">
+            <div class="track-identification track-info-box">
               <strong id="titleB">No track loaded</strong>
               <span id="artistB">Import music and load a track</span>
             </div>
@@ -470,6 +475,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.2.6"></script>
+  <script src="app.js?v=6.2.7"></script>
 </body>
 </html>
