@@ -2716,3 +2716,241 @@ body { overflow: visible; }
   border-top:0;
   background:linear-gradient(180deg,#071321,#050c15);
 }
+
+
+/* v6.2.9 — unified track display: artwork, waveform and timeline in one black window */
+/* A single recessed instrument display, no individual background around title or waveform. */
+.deck-panel {
+  display:grid;
+  grid-template-rows:164px minmax(0,1fr);
+  min-height:0;
+}
+.deck-panel .deck-display {
+  display:grid;
+  grid-template-rows:78px 58px 28px;
+  min-height:164px;
+  height:164px;
+  min-width:0;
+  margin:9px 10px 0;
+  border:1px solid #182d40;
+  border-radius:10px;
+  background:linear-gradient(180deg,#010407,#03070d 100%);
+  box-shadow:inset 0 1px 7px #0009;
+  overflow:hidden;
+  isolation:isolate;
+}
+/* Avoid splitting the display with bright section borders. */
+.deck-panel .deck-display .deck-header {
+  display:grid;
+  grid-template-columns:38px 58px minmax(0,1fr) 34px 60px;
+  gap:9px;
+  align-items:center;
+  height:78px;
+  min-height:78px;
+  min-width:0;
+  padding:7px 10px 3px;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+}
+.deck-panel .deck-display .deck-number {
+  display:grid;place-items:center;
+  width:37px;height:37px;
+  border-radius:5px;
+  font-size:19px;
+  font-weight:750;
+  box-shadow:inset 0 1px 0 #ffffff36;
+}
+.deck-panel .deck-display .deck-cover {
+  width:56px;height:56px;
+  min-width:56px;min-height:56px;
+  border:1px solid #172636;border-radius:7px;
+  box-shadow:none;
+}
+.deck-panel .deck-display .track-info-box,
+.deck-panel .deck-display .deck-header .track-info-box {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  width:100%;
+  height:67px;
+  min-height:67px;
+  min-width:0;
+  gap:5px;
+  padding:5px 2px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.deck-panel .deck-display .track-info-box strong {
+  width:100%;max-width:100%;
+  font-size:15px;
+  line-height:1.15;
+  font-weight:750;
+  letter-spacing:0;
+  color:#f8fbff;
+}
+.deck-panel .deck-display .track-info-box span {
+  width:100%;max-width:100%;
+  font-size:12px;
+  line-height:1.15;
+  font-weight:450;
+  color:#9fb1c4;
+}
+.deck-panel .deck-display .deck-key {align-self:center;}
+.deck-panel .deck-display .deck-key small {font-size:7px;color:#637d90;}
+.deck-panel .deck-display .deck-key strong {font-size:12px;}
+.deck-panel .deck-display .master-button {align-self:center;}
+/* Use the existing seekable canvas — no image replacement, no waveform duplicate. */
+.deck-panel .deck-display .overview-strip {
+  position:relative;
+  display:block;
+  width:100%;
+  height:58px;
+  min-height:58px;
+  margin:0;
+  padding:0;
+  border:0;
+  background:#020508;
+  box-shadow:none;
+  overflow:hidden;
+  cursor:crosshair;
+}
+.deck-panel .deck-display .overview-strip canvas {
+  display:block;
+  width:100%;
+  height:100%;
+  filter:none;
+}
+.deck-panel .deck-display .overview-strip:hover canvas {
+  filter:brightness(1.12);
+}
+.deck-panel .deck-display .overview-playhead {
+  position:absolute;
+  z-index:2;
+  left:0;
+  top:2px;
+  bottom:2px;
+  width:3px;
+  border-radius:2px;
+  pointer-events:none;
+  background:#f9faff;
+  box-shadow:0 0 5px #fff9,0 0 12px #fff7;
+  transform:translateX(-50%);
+}
+/* Elapsed and remaining are INSIDE the display, flanking a cyan progress slider. */
+.deck-panel .deck-display .display-timeline {
+  display:grid;
+  grid-template-columns:57px minmax(0,1fr) 57px;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  width:100%;
+  height:28px;
+  padding:0 10px 5px;
+  margin:0;
+  background:transparent;
+}
+.deck-panel .deck-display .display-elapsed-button,
+.deck-panel .deck-display .display-remaining {
+  display:block;
+  min-width:0;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:#e7f1fa;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  line-height:1;
+  letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+  text-shadow:none;
+  white-space:nowrap;
+}
+.deck-panel .deck-display .display-elapsed-button {
+  cursor:pointer;
+  text-align:left;
+  transition:color .12s ease;
+}
+.deck-panel .deck-display .display-elapsed-button:hover {color:#42ceff;}
+.deck-panel .deck-display .display-elapsed-button:focus-visible {
+  outline:1px solid #40bbfa;outline-offset:3px;
+}
+.deck-panel .deck-display .display-remaining {
+  text-align:right;
+}
+.deck-panel .deck-display .display-seek-rail {
+  position:relative;
+  display:block;
+  width:100%;
+  height:7px;
+  border-radius:9px;
+  background:#10212f;
+  box-shadow:inset 0 1px 3px #000a;
+}
+.deck-panel .deck-display .display-seek-rail:focus-within {
+  outline:1px solid #3ccfff;
+  outline-offset:3px;
+}
+.deck-panel .deck-display .display-seek-rail .overview-progress,
+.deck-panel .deck-b .display-seek-rail .overview-progress {
+  position:absolute;
+  top:0;bottom:auto;left:0;right:auto;
+  display:block;
+  height:100%;
+  min-width:0;
+  width:0%;
+  border:0;
+  border-radius:9px;
+  pointer-events:none;
+  background:linear-gradient(90deg,#2de0ff,#158ef5);
+  box-shadow:0 0 6px #008cea26;
+}
+.deck-panel .deck-display .display-seek-rail .overview-progress::after {
+  content:"";
+  position:absolute;
+  width:12px;height:12px;
+  top:50%;right:-6px;
+  transform:translateY(-50%);
+  border:1px solid #c5d9ed;
+  border-radius:50%;
+  background:linear-gradient(#fff,#d8e5f3);
+  box-shadow:0 1px 3px #0008;
+}
+.deck-panel .deck-display .display-seek-input {
+  position:absolute;
+  inset:-11px 0;
+  z-index:3;
+  display:block;
+  width:100%;
+  height:29px;
+  opacity:0;
+  cursor:pointer;
+  margin:0;
+  padding:0;
+  touch-action:pan-y;
+}
+.deck-panel .deck-display .display-seek-input:disabled {cursor:default;}
+/* With clock values now on the display, return the entire bottom deck to the controls. */
+.deck-panel .deck-main {
+  min-height:0;
+}
+.deck-panel .deck-main > .transport-panel {
+  display:grid;
+  grid-template-rows:minmax(0,1fr);
+  min-height:0;
+  padding:8px 11px 10px;
+}
+.deck-panel .deck-main .transport-cluster {
+  align-self:center;
+  align-content:center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck-panel .deck-display .display-elapsed-button {transition:none;}
+}
