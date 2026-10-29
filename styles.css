@@ -1110,7 +1110,7 @@ html, body {
   .hotcue-panel { padding: 9px 6px; }
   .transport-panel { padding-inline:8px; }
   .transport-cluster { column-gap:6px; }
-  .transport-cluster .jogwheel { width:clamp(216px,18.9vw,274px);height:clamp(216px,18.9vw,274px); }
+  .transport-cluster .jogwheel { width:clamp(220px,20vw,292px);height:clamp(220px,20vw,292px); }
 }
 @media (max-height: 850px) {
   .workspace { grid-template-rows: 78px minmax(0,1fr) clamp(151px,20vh,178px); }
@@ -1135,7 +1135,7 @@ html, body {
   .deck-header { grid-template-columns:24px 36px minmax(0,1fr) 36px 52px;gap:5px;padding-inline:6px; }
   .deck-cover { width:36px;height:36px; }
   .transport-panel { padding-inline:5px; }
-  .transport-cluster .jogwheel { width:min(228px,18.7vw);height:min(228px,18.7vw); }
+  .transport-cluster .jogwheel { width:min(240px,19.2vw);height:min(240px,19.2vw); }
   .transport-cluster .round-button,.transport-cluster .sync-button { font-size:9px; }
   .cue-grid { gap:3px; }
   .cue-grid button { padding:0 2px;grid-template-columns:14px minmax(0,1fr); }
