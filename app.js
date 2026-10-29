@@ -547,17 +547,20 @@ class Deck {
     this.high.type = 'highshelf';
     this.high.frequency.value = 3200;
     this.trimGain = audioContext.createGain();
-    this.channelGain = audioContext.createGain();
+    this.channelGain = audioContext.createGain(); // Fixed master-channel gain, independent of CUE level.
+    this.cueLevelGain = audioContext.createGain(); // Deck-specific headphone volume.
     this.crossGain = audioContext.createGain();
 
     this.source.connect(this.low);
     this.low.connect(this.mid);
     this.mid.connect(this.high);
     this.high.connect(this.trimGain);
+    // Separate headphone volume from the master path after shared EQ/trim.
     this.trimGain.connect(this.channelGain);
+    this.trimGain.connect(this.cueLevelGain);
     this.cueGain = audioContext.createGain();
     this.cueGain.gain.value = 0;
-    this.channelGain.connect(this.cueGain); // Cue follows deck volume, independently of crossfader and master.
+    this.cueLevelGain.connect(this.cueGain);
     this.cueGain.connect(cueBus);
     cueGains[id] = this.cueGain;
     this.channelGain.connect(this.crossGain);
@@ -565,6 +568,7 @@ class Deck {
 
     this.trimGain.gain.value = 1;
     this.channelGain.gain.value = 0.9;
+    this.cueLevelGain.gain.value = 0.9;
     this.crossGain.gain.value = Math.SQRT1_2;
 
     this.audio.addEventListener('ended', () => {
@@ -1710,7 +1714,7 @@ function bindDeckControls(deck) {
   });
   $(`#tempo${deck.id}`).addEventListener('input', (event) => deck.setTempo(event.target.value));
   $(`#sync${deck.id}`).addEventListener('click', () => deck.syncTo(decks[state.masterDeck]));
-  $(`#volume${deck.id}`).addEventListener('input', (event) => deck.channelGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
+  $(`#cueLevel${deck.id}`).addEventListener('input', (event) => deck.cueLevelGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $(`#trim${deck.id}`).addEventListener('input', (event) => deck.trimGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $(`#high${deck.id}`).addEventListener('input', (event) => deck.high.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $(`#mid${deck.id}`).addEventListener('input', (event) => deck.mid.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
