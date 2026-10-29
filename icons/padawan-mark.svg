@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Padawan DJ">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0c1826"/><stop offset="1" stop-color="#04090f"/></linearGradient>
+ <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#75f0ff"/><stop offset=".48" stop-color="#28bfff"/><stop offset="1" stop-color="#2871ff"/></linearGradient>
+ <radialGradient id="vinyl" cx="40%" cy="29%" r="75%"><stop offset="0" stop-color="#333d48"/><stop offset=".52" stop-color="#151d29"/><stop offset=".9" stop-color="#050a11"/><stop offset="1" stop-color="#283645"/></radialGradient>
+</defs>
+<rect width="256" height="256" rx="52" fill="url(#bg)"/>
+<rect x="5.5" y="5.5" width="245" height="245" rx="47" fill="none" stroke="#244052" stroke-width="3"/>
+<path d="M54 202 V76 Q54 52 79 52 H138 C190 52 219 82 219 122 C219 165 188 191 137 191 H92 V202 Q92 219 73 219 Q54 219 54 202 Z" fill="url(#p)"/>
+<circle cx="142" cy="123" r="44.5" fill="url(#vinyl)" stroke="#04090e" stroke-width="3"/>
+<circle cx="142" cy="123" r="35" fill="none" stroke="#536679" stroke-opacity=".25" stroke-width="2"/>
+<circle cx="142" cy="123" r="28" fill="none" stroke="#627789" stroke-opacity=".29" stroke-width="1.5"/>
+<circle cx="142" cy="123" r="21" fill="none" stroke="#6c7d8c" stroke-opacity=".18" stroke-width="1.4"/>
+<circle cx="142" cy="123" r="12.5" fill="url(#p)"/><circle cx="142" cy="123" r="3.5" fill="#e9fbff"/>
+</svg>
