@@ -139,7 +139,11 @@
 
             <div class="tempo-panel">
               <div class="section-label">TEMPO</div>
-              <input id="tempoA" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 1 tempo">
+              <div class="tempo-slot" aria-hidden="false">
+                <span class="tempo-ticks" aria-hidden="true"></span>
+                <span class="tempo-centre-line" aria-hidden="true"></span>
+                <input id="tempoA" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 1 tempo">
+              </div>
               <button class="reset-tempo" data-deck="A" type="button">RESET</button>
             </div>
           </div>
@@ -149,10 +153,40 @@
           <div class="mixer-heading">MIXER</div>
           <div class="mixer-channels">
             <div class="mixer-channel" data-deck="A">
-              <label>TRIM<input id="trimA" type="range" min="0" max="1.4" value="1" step="0.01"></label>
-              <label>HIGH<input id="highA" type="range" min="-24" max="6" value="0" step="1"></label>
-              <label>MID<input id="midA" type="range" min="-24" max="6" value="0" step="1"></label>
-              <label>LOW<input id="lowA" type="range" min="-24" max="6" value="0" step="1"></label>
+              <div class="eq-bank" aria-label="Deck 1 EQ and trim">
+                <label class="eq-control">
+                  <span class="eq-caption">TRIM</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="trimA" class="eq-knob-input" type="range" min="0" max="1.4" value="1" step="0.01" aria-label="Deck 1 trim" title="TRIM — drag vertically or use arrow keys">
+                  </span>
+                </label>
+                <label class="eq-control">
+                  <span class="eq-caption">HIGH</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="highA" class="eq-knob-input" type="range" min="-24" max="6" value="0" step="1" aria-label="Deck 1 high" title="HIGH — drag vertically or use arrow keys">
+                  </span>
+                </label>
+                <label class="eq-control">
+                  <span class="eq-caption">MID</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="midA" class="eq-knob-input" type="range" min="-24" max="6" value="0" step="1" aria-label="Deck 1 mid" title="MID — drag vertically or use arrow keys">
+                  </span>
+                </label>
+                <label class="eq-control">
+                  <span class="eq-caption">LOW</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="lowA" class="eq-knob-input" type="range" min="-24" max="6" value="0" step="1" aria-label="Deck 1 low" title="LOW — drag vertically or use arrow keys">
+                  </span>
+                </label>
+              </div>
               <button class="cue-monitor" type="button">CUE</button>
               <div class="cue-level-control">
                 <span aria-hidden="true">CUE LEVEL</span>
@@ -161,10 +195,40 @@
             </div>
             <div class="level-meter" aria-label="Master level"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="mixer-channel" data-deck="B">
-              <label>TRIM<input id="trimB" type="range" min="0" max="1.4" value="1" step="0.01"></label>
-              <label>HIGH<input id="highB" type="range" min="-24" max="6" value="0" step="1"></label>
-              <label>MID<input id="midB" type="range" min="-24" max="6" value="0" step="1"></label>
-              <label>LOW<input id="lowB" type="range" min="-24" max="6" value="0" step="1"></label>
+              <div class="eq-bank" aria-label="Deck 2 EQ and trim">
+                <label class="eq-control">
+                  <span class="eq-caption">TRIM</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="trimB" class="eq-knob-input" type="range" min="0" max="1.4" value="1" step="0.01" aria-label="Deck 2 trim" title="TRIM — drag vertically or use arrow keys">
+                  </span>
+                </label>
+                <label class="eq-control">
+                  <span class="eq-caption">HIGH</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="highB" class="eq-knob-input" type="range" min="-24" max="6" value="0" step="1" aria-label="Deck 2 high" title="HIGH — drag vertically or use arrow keys">
+                  </span>
+                </label>
+                <label class="eq-control">
+                  <span class="eq-caption">MID</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="midB" class="eq-knob-input" type="range" min="-24" max="6" value="0" step="1" aria-label="Deck 2 mid" title="MID — drag vertically or use arrow keys">
+                  </span>
+                </label>
+                <label class="eq-control">
+                  <span class="eq-caption">LOW</span>
+                  <span class="eq-knob-unit">
+                    <span class="eq-knob-ticks" aria-hidden="true"></span>
+                    <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                    <input id="lowB" class="eq-knob-input" type="range" min="-24" max="6" value="0" step="1" aria-label="Deck 2 low" title="LOW — drag vertically or use arrow keys">
+                  </span>
+                </label>
+              </div>
               <button class="cue-monitor active" type="button">CUE</button>
               <div class="cue-level-control">
                 <span aria-hidden="true">CUE LEVEL</span>
@@ -205,7 +269,11 @@
           <div class="deck-main">
             <div class="tempo-panel mirrored">
               <div class="section-label">TEMPO</div>
-              <input id="tempoB" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 2 tempo">
+              <div class="tempo-slot" aria-hidden="false">
+                <span class="tempo-ticks" aria-hidden="true"></span>
+                <span class="tempo-centre-line" aria-hidden="true"></span>
+                <input id="tempoB" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 2 tempo">
+              </div>
               <button class="reset-tempo" data-deck="B" type="button">RESET</button>
             </div>
 
