@@ -6,6 +6,8 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const TAU = Math.PI * 2;
 const JOG_SCRATCH_SECONDS_PER_REVOLUTION = 1.8;
 const JOG_NUDGE_SECONDS_PER_REVOLUTION = 0.45;
+const JOG_SCRATCH_RADIUS_RATIO = 0.90; // Only the outermost 10% is nudge.
+const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal dragging.
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
 const HOT_CUE_COLORS = { A: '#ff4759', B: '#4b9dff', C: '#42dc7f', D: '#bd6cff' };
 const HOT_CUE_LABELS = { A: 'Intro', B: 'Build', C: 'Break', D: 'Drop' };
@@ -407,6 +409,117 @@ masterAnalyser.fftSize = 256;
 masterGain.gain.value = 0.85;
 masterGain.connect(masterAnalyser);
 masterAnalyser.connect(audioContext.destination);
+const cueBus = audioContext.createGain();
+const cueStream = audioContext.createMediaStreamDestination();
+cueBus.connect(cueStream);
+cueBus.gain.value = 0.65;
+const cueAudio = new Audio();
+cueAudio.srcObject = cueStream.stream;
+cueAudio.muted = true; // Fail closed: CUE must never play through default speakers.
+cueAudio.playsInline = true;
+const cueGains = {};
+let cueDeviceId = null;
+let cueEnabled = false;
+
+function refreshCueGates() {
+  for (const [id, gain] of Object.entries(cueGains)) {
+    const active = document.querySelector(`.mixer-channel[data-deck="${id}"] .cue-monitor`)?.classList.contains('active');
+    gain.gain.setTargetAtTime(active ? 1 : 0, audioContext.currentTime, 0.01);
+  }
+}
+
+async function listCueDevices() {
+  const select = $('#headphoneOutput');
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    select.replaceChildren(new Option('Device selection not available in this browser', ''));
+    return [];
+  }
+  const previous = select.value || cueDeviceId;
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
+    (device) => device.kind === 'audiooutput' && device.deviceId && !['default', 'communications'].includes(device.deviceId)
+  );
+  select.replaceChildren(new Option('Select USB headphones / audio interface', ''));
+  for (const [index, device] of devices.entries()) {
+    select.add(new Option(device.label || `Audio output ${index + 1} (permission needed)`, device.deviceId));
+  }
+  if (devices.some((device) => device.deviceId === previous)) select.value = previous;
+  return devices;
+}
+
+// On Chrome, requesting microphone permission exposes the full audio output list.
+// The stream is immediately stopped and is never connected to the DJ audio graph.
+async function discoverCueDevices() {
+  const status = $('#cueOutputStatus');
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone permission API is not available in this browser.');
+  status.textContent = 'Requesting temporary audio device permission…';
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } finally {
+    stream?.getTracks().forEach((track) => track.stop());
+  }
+  const devices = await listCueDevices();
+  status.textContent = devices.length
+    ? `${devices.length} output device(s) detected. Select your USB-C headphones, then enable.`
+    : 'No separate output detected. Check the USB-C headphones in macOS Sound settings.';
+}
+
+// Errors must be visible in the panel, not just buried in the Console.
+function describeCueError(error) {
+  const label = error?.name || 'Error';
+  const detail = error?.message || 'Unknown audio routing error';
+  const advice = {
+    NotAllowedError: 'Allow audio device access in Chrome or macOS; then use DETECT OUTPUTS.',
+    NotFoundError: 'Selected device is missing. Reconnect the USB-C headphones and detect outputs again.',
+    AbortError: 'The audio device could not be switched. Reconnect it and retry.',
+    NotReadableError: 'The audio device is unavailable or in use by another application.',
+    NotSupportedError: 'Try the latest Chrome or Edge on desktop.'
+  }[label] || '';
+  return `${label}: ${detail}${advice ? ' — ' + advice : ''}`;
+}
+
+function testCueOutput() {
+  if (!cueEnabled) {
+    $('#cueOutputStatus').textContent = 'Enable a separate headphone output before testing.';
+    return;
+  }
+  const tone = audioContext.createOscillator();
+  const volume = audioContext.createGain();
+  tone.type = 'sine';
+  tone.frequency.value = 440;
+  volume.gain.value = 0.035;
+  tone.connect(volume);
+  volume.connect(cueBus);
+  tone.start();
+  tone.stop(audioContext.currentTime + 0.35);
+  tone.onended = () => { tone.disconnect(); volume.disconnect(); };
+  $('#cueOutputStatus').textContent = 'Test tone sent to the selected headphones.';
+}
+
+async function enableCueOutput(deviceId) {
+  if (!deviceId || typeof cueAudio.setSinkId !== 'function') throw new Error('This browser cannot select a separate headphone output. Try Chrome or Edge.');
+  cueAudio.muted = true;
+  cueEnabled = false;
+  cueAudio.pause();
+  await ensureAudioReady();
+  await cueAudio.setSinkId(deviceId);
+  cueDeviceId = deviceId;
+  await cueAudio.play();
+  cueAudio.muted = false;
+  cueEnabled = true;
+  $('#cueOutputStatus').textContent = 'Headphone monitoring enabled';
+  showToast('Headphone CUE enabled');
+}
+
+function disableCueOutput() {
+  cueAudio.muted = true;
+  cueAudio.pause();
+  cueEnabled = false;
+  cueDeviceId = null;
+  $('#cueOutputStatus').textContent = 'Headphone monitoring disabled';
+  showToast('Headphone CUE disabled');
+}
+
 
 class Deck {
   constructor(id) {
@@ -420,6 +533,7 @@ class Deck {
     this.cueTime = 0;
     this.tempoPercent = 0;
     this.jogAngle = 0;
+    this.scratchVoice = null;
 
     this.source = audioContext.createMediaElementSource(this.audio);
     this.low = audioContext.createBiquadFilter();
@@ -441,6 +555,11 @@ class Deck {
     this.mid.connect(this.high);
     this.high.connect(this.trimGain);
     this.trimGain.connect(this.channelGain);
+    this.cueGain = audioContext.createGain();
+    this.cueGain.gain.value = 0;
+    this.channelGain.connect(this.cueGain); // Cue follows deck volume, independently of crossfader and master.
+    this.cueGain.connect(cueBus);
+    cueGains[id] = this.cueGain;
     this.channelGain.connect(this.crossGain);
     this.crossGain.connect(masterGain);
 
@@ -458,6 +577,7 @@ class Deck {
   async load(track) {
     await ensureAudioReady();
     await ensureTrackDecoded(track);
+    this.stopScratchGrain();
     this.pause();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.objectUrl = URL.createObjectURL(track.blob);
@@ -491,6 +611,7 @@ class Deck {
   }
 
   unload() {
+    this.stopScratchGrain();
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
@@ -540,6 +661,67 @@ class Deck {
 
   seekBy(seconds) {
     this.seekTo((this.audio.currentTime || 0) + Number(seconds || 0));
+  }
+
+  // Play a very short sample from the decoded track while the platter moves.
+  // The HTMLAudioElement is paused during scratching, so seeking alone is silent.
+  // Send the grains through the deck's existing EQ, fader, crossfader and CUE buses.
+  stopScratchGrain() {
+    const voice = this.scratchVoice;
+    if (!voice) return;
+    this.scratchVoice = null;
+    const now = audioContext.currentTime;
+    voice.gain.gain.cancelScheduledValues(now);
+    voice.gain.gain.setTargetAtTime(0, now, 0.003);
+    try { voice.source.stop(now + 0.012); } catch (_) { /* already ended */ }
+  }
+
+  scratchGrain(deltaSeconds, elapsedSeconds) {
+    const buffer = this.track?.buffer;
+    if (!buffer || buffer.length < 2 || Math.abs(deltaSeconds) < 0.0002) return;
+
+    const rate = clamp(Math.abs(deltaSeconds) / Math.max(elapsedSeconds, 0.012), 0.2, 3);
+    const playSeconds = 0.075;
+    const sampleRate = buffer.sampleRate;
+    const frames = Math.min(buffer.length, Math.max(256, Math.ceil(playSeconds * rate * sampleRate)));
+    const frame = clamp(Math.floor((this.audio.currentTime || 0) * sampleRate), 0, buffer.length - 1);
+
+    let sample = buffer;
+    let offset = 0;
+    if (deltaSeconds > 0) {
+      // Scrub forwards through the source buffer.
+      offset = Math.max(0, Math.min(frame - frames, buffer.length - frames)) / sampleRate;
+    } else {
+      // BufferSourceNode cannot play in reverse; reverse only this tiny grain.
+      sample = audioContext.createBuffer(buffer.numberOfChannels, frames, sampleRate);
+      const endFrame = Math.min(buffer.length, Math.max(frames, frame + frames));
+      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+        const original = buffer.getChannelData(channel);
+        const reversed = sample.getChannelData(channel);
+        for (let i = 0; i < frames; i++) reversed[i] = original[endFrame - 1 - i];
+      }
+    }
+
+    this.stopScratchGrain();
+    const now = audioContext.currentTime;
+    const source = audioContext.createBufferSource();
+    const gain = audioContext.createGain();
+    source.buffer = sample;
+    source.playbackRate.value = rate;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.85, now + 0.004);
+    gain.gain.setValueAtTime(0.85, now + playSeconds - 0.012);
+    gain.gain.linearRampToValueAtTime(0, now + playSeconds);
+    source.connect(gain);
+    gain.connect(this.low);
+    const voice = { source, gain };
+    this.scratchVoice = voice;
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      if (this.scratchVoice === voice) this.scratchVoice = null;
+    };
+    source.start(now, offset, frames / sampleRate);
   }
 
   resetToStart() {
@@ -1205,15 +1387,22 @@ function bindJogControls(deck) {
     pointerId: null,
     mode: null,
     lastAngle: 0,
+    lastX: 0,
+    centreScrub: false,
+    lastMoveTime: 0,
     wasPlaying: false,
   };
 
-  const finishInteraction = () => {
+  const finishInteraction = (event) => {
     if (!interaction.active) return;
+    if (event?.pointerId !== undefined && event.pointerId !== interaction.pointerId) return;
+    const pointerId = interaction.pointerId;
     const shouldResume = interaction.mode === 'scratch' && interaction.wasPlaying && deck.track;
+    deck.stopScratchGrain();
     interaction.active = false;
     interaction.pointerId = null;
     jog.classList.remove('dragging', 'scratching', 'nudging');
+    if (jog.hasPointerCapture?.(pointerId)) jog.releasePointerCapture(pointerId);
     if (shouldResume) {
       deck.audio.play().catch((error) => {
         console.error(error);
@@ -1225,7 +1414,7 @@ function bindJogControls(deck) {
   };
 
   jog.addEventListener('pointerdown', (event) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (interaction.active || (event.pointerType === 'mouse' && event.button !== 0)) return;
     if (!deck.track) return showToast(`Load a track into Deck ${deck.id} first`);
     event.preventDefault();
     ensureAudioReady().catch(console.error);
@@ -1235,15 +1424,21 @@ function bindJogControls(deck) {
     interaction.active = true;
     interaction.pointerId = event.pointerId;
     interaction.lastAngle = position.angle;
-    interaction.mode = position.radiusRatio <= 0.7 ? 'scratch' : 'nudge';
+    interaction.lastX = event.clientX;
+    interaction.centreScrub = position.radiusRatio <= JOG_CENTER_RADIUS_RATIO;
+    interaction.lastMoveTime = performance.now();
+    interaction.mode = position.radiusRatio <= JOG_SCRATCH_RADIUS_RATIO ? 'scratch' : 'nudge';
     interaction.wasPlaying = !deck.audio.paused && !deck.audio.ended;
 
-    jog.setPointerCapture(event.pointerId);
+    if (jog.setPointerCapture) jog.setPointerCapture(event.pointerId);
     jog.classList.add('dragging', interaction.mode === 'scratch' ? 'scratching' : 'nudging');
 
     // Touching the platter stops it, just like vinyl mode on a controller.
     // Releasing it resumes playback if it was already running.
-    if (interaction.mode === 'scratch' && interaction.wasPlaying) deck.audio.pause();
+    if (interaction.mode === 'scratch' && interaction.wasPlaying) {
+      deck.audio.pause();
+      deck.updatePlayState();
+    }
   });
 
   jog.addEventListener('pointermove', (event) => {
@@ -1251,13 +1446,23 @@ function bindJogControls(deck) {
     event.preventDefault();
     const position = pointerPositionOnJog(event, jog);
     let delta = normaliseAngleDelta(position.angle - interaction.lastAngle);
+    const deltaX = event.clientX - interaction.lastX;
     interaction.lastAngle = position.angle;
+    interaction.lastX = event.clientX;
     if (event.shiftKey) delta *= 0.25;
 
     const secondsPerRevolution = interaction.mode === 'scratch'
       ? JOG_SCRATCH_SECONDS_PER_REVOLUTION
       : JOG_NUDGE_SECONDS_PER_REVOLUTION;
-    deck.seekBy((delta / TAU) * secondsPerRevolution);
+    // Small offsets near the spindle can cause wild angular jumps.
+    const seconds = interaction.mode === 'scratch' && interaction.centreScrub
+      ? (deltaX / jog.getBoundingClientRect().width) * secondsPerRevolution * (event.shiftKey ? 0.25 : 1)
+      : (delta / TAU) * secondsPerRevolution;
+    const now = performance.now();
+    const elapsed = (now - interaction.lastMoveTime) / 1000;
+    interaction.lastMoveTime = now;
+    deck.seekBy(seconds);
+    if (interaction.mode === 'scratch') deck.scratchGrain(seconds, elapsed);
     deck.updateJogVisual();
   });
 
@@ -1265,6 +1470,8 @@ function bindJogControls(deck) {
   jog.addEventListener('pointercancel', finishInteraction);
   jog.addEventListener('lostpointercapture', finishInteraction);
   jog.addEventListener('contextmenu', (event) => event.preventDefault());
+  // Native image drag must not steal the pointer while scratching.
+  jog.addEventListener('dragstart', (event) => event.preventDefault());
 
   jog.addEventListener('wheel', (event) => {
     if (!deck.track) return;
@@ -1277,34 +1484,40 @@ function bindJogControls(deck) {
 }
 
 function bindJogDrop(deck) {
-  const jog = $(`#jog${deck.id}`);
-  const hasTrackData = (event) => [...(event.dataTransfer?.types || [])].includes('text/track-id');
-  const clear = () => jog.classList.remove('track-drop-target');
+  const jog = `#jog${deck.id}`;
+  const target = $(jog);
+  const panel = target.closest('.deck-panel');
+  const hasTrackData = (event) => {
+    const types = Array.from(event.dataTransfer?.types || []);
+    return types.includes('text/track-id') || (types.includes('text/plain') && !types.includes('Files'));
+  };
+  const clear = () => panel.classList.remove('track-drop-target');
 
-  jog.addEventListener('dragenter', (event) => {
+  // Accept a track dropped anywhere over the deck, not only a small jog element.
+  panel.addEventListener('dragenter', (event) => {
     if (!hasTrackData(event)) return;
     event.preventDefault();
-    event.stopPropagation();
-    jog.classList.add('track-drop-target');
+    panel.classList.add('track-drop-target');
   });
-  jog.addEventListener('dragover', (event) => {
+  panel.addEventListener('dragover', (event) => {
     if (!hasTrackData(event)) return;
     event.preventDefault();
-    event.stopPropagation();
     event.dataTransfer.dropEffect = 'copy';
-    jog.classList.add('track-drop-target');
+    panel.classList.add('track-drop-target');
   });
-  jog.addEventListener('dragleave', (event) => {
-    if (event.relatedTarget && jog.contains(event.relatedTarget)) return;
+  panel.addEventListener('dragleave', (event) => {
+    if (event.relatedTarget && panel.contains(event.relatedTarget)) return;
     clear();
   });
-  jog.addEventListener('drop', (event) => {
+  panel.addEventListener('drop', (event) => {
     if (!hasTrackData(event)) return;
     event.preventDefault();
     event.stopPropagation();
-    const trackId = event.dataTransfer.getData('text/track-id');
+    const trackId = event.dataTransfer.getData('text/track-id') || event.dataTransfer.getData('text/plain');
     clear();
-    if (trackId) loadTrackToDeck(trackId, deck.id).catch(console.error);
+    if (state.tracks.some((track) => track.id === trackId)) {
+      loadTrackToDeck(trackId, deck.id).catch(console.error);
+    }
   });
 }
 
@@ -1733,10 +1946,56 @@ function bindEvents() {
   $$('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
     const deckId = button.closest('.mixer-channel')?.dataset.deck;
     if (!deckId) return;
-    $$('.cue-monitor').forEach((item) => item.classList.toggle('active', item === button));
+    button.classList.toggle('active');
+    refreshCueGates();
     setSelectedDeck(deckId);
-    showToast(`Deck ${deckId === 'A' ? '1' : '2'} selected for cue monitoring`, 1400);
+    showToast(`Deck ${deckId === 'A' ? '1' : '2'} cue ${button.classList.contains('active') ? 'on' : 'off'}${cueEnabled ? '' : ' — configure headphones in AUDIO OUTPUT'}`, 2000);
   }));
+  $('#audioOutputButton').addEventListener('click', () => {
+    listCueDevices().catch(console.error);
+    $('#audioOutputDialog').showModal();
+  });
+  $('#closeAudioOutput').addEventListener('click', () => $('#audioOutputDialog').close());
+  $('#detectHeadphones').addEventListener('click', () => {
+    discoverCueDevices().catch((error) => {
+      $('#cueOutputStatus').textContent = describeCueError(error);
+      console.error('Audio device discovery failed:', error);
+    });
+  });
+  $('#testHeadphones').addEventListener('click', testCueOutput);
+  $('#cueVolume').addEventListener('input', (event) => {
+    cueBus.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01);
+  });
+  $('#enableHeadphones').addEventListener('click', async () => {
+    const status = $('#cueOutputStatus');
+    try {
+      let id = $('#headphoneOutput').value;
+      if (navigator.mediaDevices?.selectAudioOutput) {
+        const device = await navigator.mediaDevices.selectAudioOutput(id ? { deviceId: id } : {});
+        id = device.deviceId;
+      }
+      if (!id) throw new Error('Select a separate headphone device first.');
+      await enableCueOutput(id);
+      await listCueDevices();
+      $('#headphoneOutput').value = id;
+    } catch (error) {
+      cueAudio.muted = true;
+      cueAudio.pause();
+      cueEnabled = false;
+      status.textContent = describeCueError(error);
+      showToast(`Headphone output failed: ${error.name || 'error'} — see Audio Output`, 3500);
+      console.error('Headphone output failed:', error);
+    }
+  });
+  $('#disableHeadphones').addEventListener('click', disableCueOutput);
+  navigator.mediaDevices?.addEventListener?.('devicechange', () => {
+    listCueDevices().then(() => {
+      if (cueEnabled && !Array.from($('#headphoneOutput').options).some((option) => option.value === cueDeviceId)) {
+        disableCueOutput();
+        $('#cueOutputStatus').textContent = 'Headphones disconnected — monitoring disabled';
+      }
+    }).catch(console.error);
+  });
   $('#crossfader').addEventListener('input', (event) => applyCrossfader(event.target.value));
   $('#masterVolume').addEventListener('input', (event) => masterGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $('#masterA').addEventListener('click', () => setMasterDeck('A'));
@@ -1814,6 +2073,7 @@ function bindEvents() {
   ui.trackTableBody.addEventListener('dragstart', (event) => {
     const row = event.target.closest('tr[data-id]');
     if (!row) return;
+    if (!event.dataTransfer) return;
     event.dataTransfer.setData('text/track-id', row.dataset.id);
     event.dataTransfer.setData('text/plain', row.dataset.id);
     event.dataTransfer.effectAllowed = 'copy';
@@ -1886,6 +2146,7 @@ async function init() {
   bindDeckControls(decks.B);
   setupInstallPrompt();
   bindEvents();
+  refreshCueGates();
   updateNetworkStatus();
   setWaveformZoom(DEFAULT_WAVEFORM_WINDOW_SECONDS);
   applyCrossfader(0);
@@ -1907,5 +2168,5 @@ async function init() {
 
 init().catch((error) => {
   console.error(error);
-  showToast('Could not initialise local storage. Try Chrome or Edge.');
+  showToast('Padawan DJ could not start — check browser console.');
 });

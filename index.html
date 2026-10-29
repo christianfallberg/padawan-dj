@@ -28,12 +28,30 @@
         <button id="installButton" class="top-action install-action" type="button" hidden>INSTALL APP</button>
         <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL</span><strong id="storageCompact">--</strong></button>
         <button id="importButton" class="top-action primary" type="button">IMPORT / DROP TRACKS</button>
+        <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing">AUDIO OUTPUT</button>
         <button id="helpButton" class="top-action" type="button" aria-label="Keyboard shortcuts">?</button>
         <time id="clock">--:--</time>
       </div>
       <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
     </header>
 
+    <dialog id="audioOutputDialog" class="audio-output-dialog" aria-labelledby="audioOutputTitle">
+      <h2 id="audioOutputTitle">AUDIO OUTPUT</h2>
+      <p>Master plays through the system default speakers. Keep your iMac speakers selected in macOS Sound settings.</p>
+      <label for="headphoneOutput">HEADPHONE CUE OUTPUT</label>
+      <select id="headphoneOutput"><option value="">Select USB headphones / audio interface</option></select>
+      <p class="audio-output-note">If you only see “Audio output 1”, click DETECT OUTPUTS. Chrome may request temporary microphone permission to reveal your audio devices. The microphone is immediately released and no audio is recorded. Select a device DIFFERENT from Master.</p>
+      <button id="detectHeadphones" class="audio-detect-button" type="button">DETECT OUTPUTS</button>
+      <label for="cueVolume">HEADPHONE VOLUME</label>
+      <input type="range" id="cueVolume" min="0" max="1" step="0.01" value="0.65">
+      <p id="cueOutputStatus" role="status">Headphone monitoring disabled</p>
+      <div class="audio-output-actions">
+        <button id="enableHeadphones" type="button">ENABLE HEADPHONES</button>
+        <button id="testHeadphones" type="button">TEST TONE</button>
+        <button id="disableHeadphones" type="button">DISABLE</button>
+        <button id="closeAudioOutput" type="button">CLOSE</button>
+      </div>
+    </dialog>
     <main class="workspace">
       <section class="waveform-stage" aria-label="Parallel waveforms">
         <div class="waveform-ruler">
@@ -103,8 +121,8 @@
               </div>
               <div class="transport-cluster">
                 <button id="cueA" class="round-button cue-button" type="button">CUE</button>
-                <div class="jogwheel" id="jogA" tabindex="0" aria-label="Deck 1 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Centre: scratch / seek · Outer rim: nudge">
-                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverA" class="jog-cover" alt=""><span id="jogCoverFallbackA" class="jog-cover-fallback">DD</span><strong id="bpmA">128.00</strong><span id="pitchA">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
+                <div class="jogwheel" id="jogA" tabindex="0" aria-label="Deck 1 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Platter: scratch · Thin outer rim: nudge">
+                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverA" class="jog-cover" draggable="false" alt=""><span id="jogCoverFallbackA" class="jog-cover-fallback">DD</span><strong id="bpmA">128.00</strong><span id="pitchA">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playA" class="round-button play-button" type="button" aria-label="Play deck 1">▶</button>
@@ -187,8 +205,8 @@
               </div>
               <div class="transport-cluster">
                 <button id="cueB" class="round-button cue-button" type="button">CUE</button>
-                <div class="jogwheel" id="jogB" tabindex="0" aria-label="Deck 2 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Centre: scratch / seek · Outer rim: nudge">
-                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverB" class="jog-cover" alt=""><span id="jogCoverFallbackB" class="jog-cover-fallback">DD</span><strong id="bpmB">128.00</strong><span id="pitchB">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
+                <div class="jogwheel" id="jogB" tabindex="0" aria-label="Deck 2 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Platter: scratch · Thin outer rim: nudge">
+                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverB" class="jog-cover" draggable="false" alt=""><span id="jogCoverFallbackB" class="jog-cover-fallback">DD</span><strong id="bpmB">128.00</strong><span id="pitchB">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playB" class="round-button play-button" type="button" aria-label="Play deck 2">▶</button>
@@ -331,6 +349,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=6.1.6"></script>
 </body>
 </html>
