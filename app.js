@@ -2015,5 +2015,5 @@ async function init() {
 
 init().catch((error) => {
   console.error(error);
-  showToast('Could not initialise local storage. Try Chrome or Edge.');
+  showToast('Padawan DJ could not start — check browser console.');
 });
