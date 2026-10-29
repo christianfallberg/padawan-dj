@@ -2954,3 +2954,54 @@ body { overflow: visible; }
 @media (prefers-reduced-motion: reduce) {
   .deck-panel .deck-display .display-elapsed-button {transition:none;}
 }
+
+
+/* v6.2.10 — studio-black deck display and top-corner hardware alignment */
+/* Give the full instrument display one neutral black surface; no navy gradient. */
+.deck-panel .deck-display {
+  background:#000204;
+  border-color:#10202b;
+  box-shadow:inset 0 1px 3px #000b;
+}
+.deck-panel .deck-display .deck-header {
+  align-items:start;
+  padding:9px 10px 0;
+  background:#000204;
+}
+.deck-panel .deck-display .deck-number,
+.deck-panel .deck-display .deck-cover {
+  align-self:start;
+  justify-self:start;
+  margin:0;
+}
+.deck-panel .deck-display .deck-number {
+  line-height:1;
+  box-shadow:inset 0 1px 0 #ffffff29;
+}
+.deck-panel .deck-display .deck-header .track-info-box {
+  align-self:start;
+  justify-content:flex-start;
+  min-height:0;
+  height:65px;
+  padding:2px 2px 0;
+  margin:0;
+  background:transparent;
+  box-shadow:none;
+}
+.deck-panel .deck-display .deck-key {
+  align-self:start;
+  justify-self:end;
+  margin-top:4px;
+}
+.deck-panel .deck-display .master-button {
+  align-self:start;
+  justify-self:end;
+  margin:0;
+  border-radius:4px;
+}
+.deck-panel .deck-display .overview-strip {
+  background:#000204;
+}
+.deck-panel .deck-display .display-timeline {
+  background:#000204;
+}
