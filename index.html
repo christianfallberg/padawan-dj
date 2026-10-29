@@ -11,14 +11,16 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css?v=6.1.7">
+  <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
+  <link rel="stylesheet" href="styles.css?v=6.1.8">
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="topbar-left">
+        <img class="brand-icon" src="icons/padawan-mark.svg" alt="" width="27" height="27">
         <span class="brand-name">PADAWAN <strong>DJ</strong></span>
       </div>
       <div class="topbar-center">
@@ -29,7 +31,7 @@
         <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL</span><strong id="storageCompact">--</strong></button>
         <button id="importButton" class="top-action primary" type="button">IMPORT / DROP TRACKS</button>
         <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing">AUDIO OUTPUT</button>
-        <button id="helpButton" class="top-action" type="button" aria-label="Keyboard shortcuts">?</button>
+        <button id="helpButton" class="top-action" type="button" aria-label="Help and About Padawan DJ" title="Help, About and system requirements">?</button>
         <time id="clock">--:--</time>
       </div>
       <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
@@ -287,9 +289,20 @@
     </main>
   </div>
 
-  <dialog id="helpDialog" class="hardware-dialog help-dialog">
+  <dialog id="helpDialog" class="hardware-dialog help-dialog" aria-labelledby="helpDialogTitle">
     <form method="dialog">
-      <header><strong>Keyboard shortcuts</strong><button type="submit">×</button></header>
+      <header>
+        <div class="help-dialog-heading">
+          <img src="icons/padawan-mark.svg" width="32" height="32" alt="">
+          <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
+        </div>
+        <button type="submit" aria-label="Close help">×</button>
+      </header>
+      <nav class="help-tabs" role="tablist" aria-label="Help sections">
+        <button type="button" class="help-tab active" role="tab" id="helpTabShortcuts" aria-controls="helpShortcutsPanel" aria-selected="true" data-help-tab="shortcuts">SHORTCUTS</button>
+        <button type="button" class="help-tab" role="tab" id="helpTabAbout" aria-controls="helpAboutPanel" aria-selected="false" data-help-tab="about">ABOUT / SYSTEM</button>
+      </nav>
+      <section id="helpShortcutsPanel" class="help-tab-panel" role="tabpanel" aria-labelledby="helpTabShortcuts">
       <div class="shortcut-grid">
         <kbd>1</kbd><span>Select Deck 1</span>
         <kbd>2</kbd><span>Select Deck 2</span>
@@ -309,6 +322,40 @@
         <kbd>Mouse wheel</kbd><span>Fine seek while hovering over a jog wheel</span>
       </div>
       <p>Tip: hold Shift while dragging a jog wheel for extra-fine movement. Chrome or Edge gives the most consistent Web Audio performance.</p>
+      </section>
+      <section id="helpAboutPanel" class="help-tab-panel about-panel" role="tabpanel" aria-labelledby="helpTabAbout" hidden>
+        <div class="about-brand">
+          <img src="icons/padawan-mark.svg" width="82" height="82" alt="Padawan DJ logo">
+          <div>
+            <span class="about-eyebrow">LOCAL-FIRST DJ SOFTWARE</span>
+            <h2>PADAWAN <em>DJ</em></h2>
+            <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
+            <p>Two decks. One flow. Your music stays on your device.</p>
+          </div>
+        </div>
+        <div class="about-cards">
+          <section class="about-card">
+            <h3>RECOMMENDED SETUP</h3>
+            <div class="about-item"><strong>Browser</strong><span>Google Chrome (recommended), Microsoft Edge</span></div>
+            <div class="about-item"><strong>Device</strong><span>Desktop or laptop · macOS, Windows or Linux</span></div>
+            <div class="about-item"><strong>Storage</strong><span>IndexedDB with sufficient free disk space for your tracks</span></div>
+            <div class="about-item"><strong>Headphone CUE</strong><span>Two separate audio outputs, with a browser that supports <code>setSinkId()</code></span></div>
+          </section>
+          <section class="about-card">
+            <h3>COMPATIBILITY</h3>
+            <div class="about-item"><strong>Other browsers</strong><span>Firefox and Safari may work; separate audio output is less extensively tested.</span></div>
+            <div class="about-item"><strong>Connection</strong><span>HTTPS or localhost for device permissions and offline features</span></div>
+            <div class="about-item"><strong>Mobile</strong><span>Desktop interface recommended; mobile output routing is limited</span></div>
+            <div class="about-item"><strong>Audio</strong><span>Web Audio API; supported music file formats depend on your browser</span></div>
+          </section>
+        </div>
+        <div class="about-diagnostics">
+          <div><span>THIS BROWSER</span><strong id="aboutBrowser">Checking…</strong></div>
+          <div><span>AUDIO / LIBRARY</span><strong id="aboutCoreSupport">Checking…</strong></div>
+          <div><span>SEPARATE OUTPUT</span><strong id="aboutOutputSupport">Checking…</strong></div>
+        </div>
+        <div class="about-footer">Padawan DJ is a browser-based mixing workspace. Browser capabilities and audio hardware determine which features are available.</div>
+      </section>
     </form>
   </dialog>
 
@@ -357,6 +404,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.1.7"></script>
+  <script src="app.js?v=6.1.8"></script>
 </body>
 </html>
