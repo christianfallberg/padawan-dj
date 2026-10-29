@@ -1,5 +1,7 @@
 'use strict';
 
+const APP_VERSION = '6.1.8';
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -1946,7 +1948,36 @@ function bindEvents() {
   window.addEventListener('online', () => { updateNetworkStatus(); showToast('Back online', 1200); });
   window.addEventListener('offline', () => { updateNetworkStatus(); showToast('Offline mode — local library is still available', 2600); });
 
-  $('#helpButton').addEventListener('click', () => ui.helpDialog.showModal());
+  function showHelpTab(tab) {
+    const about = tab === 'about';
+    $('#helpShortcutsPanel').hidden = about;
+    $('#helpAboutPanel').hidden = !about;
+    for (const button of $$('.help-tab')) {
+      const active = button.dataset.helpTab === tab;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    }
+    if (about) {
+      $('#aboutVersion').textContent = APP_VERSION;
+      const ua = navigator.userAgent || '';
+      const browser = /Edg\//.test(ua) ? 'Microsoft Edge'
+        : /Firefox\//.test(ua) ? 'Firefox'
+        : /Chrome\//.test(ua) ? 'Google Chrome'
+        : /Safari\//.test(ua) ? 'Safari' : 'Unknown browser';
+      $('#aboutBrowser').textContent = browser;
+      const core = Boolean(window.AudioContext || window.webkitAudioContext) && Boolean(window.indexedDB);
+      $('#aboutCoreSupport').textContent = core ? 'Available' : 'Missing required APIs';
+      const output = typeof HTMLMediaElement.prototype.setSinkId === 'function';
+      $('#aboutOutputSupport').textContent = output && window.isSecureContext ? 'API available · hardware required' : 'Not available';
+    }
+  }
+
+  $('#helpButton').addEventListener('click', () => {
+    showHelpTab('shortcuts');
+    ui.helpDialog.showModal();
+  });
+  $$('.help-tab').forEach((button) => button.addEventListener('click', () => showHelpTab(button.dataset.helpTab)));
   $$('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
     const deckId = button.closest('.mixer-channel')?.dataset.deck;
     if (!deckId) return;
