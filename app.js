@@ -1797,7 +1797,7 @@ function bindEvents() {
   window.addEventListener('offline', () => { updateNetworkStatus(); showToast('Offline mode — local library is still available', 2600); });
 
   $('#helpButton').addEventListener('click', () => ui.helpDialog.showModal());
-  $('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
+  $$('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
     const deckId = button.closest('.mixer-channel')?.dataset.deck;
     if (!deckId) return;
     button.classList.toggle('active');
