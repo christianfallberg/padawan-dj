@@ -554,7 +554,7 @@ class Deck {
     this.trimGain.connect(this.channelGain);
     this.cueGain = audioContext.createGain();
     this.cueGain.gain.value = 0;
-    this.trimGain.connect(this.cueGain); // PFL: before channel fader and crossfader.
+    this.channelGain.connect(this.cueGain); // Cue follows deck volume, independently of crossfader and master.
     this.cueGain.connect(cueBus);
     cueGains[id] = this.cueGain;
     this.channelGain.connect(this.crossGain);
