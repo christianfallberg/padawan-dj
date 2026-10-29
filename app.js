@@ -531,6 +531,7 @@ class Deck {
     this.cueTime = 0;
     this.tempoPercent = 0;
     this.jogAngle = 0;
+    this.scratchVoice = null;
 
     this.source = audioContext.createMediaElementSource(this.audio);
     this.low = audioContext.createBiquadFilter();
@@ -574,6 +575,7 @@ class Deck {
   async load(track) {
     await ensureAudioReady();
     await ensureTrackDecoded(track);
+    this.stopScratchGrain();
     this.pause();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.objectUrl = URL.createObjectURL(track.blob);
@@ -607,6 +609,7 @@ class Deck {
   }
 
   unload() {
+    this.stopScratchGrain();
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
@@ -656,6 +659,67 @@ class Deck {
 
   seekBy(seconds) {
     this.seekTo((this.audio.currentTime || 0) + Number(seconds || 0));
+  }
+
+  // Play a very short sample from the decoded track while the platter moves.
+  // The HTMLAudioElement is paused during scratching, so seeking alone is silent.
+  // Send the grains through the deck's existing EQ, fader, crossfader and CUE buses.
+  stopScratchGrain() {
+    const voice = this.scratchVoice;
+    if (!voice) return;
+    this.scratchVoice = null;
+    const now = audioContext.currentTime;
+    voice.gain.gain.cancelScheduledValues(now);
+    voice.gain.gain.setTargetAtTime(0, now, 0.003);
+    try { voice.source.stop(now + 0.012); } catch (_) { /* already ended */ }
+  }
+
+  scratchGrain(deltaSeconds, elapsedSeconds) {
+    const buffer = this.track?.buffer;
+    if (!buffer || buffer.length < 2 || Math.abs(deltaSeconds) < 0.0002) return;
+
+    const rate = clamp(Math.abs(deltaSeconds) / Math.max(elapsedSeconds, 0.012), 0.2, 3);
+    const playSeconds = 0.075;
+    const sampleRate = buffer.sampleRate;
+    const frames = Math.min(buffer.length, Math.max(256, Math.ceil(playSeconds * rate * sampleRate)));
+    const frame = clamp(Math.floor((this.audio.currentTime || 0) * sampleRate), 0, buffer.length - 1);
+
+    let sample = buffer;
+    let offset = 0;
+    if (deltaSeconds > 0) {
+      // Scrub forwards through the source buffer.
+      offset = Math.max(0, Math.min(frame - frames, buffer.length - frames)) / sampleRate;
+    } else {
+      // BufferSourceNode cannot play in reverse; reverse only this tiny grain.
+      sample = audioContext.createBuffer(buffer.numberOfChannels, frames, sampleRate);
+      const endFrame = Math.min(buffer.length, Math.max(frames, frame + frames));
+      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+        const original = buffer.getChannelData(channel);
+        const reversed = sample.getChannelData(channel);
+        for (let i = 0; i < frames; i++) reversed[i] = original[endFrame - 1 - i];
+      }
+    }
+
+    this.stopScratchGrain();
+    const now = audioContext.currentTime;
+    const source = audioContext.createBufferSource();
+    const gain = audioContext.createGain();
+    source.buffer = sample;
+    source.playbackRate.value = rate;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.85, now + 0.004);
+    gain.gain.setValueAtTime(0.85, now + playSeconds - 0.012);
+    gain.gain.linearRampToValueAtTime(0, now + playSeconds);
+    source.connect(gain);
+    gain.connect(this.low);
+    const voice = { source, gain };
+    this.scratchVoice = voice;
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      if (this.scratchVoice === voice) this.scratchVoice = null;
+    };
+    source.start(now, offset, frames / sampleRate);
   }
 
   resetToStart() {
@@ -1321,12 +1385,14 @@ function bindJogControls(deck) {
     pointerId: null,
     mode: null,
     lastAngle: 0,
+    lastMoveTime: 0,
     wasPlaying: false,
   };
 
   const finishInteraction = () => {
     if (!interaction.active) return;
     const shouldResume = interaction.mode === 'scratch' && interaction.wasPlaying && deck.track;
+    deck.stopScratchGrain();
     interaction.active = false;
     interaction.pointerId = null;
     jog.classList.remove('dragging', 'scratching', 'nudging');
@@ -1351,6 +1417,7 @@ function bindJogControls(deck) {
     interaction.active = true;
     interaction.pointerId = event.pointerId;
     interaction.lastAngle = position.angle;
+    interaction.lastMoveTime = performance.now();
     interaction.mode = position.radiusRatio <= 0.7 ? 'scratch' : 'nudge';
     interaction.wasPlaying = !deck.audio.paused && !deck.audio.ended;
 
@@ -1359,7 +1426,10 @@ function bindJogControls(deck) {
 
     // Touching the platter stops it, just like vinyl mode on a controller.
     // Releasing it resumes playback if it was already running.
-    if (interaction.mode === 'scratch' && interaction.wasPlaying) deck.audio.pause();
+    if (interaction.mode === 'scratch' && interaction.wasPlaying) {
+      deck.audio.pause();
+      deck.updatePlayState();
+    }
   });
 
   jog.addEventListener('pointermove', (event) => {
@@ -1373,7 +1443,12 @@ function bindJogControls(deck) {
     const secondsPerRevolution = interaction.mode === 'scratch'
       ? JOG_SCRATCH_SECONDS_PER_REVOLUTION
       : JOG_NUDGE_SECONDS_PER_REVOLUTION;
-    deck.seekBy((delta / TAU) * secondsPerRevolution);
+    const seconds = (delta / TAU) * secondsPerRevolution;
+    const now = performance.now();
+    const elapsed = (now - interaction.lastMoveTime) / 1000;
+    interaction.lastMoveTime = now;
+    deck.seekBy(seconds);
+    if (interaction.mode === 'scratch') deck.scratchGrain(seconds, elapsed);
     deck.updateJogVisual();
   });
 
