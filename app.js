@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.8';
+const APP_VERSION = '6.2.9';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -827,9 +827,14 @@ class Deck {
     $(`#artist${this.id}`).textContent = this.track?.artist || 'Import music and load a track';
     $(`#key${this.id}`).textContent = this.track?.key || '--';
     $(`#bpm${this.id}`).textContent = fallbackBpm.toFixed(2);
-    $(`#elapsed${this.id}`).textContent = '00:00.0';
-    $(`#remaining${this.id}`).textContent = `−${formatTime(this.track?.duration || 0, true)}`;
+    $(`#elapsed${this.id}`).textContent = '00:00';
+    $(`#remaining${this.id}`).textContent = `−${formatTime(this.track?.duration || 0)}`;
     $(`#overviewProgress${this.id}`).style.width = '0%';
+    $(`#overviewPlayhead${this.id}`).style.left = '0%';
+    const seekControl = $(`#overviewSeek${this.id}`);
+    seekControl.value = '0';
+    seekControl.disabled = !this.track;
+    seekControl.setAttribute('aria-valuetext', '00:00 elapsed');
     this.updateCoverUi();
     this.updateHotCueUi();
     this.updateTempoUi();
@@ -1338,9 +1343,15 @@ function drawOverview(deck) {
 function updateRuntimeUi(deck) {
   const duration = Number.isFinite(deck.audio.duration) ? deck.audio.duration : deck.track?.duration || 0;
   const current = deck.audio.currentTime || 0;
-  $(`#elapsed${deck.id}`).textContent = formatTime(current, true);
-  $(`#remaining${deck.id}`).textContent = `−${formatTime(Math.max(0, duration - current), true)}`;
-  $(`#overviewProgress${deck.id}`).style.width = `${duration ? clamp((current / duration) * 100, 0, 100) : 0}%`;
+  const progress = duration ? clamp(current / duration, 0, 1) : 0;
+  $(`#elapsed${deck.id}`).textContent = formatTime(current);
+  $(`#remaining${deck.id}`).textContent = `−${formatTime(Math.max(0, duration - current))}`;
+  $(`#overviewProgress${deck.id}`).style.width = `${progress * 100}%`;
+  $(`#overviewPlayhead${deck.id}`).style.left = `${progress * 100}%`;
+  const seekControl = $(`#overviewSeek${deck.id}`);
+  seekControl.value = String(Math.round(progress * 1000));
+  seekControl.disabled = !deck.track;
+  seekControl.setAttribute('aria-valuetext', `${formatTime(current)} elapsed, ${formatTime(Math.max(0, duration - current))} remaining`);
   deck.updateJogVisual();
 }
 
@@ -1629,6 +1640,15 @@ function bindWaveformControls(deck) {
 }
 
 function bindOverviewControls(deck) {
+  const seekControl = $(`#overviewSeek${deck.id}`);
+  seekControl.addEventListener('input', (event) => {
+    if (!deck.track) return;
+    const duration = Number.isFinite(deck.audio.duration) ? deck.audio.duration : deck.track.duration || 0;
+    setSelectedDeck(deck.id);
+    deck.seekTo((Number(event.target.value) / 1000) * duration);
+    updateRuntimeUi(deck);
+    drawWaveform(deck);
+  });
   const canvas = $(`#overview${deck.id}`);
   const strip = canvas.closest('.overview-strip');
   const interaction = { active: false, pointerId: null, startX: 0, moved: false, wasPlaying: false, pausedForScrub: false };
