@@ -1,0 +1,9 @@
+.DS_Store
+.impeccable/
+node_modules/
+.firebase/
+firebase-debug.log*
+.env
+.env.*
+!.env.example
+.firebaserc
