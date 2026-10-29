@@ -3005,3 +3005,29 @@ body { overflow: visible; }
 .deck-panel .deck-display .display-timeline {
   background:#000204;
 }
+
+/* v6.2.11 — seamless black deck displays and borderless tempo column */
+/* The display itself is the dark recess: no outline or perimeter shadow. */
+.deck-panel .deck-display {
+  border: 0;
+  box-shadow: none;
+  background: #000204;
+}
+/* Remove the legacy separator on the transport's right edge, next to TEMPO.
+   Deck B and both side pods should have no divider either. */
+.deck-panel .deck-main > .transport-panel,
+.deck-panel .deck-main > .tempo-panel,
+.deck-panel .deck-main > .eq-panel,
+.deck-b .deck-main > .transport-panel,
+.deck-b .deck-main > .tempo-panel {
+  border: 0;
+  border-left: 0;
+  border-right: 0;
+  box-shadow: none;
+}
+/* Retain the dark recessed slot without an outline. */
+.deck-panel .tempo-panel .tempo-slot,
+.deck-panel .eq-panel .eq-bank {
+  border: 0;
+  outline: 0;
+}
