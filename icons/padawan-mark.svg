@@ -1,15 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Padawan DJ">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Padawan DJ logo">
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0c1826"/><stop offset="1" stop-color="#04090f"/></linearGradient>
- <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#75f0ff"/><stop offset=".48" stop-color="#28bfff"/><stop offset="1" stop-color="#2871ff"/></linearGradient>
- <radialGradient id="vinyl" cx="40%" cy="29%" r="75%"><stop offset="0" stop-color="#333d48"/><stop offset=".52" stop-color="#151d29"/><stop offset=".9" stop-color="#050a11"/><stop offset="1" stop-color="#283645"/></radialGradient>
+<radialGradient id="base" cx="30%" cy="12%" r="100%"><stop stop-color="#173245"/><stop offset=".55" stop-color="#081725"/><stop offset="1" stop-color="#03080f"/></radialGradient>
+<linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#98faff"/><stop offset=".32" stop-color="#39dcf9"/><stop offset=".65" stop-color="#139fff"/><stop offset="1" stop-color="#3059e8"/></linearGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e0fdff" stop-opacity=".7"/><stop offset=".35" stop-color="#e0fdff" stop-opacity=".04"/><stop offset="1" stop-color="#042040" stop-opacity=".4"/></linearGradient>
+<radialGradient id="vinyl" cx="32%" cy="20%" r="90%"><stop stop-color="#48586c"/><stop offset=".25" stop-color="#233144"/><stop offset=".72" stop-color="#0c1420"/><stop offset="1" stop-color="#02060d"/></radialGradient>
+<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
 </defs>
-<rect width="256" height="256" rx="52" fill="url(#bg)"/>
-<rect x="5.5" y="5.5" width="245" height="245" rx="47" fill="none" stroke="#244052" stroke-width="3"/>
-<path d="M54 202 V76 Q54 52 79 52 H138 C190 52 219 82 219 122 C219 165 188 191 137 191 H92 V202 Q92 219 73 219 Q54 219 54 202 Z" fill="url(#p)"/>
-<circle cx="142" cy="123" r="44.5" fill="url(#vinyl)" stroke="#04090e" stroke-width="3"/>
-<circle cx="142" cy="123" r="35" fill="none" stroke="#536679" stroke-opacity=".25" stroke-width="2"/>
-<circle cx="142" cy="123" r="28" fill="none" stroke="#627789" stroke-opacity=".29" stroke-width="1.5"/>
-<circle cx="142" cy="123" r="21" fill="none" stroke="#6c7d8c" stroke-opacity=".18" stroke-width="1.4"/>
-<circle cx="142" cy="123" r="12.5" fill="url(#p)"/><circle cx="142" cy="123" r="3.5" fill="#e9fbff"/>
+<rect width="256" height="256" rx="51" fill="url(#base)"/>
+<rect x="5" y="5" width="246" height="246" rx="47" stroke="#3282a2" stroke-opacity=".67" stroke-width="2" fill="none"/>
+<path d="M50 198V87Q50 51 86 51H137C189 51 219 85 219 127C219 173 186 206 139 206H112V174H137C167 174 186 155 186 129C186 102 168 85 137 85H92V198Q92 220 71 220Q50 220 50 198Z" fill="#1079ef" opacity=".42" filter="url(#halo)"/>
+<path d="M50 198V87Q50 51 86 51H137C189 51 219 85 219 127C219 173 186 206 139 206H112V174H137C167 174 186 155 186 129C186 102 168 85 137 85H92V198Q92 220 71 220Q50 220 50 198Z" fill="url(#blue)"/>
+<path d="M56 120V86Q56 57 86 57H136C162 57 183 68 196 86" fill="none" stroke="url(#rim)" stroke-width="4" stroke-linecap="round"/>
+<circle cx="141" cy="129" r="46" fill="#030a12"/>
+<circle cx="141" cy="129" r="43" fill="url(#vinyl)"/>
+<circle cx="141" cy="129" r="37" stroke="#9ab2c5" stroke-opacity=".15" stroke-width="2" fill="none"/>
+<circle cx="141" cy="129" r="31" stroke="#a5bacb" stroke-opacity=".25" stroke-width="1.5" fill="none"/>
+<circle cx="141" cy="129" r="26" stroke="#b4c1ce" stroke-opacity=".18" stroke-width="1.1" fill="none"/>
+<circle cx="141" cy="129" r="21" stroke="#b4c1ce" stroke-opacity=".25" stroke-width="1.1" fill="none"/>
+<path d="M111 102Q135 87 163 98" fill="none" stroke="#d8f4ff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round"/>
+<circle cx="141" cy="129" r="13.5" fill="url(#blue)"/>
+<circle cx="141" cy="129" r="4" fill="#e5ffff"/>
 </svg>
