@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.4';
+const APP_VERSION = '6.2.5';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -12,7 +12,7 @@ const JOG_SCRATCH_RADIUS_RATIO = 0.90; // Only the outermost 10% is nudge.
 const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal dragging.
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
 const HOT_CUE_COLORS = { A: '#ff4759', B: '#4b9dff', C: '#42dc7f', D: '#bd6cff' };
-const HOT_CUE_LABELS = { A: 'Intro', B: 'Build', C: 'Break', D: 'Drop' };
+const HOT_CUE_NUMBERS = { A: 1, B: 2, C: 3, D: 4 }; // Keep original A-D storage keys.
 
 const state = {
   tracks: [],
@@ -262,7 +262,7 @@ function getTrackCoverUrl(track) {
 
 function normaliseHotCues(hotCues) {
   const result = {};
-  for (const letter of Object.keys(HOT_CUE_LABELS)) {
+  for (const letter of Object.keys(HOT_CUE_NUMBERS)) {
     const rawValue = hotCues?.[letter];
     if (rawValue === null || rawValue === undefined || rawValue === '') continue;
     const value = Number(rawValue);
@@ -755,7 +755,7 @@ class Deck {
       });
       button?.classList.add('is-triggered');
       setTimeout(() => button?.classList.remove('is-triggered'), 180);
-      showToast(`Deck ${this.id}: Hot Cue ${letter} set at ${formatTime(this.track.hotCues[letter], true)}`);
+      showToast(`Deck ${this.id}: Hot Cue ${HOT_CUE_NUMBERS[letter]} set at ${formatTime(this.track.hotCues[letter], true)}`);
       return;
     }
 
@@ -765,13 +765,13 @@ class Deck {
     this.updatePlayState();
     button?.classList.add('is-triggered');
     setTimeout(() => button?.classList.remove('is-triggered'), 180);
-    showToast(`Deck ${this.id}: Hot Cue ${letter}`, 900);
+    showToast(`Deck ${this.id}: Hot Cue ${HOT_CUE_NUMBERS[letter]}`, 900);
   }
 
   async removeHotCue(letter) {
     if (!this.track) return;
     this.track.hotCues = normaliseHotCues(this.track.hotCues);
-    if (!Number.isFinite(this.track.hotCues[letter])) return showToast(`Hot Cue ${letter} is empty`, 900);
+    if (!Number.isFinite(this.track.hotCues[letter])) return showToast(`Hot Cue ${HOT_CUE_NUMBERS[letter]} is empty`, 900);
     delete this.track.hotCues[letter];
     await dbPut(this.track);
     Object.values(decks).forEach((targetDeck) => {
@@ -780,7 +780,7 @@ class Deck {
         drawOverview(targetDeck);
       }
     });
-    showToast(`Deck ${this.id}: Hot Cue ${letter} deleted`);
+    showToast(`Deck ${this.id}: Hot Cue ${HOT_CUE_NUMBERS[letter]} deleted`);
   }
 
   updateJogVisual() {
@@ -862,11 +862,13 @@ class Deck {
       const time = hotCues[letter];
       const isSet = Number.isFinite(time);
       button.classList.toggle('is-set', isSet);
-      button.style.color = isSet ? HOT_CUE_COLORS[letter] : '';
-      const timeLabel = button.querySelector('.cue-time');
-      if (timeLabel) timeLabel.textContent = isSet ? formatTime(time, true) : 'EMPTY';
-      const nameLabel = button.querySelector('.cue-name');
-      if (nameLabel) nameLabel.textContent = HOT_CUE_LABELS[letter];
+      // White numeric labels; the saved cue color remains a discreet state marker.
+      button.style.removeProperty('color');
+      button.style.setProperty('--hot-cue-accent', HOT_CUE_COLORS[letter]);
+      const number = HOT_CUE_NUMBERS[letter];
+      const info = isSet ? `saved at ${formatTime(time, true)}` : 'empty';
+      button.setAttribute('aria-label', `Deck ${this.id === 'A' ? 1 : 2} Hot Cue ${number}, ${info}`);
+      button.title = `Hot Cue ${number} · ${info} · Click to set/trigger · Shift-click or right-click to delete`;
     });
   }
 
@@ -2117,19 +2119,6 @@ function bindEvents() {
     $(`#tempo${deck.id}`).value = '0';
     deck.setTempo(0);
   }));
-  $$('.grid-shift').forEach((button) => button.addEventListener('click', () => {
-    const deck = decks[button.dataset.deck];
-    if (!deck.track) return;
-    deck.setGridOffset((deck.track.gridOffset || 0) + Number(button.dataset.shift));
-    showToast(`Deck ${deck.id}: grid shifted ${Number(button.dataset.shift) > 0 ? 'right' : 'left'}`);
-  }));
-  $$('.grid-set').forEach((button) => button.addEventListener('click', () => {
-    const deck = decks[button.dataset.deck];
-    if (!deck.track) return;
-    deck.setGridOffset(deck.audio.currentTime);
-    showToast(`Deck ${deck.id}: first beat set at playhead`);
-  }));
-
   ui.searchInput.addEventListener('input', (event) => {
     state.search = event.target.value;
     renderTable();
