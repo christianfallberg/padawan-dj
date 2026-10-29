@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=6.1.7">
 </head>
 <body>
   <div class="app-shell">
@@ -39,7 +39,9 @@
       <h2 id="audioOutputTitle">AUDIO OUTPUT</h2>
       <p>Master plays through the system default speakers. Keep your iMac speakers selected in macOS Sound settings.</p>
       <label for="headphoneOutput">HEADPHONE CUE OUTPUT</label>
-      <select id="headphoneOutput"><option value="">Select USB headphones / audio interface</option></select>
+      <div class="headphone-output-select">
+        <select id="headphoneOutput"><option value="">Select USB headphones / audio interface</option></select>
+      </div>
       <p class="audio-output-note">If you only see “Audio output 1”, click DETECT OUTPUTS. Chrome may request temporary microphone permission to reveal your audio devices. The microphone is immediately released and no audio is recorded. Select a device DIFFERENT from Master.</p>
       <button id="detectHeadphones" class="audio-detect-button" type="button">DETECT OUTPUTS</button>
       <label for="cueVolume">HEADPHONE VOLUME</label>
@@ -147,7 +149,10 @@
               <label>MID<input id="midA" type="range" min="-24" max="6" value="0" step="1"></label>
               <label>LOW<input id="lowA" type="range" min="-24" max="6" value="0" step="1"></label>
               <button class="cue-monitor" type="button">CUE</button>
-              <input id="volumeA" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 volume">
+              <div class="cue-level-control">
+                <span aria-hidden="true">CUE LEVEL</span>
+                <input id="cueLevelA" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 headphone CUE volume" title="Headphone CUE level (does not affect master)">
+              </div>
             </div>
             <div class="level-meter" aria-label="Master level"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="mixer-channel" data-deck="B">
@@ -156,7 +161,10 @@
               <label>MID<input id="midB" type="range" min="-24" max="6" value="0" step="1"></label>
               <label>LOW<input id="lowB" type="range" min="-24" max="6" value="0" step="1"></label>
               <button class="cue-monitor active" type="button">CUE</button>
-              <input id="volumeB" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 2 volume">
+              <div class="cue-level-control">
+                <span aria-hidden="true">CUE LEVEL</span>
+                <input id="cueLevelB" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 2 headphone CUE volume" title="Headphone CUE level (does not affect master)">
+              </div>
             </div>
           </div>
           <div class="crossfader-area">
@@ -349,6 +357,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.1.6"></script>
+  <script src="app.js?v=6.1.7"></script>
 </body>
 </html>
