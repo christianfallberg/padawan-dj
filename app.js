@@ -1696,7 +1696,64 @@ function setWaveformZoom(seconds) {
   drawWaveform(decks.B);
 }
 
+// Hardware-style EQ dials use the existing range inputs and Web Audio listeners.
+// Vertical pointer dragging adjusts values; keyboard arrows work on the focused input.
+function bindEqDials(deckId) {
+  for (const name of ['trim', 'high', 'mid', 'low']) {
+    const input = $(`#${name}${deckId}`);
+    const unit = input.closest('.eq-knob-unit');
+    const face = unit.querySelector('.eq-knob-face');
+    const minimum = Number(input.min);
+    const maximum = Number(input.max);
+    const step = Number(input.step) || 1;
+    const refreshDial = () => {
+      const fraction = clamp((Number(input.value) - minimum) / (maximum - minimum), 0, 1);
+      face.style.setProperty('--dial-angle', `${-135 + 270 * fraction}deg`);
+      unit.setAttribute('data-value', String(input.value));
+    };
+    input.addEventListener('input', refreshDial);
+    refreshDial();
+
+    let drag = null;
+    unit.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      event.preventDefault();
+      input.focus({ preventScroll: true });
+      drag = { id: event.pointerId, startY: event.clientY, startValue: Number(input.value) };
+      unit.setPointerCapture(event.pointerId);
+      unit.classList.add('adjusting');
+    });
+    unit.addEventListener('pointermove', (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      event.preventDefault();
+      const sensitivity = event.shiftKey ? 460 : 170;
+      const raw = drag.startValue + (drag.startY - event.clientY) * (maximum - minimum) / sensitivity;
+      const snapped = Math.round((clamp(raw, minimum, maximum) - minimum) / step) * step + minimum;
+      const next = String(Number(clamp(snapped, minimum, maximum).toFixed(3)));
+      if (input.value !== next) {
+        input.value = next;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+    const endDrag = (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      drag = null;
+      unit.classList.remove('adjusting');
+      if (unit.hasPointerCapture(event.pointerId)) unit.releasePointerCapture(event.pointerId);
+    };
+    unit.addEventListener('pointerup', endDrag);
+    unit.addEventListener('pointercancel', endDrag);
+    unit.addEventListener('lostpointercapture', endDrag);
+    unit.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+      input.value = input.defaultValue;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+}
+
 function bindDeckControls(deck) {
+  bindEqDials(deck.id);
   bindJogControls(deck);
   bindJogDrop(deck);
   bindWaveformControls(deck);
