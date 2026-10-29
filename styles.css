@@ -3031,3 +3031,147 @@ body { overflow: visible; }
   border: 0;
   outline: 0;
 }
+
+
+/* v6.2.12 — consistent audio palette, aligned wide VU meter and compact deck controls */
+/* Keep the two waveform identities: Deck A cyan, Deck B magenta. */
+.deck-a-waveform .waveform-label {box-shadow:inset 3px 0 0 #16c8ff;}
+.deck-b-waveform .waveform-label {box-shadow:inset 3px 0 0 #f73597;}
+/* CUE LEVEL is a headphone monitor, not a deck accent: both must be cyan. */
+.mixer-panel .mixer-channel[data-deck="A"] .cue-level-control input.channel-fader,
+.mixer-panel .mixer-channel[data-deck="B"] .cue-level-control input.channel-fader {
+  accent-color:#18ceff;
+}
+.mixer-panel .mixer-channel[data-deck="A"] .cue-level-control input.channel-fader::-webkit-slider-runnable-track,
+.mixer-panel .mixer-channel[data-deck="B"] .cue-level-control input.channel-fader::-webkit-slider-runnable-track {
+  width:8px;
+  border:1px solid #083f56;
+  border-radius:5px;
+  background:linear-gradient(90deg,#030910,#153346 45%,#030910);
+  box-shadow:inset 1px 0 3px #000b;
+}
+.mixer-panel .mixer-channel[data-deck="A"] .cue-level-control input.channel-fader::-webkit-slider-thumb,
+.mixer-panel .mixer-channel[data-deck="B"] .cue-level-control input.channel-fader::-webkit-slider-thumb {
+  appearance:none;
+  width:29px;height:19px;
+  margin-left:-11px;margin-top:0;
+  border:1px solid #21bfe9;
+  border-radius:4px;
+  background:linear-gradient(180deg,#567a90 0%,#162c3d 38%,#0b1b2a 49%,#2787ab 52%,#102332 70%,#56798a);
+  box-shadow:inset 0 1px 1px #e1f9ff60,0 0 0 1px #0c4961,0 0 8px #06c5ff47;
+}
+.mixer-panel .mixer-channel[data-deck="A"] .cue-level-control input.channel-fader::-moz-range-track,
+.mixer-panel .mixer-channel[data-deck="B"] .cue-level-control input.channel-fader::-moz-range-track {
+  width:8px;
+  border:1px solid #083f56;border-radius:5px;
+  background:#133247;
+}
+.mixer-panel .mixer-channel[data-deck="A"] .cue-level-control input.channel-fader::-moz-range-thumb,
+.mixer-panel .mixer-channel[data-deck="B"] .cue-level-control input.channel-fader::-moz-range-thumb {
+  width:29px;height:19px;border-radius:4px;
+  border:1px solid #21bfe9;
+  background:linear-gradient(#57798f,#152c3e 45%,#2185aa 55%,#203647);
+  box-shadow:0 0 6px #08c3fa50;
+}
+
+/* Three real columns, with a broader center level meter beside the headphone sliders. */
+.mixer-panel .mixer-channels {
+  grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);
+  gap:5px;
+}
+.mixer-panel .mixer-channels > .level-meter {
+  box-sizing:border-box;
+  align-self:start;
+  justify-self:center;
+  display:flex;
+  flex-direction:column-reverse;
+  align-items:center;
+  justify-content:flex-end;
+  width:24px;
+  min-width:24px;
+  height:181px;
+  min-height:181px;
+  max-height:181px;
+  margin:179px 0 0;
+  padding:0;
+  gap:4px;
+  border:0;
+  background:transparent;
+}
+.mixer-panel .mixer-channels > .level-meter i {
+  display:block;
+  flex:none;
+  width:18px;
+  height:14px;
+  border-radius:2px;
+}
+/* Equal slider travel / end positions. */
+.mixer-panel .cue-level-control .channel-fader {
+  height:181px;
+  min-height:181px;
+  max-height:181px;
+}
+
+/* The platters stay fixed at 296px. Only the surrounding three-column console
+   gets narrower and is centered inside the existing desktop deck panels. */
+.deck-panel .deck-main,
+.deck-b .deck-main {
+  grid-template-columns:72px minmax(0,426px) 72px;
+  justify-content:center;
+}
+.deck-panel .deck-main > .transport-panel {
+  box-sizing:border-box;
+  width:100%;
+  max-width:426px;
+  min-width:0;
+  padding:9px 11px;
+  margin:0;
+  justify-self:center;
+}
+/* A little more vertical space for symmetric 21px top/bottom breathing room
+   at the fixed desktop size, without shrinking the library below 248px. */
+.workspace {
+  grid-template-rows:124px 620px minmax(248px,1fr);
+}
+.deck-panel .deck-main .transport-cluster {
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin:0 auto;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:36px var(--dj-platter-size) 42px;
+  column-gap:9px;
+  row-gap:6px;
+  align-self:center;
+  align-content:center;
+  justify-items:stretch;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip {
+  width:100%;
+  grid-column:1 / -1;
+  grid-row:1;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+}
+.deck-panel .deck-main .transport-cluster .jogwheel {
+  grid-row:2;
+  grid-column:1 / -1;
+  width:var(--dj-platter-size);
+  height:var(--dj-platter-size);
+  min-width:var(--dj-platter-size);
+  max-width:var(--dj-platter-size);
+  min-height:var(--dj-platter-size);
+  max-height:var(--dj-platter-size);
+}
+.deck-panel .deck-main .transport-cluster .hotcue-button {
+  height:36px;
+  min-height:36px;
+  max-height:36px;
+}
+.deck-panel .deck-main .transport-cluster .cue-button,
+.deck-panel .deck-main .transport-cluster .play-button,
+.deck-panel .deck-main .transport-cluster .sync-button {
+  height:42px;
+  min-height:42px;
+  max-height:42px;
+}
