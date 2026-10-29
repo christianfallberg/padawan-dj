@@ -1443,3 +1443,197 @@ body { overflow: visible; }
 @media (prefers-reduced-motion: reduce) {
   .transport-cluster .round-button,.transport-cluster .sync-button { transition:none; }
 }
+
+
+/* v6.2.3 — dual waveforms, sculpted EQ dial pods, tempo scale and rubber buttons */
+/* In v6.2.2 the stage was 106px high, but the second track started at 99px,
+   leaving almost all of Deck 2 clipped by overflow:hidden. Give both full lanes. */
+.workspace { grid-template-rows: 124px 548px minmax(228px,1fr); }
+.waveform-stage { overflow: hidden; }
+.waveform-row { height: 53px; min-height: 53px; }
+.deck-a-waveform { top: 18px; }
+.deck-b-waveform { top: 71px; }
+.waveform-stage .playhead { top: 18px; bottom: 0; }
+.waveform-stage .waveform-interaction-hint { bottom: 3px; }
+.waveform-stage .waveform-row canvas { display:block;width:100%;height:100%; }
+
+/* Long tactile tempo pitch fader inside a narrow, oval, engraved scale. */
+.tempo-panel {
+  display:grid; grid-template-rows: 26px minmax(0,1fr) 36px;
+  align-items: center; justify-items:center;
+  gap:8px; padding:10px 5px 12px; background:linear-gradient(180deg,#080f19,#030911);
+}
+.tempo-panel .section-label { text-align:center;color:#d1e4f3;font-size:9px; }
+.tempo-slot {
+  position:relative; display:grid; place-items:center;
+  height:250px; width:57px; flex:none;
+  border:1px solid #314c64;
+  border-radius:29px;
+  background:linear-gradient(90deg,#0a1523 0%,#172637 17%,#070e19 31%,#080f19 70%,#172537 85%,#081321);
+  box-shadow: inset 0 0 0 2px #040910, inset 0 0 14px #0009,0 5px 12px #0008;
+}
+.tempo-slot::before {
+  content:"−16"; position:absolute;top:7px;left:50%;transform:translateX(-50%);
+  color:#89a2b5;font:800 8px/1 system-ui,sans-serif;
+}
+.tempo-slot::after {
+  content:"+16"; position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+  color:#89a2b5;font:800 8px/1 system-ui,sans-serif;
+}
+.tempo-ticks {
+  position:absolute;inset:28px 7px 28px;
+  pointer-events:none;opacity:.8;
+  background:
+    repeating-linear-gradient(to bottom,#6989a6 0 1px,transparent 1px 13px) left center/9px 100% no-repeat,
+    repeating-linear-gradient(to bottom,#6989a6 0 1px,transparent 1px 13px) right center/9px 100% no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);
+  mask-image: linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);
+}
+.tempo-centre-line {
+  position:absolute;top:50%;left:6px;right:6px;height:2px;
+  background:linear-gradient(90deg,#35beff,transparent 33% 67%,#35beff);
+  box-shadow:0 0 6px #23aaff70;pointer-events:none;
+}
+.deck-b .tempo-centre-line {
+  background:linear-gradient(90deg,#f643a4,transparent 33% 67%,#f643a4);
+  box-shadow:0 0 6px #f643a46b;
+}
+.tempo-slot input.vertical-range {
+  position:relative;z-index:1;
+  display:block;width:28px;height:194px;min-height:194px;max-height:194px;
+  margin:0;outline-offset:4px;
+}
+.tempo-slot input.vertical-range::-webkit-slider-runnable-track {
+  background:linear-gradient(90deg,#02060b,#17283a 47%,#03080e);
+  border:1px solid #040810;border-radius:7px;
+  box-shadow:inset 2px 0 5px #000c,1px 0 0 #7898ab3d;
+}
+.tempo-slot input.vertical-range::-webkit-slider-thumb {
+  width:31px;height:21px; margin-left:-12px;
+  border:1px solid #344a5c;border-radius:5px;
+  background:linear-gradient(180deg,#e5ecf1 0 18%,#8a9eae 19% 30%,#dce5eb 31% 45%,#425767 46% 56%,#d6e2ea 57% 80%,#7f92a0 81% 89%,#dbe8f0 90%);
+  box-shadow:inset 0 1px 1px #fff,0 3px 7px #000c,0 0 0 1px #111d29;
+}
+.tempo-slot input.vertical-range::-moz-range-thumb {width:31px;height:21px;border-radius:5px;}
+
+/* Shared oval EQ capsule – actual rotary controls, not miniature horizontal sliders. */
+.mixer-channels { padding: 9px 8px 6px; gap:7px; }
+.mixer-channel {
+  display:grid; grid-template-rows: 207px 38px minmax(0,1fr);
+  align-items:start;justify-items:stretch; gap:10px;
+}
+.eq-bank {
+  width:100%;min-width:0;height:207px;
+  display:grid;grid-template-rows:repeat(4,47px);place-items:center;
+  padding:8px 2px;
+  border:1px solid #29445b;border-radius:29px;
+  background:linear-gradient(90deg,#091521,#122337 22%,#0a1420 52%,#15283b 82%,#08121e);
+  box-shadow:inset 0 1px 0 #a7c3d82c,inset 0 0 0 2px #030812,
+             inset 0 0 17px #0008,0 7px 15px #0008;
+}
+.mixer-channel .eq-control {
+  display:grid;grid-template-columns:26px 52px;gap:5px;
+  align-items:center;justify-content:center;
+  width:100%;height:47px;min-width:0;
+  color:#b3ccdb;cursor:ns-resize;
+}
+.eq-caption {font-size:8px;font-weight:900;letter-spacing:.04em;color:#d4e3ee;}
+.eq-knob-unit {
+  position:relative;display:grid;place-items:center;
+  width:51px;height:45px;border-radius:50%;
+  touch-action:none;cursor:ns-resize;
+}
+.eq-knob-ticks {
+  position:absolute;inset:1px 3px;z-index:0;
+  border-radius:50%;
+  background:repeating-conic-gradient(from -132deg,#9bb5c6 0deg 2deg,transparent 2deg 23deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 19px,#000 20px 23px,transparent 24px);
+  mask:radial-gradient(circle,transparent 0 19px,#000 20px 23px,transparent 24px);
+  opacity:.78;pointer-events:none;
+}
+.eq-knob-face {
+  width:35px;height:35px;
+  position:relative;z-index:1;
+  display:block;border:2px solid #1d2c3a;border-radius:50%;
+  background:
+    radial-gradient(circle at 29% 22%,#586b7c 0%,#344758 17%,#101e2c 52%,#060c16 83%),
+    repeating-conic-gradient(#172b3b 0deg 12deg,#233648 12deg 16deg);
+  box-shadow:inset 0 2px 3px #aec0cf47,inset 0 -5px 6px #000b,
+             0 2px 0 #05080e,0 4px 8px #000c,0 0 0 1px #56708765;
+  transform:rotate(var(--dial-angle,0deg));
+  transition:transform .045s linear;
+  pointer-events:none;
+}
+.eq-knob-pointer {
+  position:absolute;left:50%;top:4px;transform:translateX(-50%);
+  width:3px;height:11px;border-radius:3px;
+  background:#c9efff;box-shadow:0 0 4px #50c9ffbb;
+}
+.mixer-channel[data-deck="B"] .eq-knob-pointer {background:#ffd0ea;box-shadow:0 0 4px #f53a9aa8;}
+.eq-knob-unit.adjusting .eq-knob-face,.eq-knob-unit:focus-within .eq-knob-face {
+  box-shadow:inset 0 2px 3px #aec0cf47,inset 0 -5px 6px #000b,
+             0 4px 8px #000b,0 0 0 2px #40bcf599,0 0 14px #18aeed57;
+}
+.eq-knob-unit .eq-knob-input {
+  position:absolute;inset:0;z-index:2;display:block;
+  width:100%;height:100%;margin:0;padding:0;
+  opacity:0;pointer-events:none;cursor:ns-resize;
+}
+.mixer-channel .cue-monitor { justify-self:center;align-self:center; }
+.cue-level-control {align-self:start;}
+
+/* Rubberized sculpted pads: bold white legends, raised edge, press feedback. */
+.transport-cluster .cue-button,
+.transport-cluster .play-button,
+.transport-cluster .sync-button,
+.hotcue-panel .cue-grid button,
+.hotcue-panel .grid-controls button,
+.tempo-panel .reset-tempo,
+.master-button,
+.track-start-button,
+.sidebar-footer button,
+.load-buttons button {
+  color:#eff5fa;
+  font-weight:900;
+  text-shadow:0 1px 2px #000c;
+  border-top-color:#4b5969;
+  border-bottom-color:#010409;
+  background:linear-gradient(180deg,#24313e 0%,#111b27 18%,#09111c 77%,#070d16 100%);
+  box-shadow:inset 0 2px 1px #d6e8f323,inset 0 -3px 4px #000a,
+             0 4px 0 #020409,0 7px 12px #0009;
+}
+.transport-cluster .cue-button,
+.transport-cluster .sync-button {font-size:13px;letter-spacing:.08em;}
+.transport-cluster .play-button {font-size:27px;letter-spacing:0;}
+.hotcue-panel .cue-grid .cue-name {color:#f4f7fa;font-weight:900;font-size:10px;}
+.hotcue-panel .cue-grid button {border-radius:9px;}
+.hotcue-panel .grid-controls button {font-size:9px;letter-spacing:.025em;}
+.tempo-panel .reset-tempo {font-size:9px;letter-spacing:.04em;}
+.master-button {color:#e7f0f7;}
+.hotcue-panel .cue-grid button:hover,.hotcue-panel .grid-controls button:hover,
+.tempo-panel .reset-tempo:hover,.master-button:hover,.sidebar-footer button:hover,
+.load-buttons button:hover {
+  background:linear-gradient(#2c4052,#101c29 60%,#0b1522);
+  border-color:#7493aa;filter:none;
+}
+.hotcue-panel .cue-grid button:active,.hotcue-panel .grid-controls button:active,
+.tempo-panel .reset-tempo:active,.master-button:active,
+.sidebar-footer button:active,.load-buttons button:active {
+  transform:translateY(3px);
+  border-bottom-width:1px;
+  box-shadow:inset 0 3px 7px #000e,0 1px 0 #030609;
+}
+.hotcue-panel .hotcue-button.is-set {
+  border-color:#4a7395!important;
+  background:linear-gradient(#21415b,#0a1c2b);
+  box-shadow:inset 0 2px 3px #0009,0 2px 0 #020408;
+}
+.hotcue-panel .hotcue-button.is-triggered {filter:brightness(1.4);}
+.transport-cluster .round-button.active {
+  background:linear-gradient(#1e4053,#0b2133);
+  border-color:#50b2d8;
+  color:#f1fcff;
+}
+.deck-b .transport-cluster .round-button.active {border-color:#ec70b1;color:#fff3f9;}
+/* Stable geometry: the minimum workspace still scrolls as a desktop console. */
+.app-shell {min-width:var(--dj-min-width);min-height:var(--dj-min-height);}
