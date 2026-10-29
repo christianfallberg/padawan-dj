@@ -2722,7 +2722,7 @@ body { overflow: visible; }
 /* A single recessed instrument display, no individual background around title or waveform. */
 .deck-panel {
   display:grid;
-  grid-template-rows:164px minmax(0,1fr);
+  grid-template-rows:172px minmax(0,1fr);
   min-height:0;
 }
 .deck-panel .deck-display {
@@ -2731,7 +2731,7 @@ body { overflow: visible; }
   min-height:164px;
   height:164px;
   min-width:0;
-  margin:9px 10px 0;
+  margin:7px 10px 0;
   border:1px solid #182d40;
   border-radius:10px;
   background:linear-gradient(180deg,#010407,#03070d 100%);
