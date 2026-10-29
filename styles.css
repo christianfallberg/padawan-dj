@@ -2247,3 +2247,264 @@ body { overflow: visible; }
   font-size:9px;font-weight:700;
 }
 /* Preserve fixed 296px jogs and 1–4 hot cue strips. */
+
+
+/* v6.2.7 — symmetrical EQ/tempo, central master fader, readable active hardware */
+/* The per-deck three-band EQ shell matches the tempo shell exactly (51 × 259px). */
+.deck-panel .eq-panel,
+.deck-panel .tempo-panel {
+  display:grid;
+  grid-template-rows:24px minmax(0,1fr) 37px;
+  align-items:center;
+  justify-items:center;
+  padding:12px 4px 14px 2px;
+  min-width:0;min-height:0;
+  border:0;background:transparent;box-shadow:none;
+}
+.deck-panel .deck-main,
+.deck-b .deck-main {
+  grid-template-columns:72px minmax(0,1fr) 72px;
+}
+.deck-panel .eq-panel .section-label,
+.deck-panel .tempo-panel .section-label {
+  margin:0;align-self:center;text-align:center;
+  color:#b9c7d3;font-size:9px;font-weight:700;letter-spacing:.04em;
+}
+.deck-panel .eq-panel .eq-bank,
+.deck-panel .tempo-panel .tempo-slot {
+  width:51px;height:259px;min-width:51px;max-width:51px;
+  min-height:259px;max-height:259px;
+  padding:0;
+  border:1px solid #142130;border-radius:5px;
+  background:#04080f;
+  box-shadow:inset 0 1px 4px #0009;
+}
+.deck-panel .eq-panel .eq-bank {
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  align-self:center;justify-self:center;
+  padding:8px 2px;
+}
+.deck-panel .eq-panel .eq-bank::before {display:none;}
+.deck-panel .eq-panel .eq-control {
+  width:100%;height:100%;min-height:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:5px;
+  padding:0;
+}
+.deck-panel .eq-panel .eq-caption {
+  font-size:9px;font-weight:700;
+  line-height:1.1;letter-spacing:.025em;
+  color:#c6d3dd;text-align:center;
+}
+.deck-panel .eq-panel .eq-knob-unit {width:45px;height:45px;flex:none;}
+.deck-panel .eq-panel .eq-knob-face {width:35px;height:35px;}
+.deck-panel .tempo-slot {padding:0;}
+/* Reduce rubber-pad weight and footprint while keeping white, centered labels. */
+.deck-panel .transport-cluster {
+  grid-template-rows:36px var(--dj-platter-size) 42px;
+  row-gap:9px;
+}
+.transport-cluster .hotcue-strip .hotcue-button,
+.transport-cluster .cue-button,
+.transport-cluster .play-button,
+.transport-cluster .sync-button {
+  height:42px;min-height:42px;max-height:42px;
+  border:1px solid #465463;border-radius:4px;
+  background:linear-gradient(180deg,#202a35,#111923 55%,#0b121b);
+  box-shadow:inset 0 1px 0 #e0edf419,inset 0 -1px 0 #0008;
+  padding:0 8px;color:#f5f8fc;
+  font-size:12px;font-weight:650;
+  letter-spacing:.045em;line-height:1;text-transform:uppercase;
+}
+.transport-cluster .hotcue-strip .hotcue-button {
+  height:36px;min-height:36px;max-height:36px;
+  font-size:13px;font-weight:650;
+}
+.transport-cluster .play-button {font-size:21px;font-weight:650;}
+.transport-cluster .hotcue-strip .hotcue-button:hover,
+.transport-cluster .cue-button:hover,
+.transport-cluster .play-button:hover,
+.transport-cluster .sync-button:hover {
+  background:linear-gradient(180deg,#2b3642,#162333);
+  border-color:#7c92a5;
+  box-shadow:inset 0 1px 0 #e0edf42c,inset 0 -1px 0 #0009;
+}
+.mixer-channel .cue-monitor,
+.tempo-panel .reset-tempo,
+.master-button,
+.track-start-button,
+.sidebar-footer button,
+.load-buttons button {
+  border:1px solid #465463;
+  background:linear-gradient(180deg,#202a35,#111923 55%,#0b121b);
+  box-shadow:inset 0 1px 0 #e0edf419,inset 0 -1px 0 #0008;
+  font-weight:650;
+}
+.mixer-channel .cue-monitor {font-size:11px;}
+.tempo-panel .reset-tempo {width:56px;height:28px;min-height:28px;font-size:9px;}
+.master-button {font-size:9px;}
+.track-start-button {font-size:9px;}
+.sidebar-footer button,.load-buttons button {font-size:9px;}
+
+/* The black track metadata window from the approved concept. */
+.deck-header .track-info-box {
+  display:flex;flex-direction:column;justify-content:center;
+  align-items:flex-start;gap:3px;
+  width:100%;min-width:0;height:42px;
+  padding:4px 10px;
+  border:1px solid #172a39;border-radius:4px;
+  background:linear-gradient(180deg,#020508,#050b12 90%);
+  box-shadow:inset 0 1px 4px #000c;
+}
+.deck-header .track-info-box strong {
+  max-width:100%;color:#f6fbff;font-size:12px;
+  font-weight:750;line-height:1.2;
+}
+.deck-header .track-info-box span {
+  max-width:100%;color:#8fa9bb;font-size:10px;line-height:1.2;
+}
+
+/* Three parallel fader columns: HEADPHONE CUE A / MASTER / HEADPHONE CUE B.
+   Center master is taller, wider, and starts at the same Y position. */
+.mixer-panel {
+  grid-template-rows:44px minmax(0,1fr) 52px;
+}
+.mixer-panel .mixer-channels {
+  grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);
+  gap:5px;
+  padding:13px 8px 7px;
+  align-items:stretch;
+}
+.mixer-panel .mixer-channel {
+  grid-template-rows:100px 39px minmax(0,1fr);
+  gap:10px;
+  justify-items:center;
+  min-height:0;
+}
+.mixer-panel .cue-level-control {
+  align-self:start;justify-self:center;
+  padding:0;
+  gap:8px;
+}
+.mixer-panel .cue-level-control > span,
+.mixer-panel .master-fader-group > label {
+  display:block;
+  height:12px;
+  color:#acbfce;
+  font-size:9px;
+  font-weight:700;
+  line-height:12px;
+  letter-spacing:.015em;
+  text-align:center;
+  white-space:nowrap;
+}
+.mixer-panel .cue-level-control .channel-fader {
+  width:29px!important;
+  height:181px;min-height:181px;max-height:181px;
+}
+.mixer-panel .master-volume {
+  grid-column:2;
+  display:grid;
+  grid-template-rows:159px minmax(0,1fr);
+  justify-items:center;align-items:start;
+  min-width:0;min-height:0;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  color:#d8e9f5;
+}
+.mixer-panel .master-fader-group {
+  grid-row:2;
+  display:flex;
+  flex-direction:column;align-items:center;
+  gap:8px;
+  min-width:0;width:100%;
+}
+.mixer-panel .master-fader-well {
+  display:flex;align-items:center;justify-content:center;
+  gap:5px;
+  width:100%;min-height:196px;
+  padding:4px 0;
+  border:1px solid #162b3b;border-radius:5px;
+  background:linear-gradient(90deg,#040a12,#0b1724 50%,#030810);
+  box-shadow:inset 0 2px 6px #000a;
+}
+.mixer-panel #masterVolume {
+  writing-mode:vertical-lr;
+  direction:rtl;
+  display:block;appearance:none;
+  width:31px;height:188px;
+  min-height:188px;max-height:188px;
+  margin:0;padding:0;flex:none;
+  accent-color:#32bfff;
+  background:transparent;
+  cursor:pointer;
+}
+.mixer-panel #masterVolume::-webkit-slider-runnable-track {
+  width:9px;height:100%;
+  border:1px solid #03070d;border-radius:5px;
+  background:linear-gradient(90deg,#02070d,#263c50,#03070d);
+  box-shadow:inset 1px 0 3px #000b;
+}
+.mixer-panel #masterVolume::-webkit-slider-thumb {
+  appearance:none;
+  width:30px;height:22px;
+  margin-left:-11px;margin-top:0;
+  border:1px solid #4a6074;border-radius:4px;
+  background:linear-gradient(180deg,#718497,#253648 29%,#152334 46%,#5b7185 53%,#1b2c3d 74%,#718599);
+  box-shadow:inset 0 1px 1px #d7e7f670,0 2px 5px #0009;
+}
+.mixer-panel #masterVolume::-moz-range-track {
+  width:9px;height:100%;border:1px solid #03070d;border-radius:5px;
+  background:#172d40;
+}
+.mixer-panel #masterVolume::-moz-range-thumb {
+  width:30px;height:22px;border:1px solid #4a6074;border-radius:4px;
+  background:linear-gradient(#6c8195,#1a2d40 45%,#63798d);
+}
+.mixer-panel .master-fader-well .level-meter {
+  display:flex;
+  flex-direction:column-reverse;align-items:center;
+  justify-content:center;
+  flex:none;
+  width:8px;
+  padding:0;margin:0;gap:3px;
+}
+.mixer-panel .master-fader-well .level-meter i {
+  width:7px;height:9px;
+  border-radius:1px;
+}
+
+/* Active signal/state indication: visible even on a dark console.
+   A = cyan / B = magenta, PLAY = bright deck color. */
+.deck-a .master-button.active,
+.deck-b .master-button.active,
+.mixer-panel .mixer-channel .cue-monitor.active,
+.deck-a .transport-cluster .play-button.active,
+.deck-b .transport-cluster .play-button.active {
+  color:#fff;
+  font-weight:800;
+  text-shadow:0 1px 2px #0008;
+  transition:background .13s,border-color .13s,box-shadow .13s;
+}
+.deck-a .master-button.active,
+.mixer-panel .mixer-channel[data-deck="A"] .cue-monitor.active,
+.deck-a .transport-cluster .play-button.active {
+  border:1px solid #56d5ff;
+  background:linear-gradient(180deg,#1296d9,#09608f);
+  box-shadow:inset 0 1px 0 #ffffff35,0 0 0 1px #0e5375,0 0 13px #06a7f65e;
+}
+.deck-b .master-button.active,
+.mixer-panel .mixer-channel[data-deck="B"] .cue-monitor.active,
+.deck-b .transport-cluster .play-button.active {
+  border:1px solid #ff7dbc;
+  background:linear-gradient(180deg,#cd3086,#832052);
+  box-shadow:inset 0 1px 0 #ffffff33,0 0 0 1px #63203e,0 0 13px #f72d9170;
+}
+.deck-a .transport-cluster .play-button.active:hover,
+.deck-b .transport-cluster .play-button.active:hover,
+.deck-a .master-button.active:hover,
+.deck-b .master-button.active:hover,
+.mixer-panel .mixer-channel .cue-monitor.active:hover {filter:brightness(1.12);}
