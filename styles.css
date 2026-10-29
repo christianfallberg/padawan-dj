@@ -1637,3 +1637,236 @@ body { overflow: visible; }
 .deck-b .transport-cluster .round-button.active {border-color:#ec70b1;color:#fff3f9;}
 /* Stable geometry: the minimum workspace still scrolls as a desktop console. */
 .app-shell {min-width:var(--dj-min-width);min-height:var(--dj-min-height);}
+
+
+/* v6.2.4 — tighter studio hardware finish */
+/* Consistent, restrained corners: the rotary controls remain round. */
+.waveform-stage { border-radius:8px; }
+.deck-panel,.mixer-panel,.library-section { border-radius:9px; }
+.deck-cover,.master-button,.track-start-button { border-radius:5px; }
+.nav-pill,.topbar-right .top-action { border-radius:5px; }
+.topbar .brand-icon {border-radius:8px;}
+.search-box,.source-item,.playlist-select {border-radius:6px;}
+.track-table td:first-child {border-radius:6px 0 0 6px;}
+.track-table td:last-child {border-radius:0 6px 6px 0;}
+.track-title-cell img {border-radius:5px;}
+.load-buttons button,.sidebar-footer button {border-radius:5px;}
+#helpDialog {border-radius:9px;}
+#helpDialog .about-card {border-radius:6px;}
+.about-diagnostics > div {border-radius:5px;}
+
+/* Recessed pitch fader, hardware slot rather than a soft app pill. */
+.tempo-slot {
+  width:55px;
+  border-radius:13px;
+  border:1px solid #1b3041;
+  background:linear-gradient(90deg,#01050a 0%,#0a121e 12%,#111d2a 27%,#03080f 43%,#02060b 63%,#111f2c 83%,#050b13 100%);
+  box-shadow:0 0 0 3px #04090f,
+    inset 0 0 0 1px #34485a65,
+    inset 0 3px 9px #000f,
+    inset 0 -3px 7px #000b,
+    0 6px 13px #0008;
+}
+.tempo-ticks {
+  opacity:.58;
+  background:
+    repeating-linear-gradient(to bottom,#718698 0 1px,transparent 1px 13px) left center/8px 100% no-repeat,
+    repeating-linear-gradient(to bottom,#718698 0 1px,transparent 1px 13px) right center/8px 100% no-repeat;
+}
+.tempo-slot::before,.tempo-slot::after {color:#7d98ad;}
+.tempo-slot input.vertical-range::-webkit-slider-runnable-track {
+  border-radius:3px;
+  background:linear-gradient(90deg,#010306 0%,#0b1929 42%,#010408 95%);
+  box-shadow:inset 2px 0 5px #000e,1px 0 0 #273c5088;
+}
+
+/* Deep, joined EQ recess. The pointer dial and its input remain interactive. */
+.eq-bank {
+  position:relative;
+  isolation:isolate;
+  border-radius:24px;
+  border:1px solid #1b2f41;
+  background:
+    linear-gradient(90deg,#03070d 0%,#0e1b2a 10%,#080e16 29%,#040910 56%,#122030 90%,#03070d);
+  box-shadow:0 0 0 2px #03070b,
+    inset 0 0 0 2px #15293a,
+    inset 0 3px 10px #000e,
+    inset 0 -3px 10px #000d,
+    0 6px 15px #0009;
+}
+.eq-bank::before {
+  content:"";
+  position:absolute;inset:4px;
+  border-radius:19px;
+  border:1px solid #1a2e40;
+  background:linear-gradient(90deg,#010409,#07101a 25%,#02060b 65%,#091522);
+  box-shadow:inset 0 3px 8px #000e,inset 0 0 0 1px #3041534d;
+  pointer-events:none;
+  z-index:0;
+}
+.eq-bank .eq-control {position:relative;z-index:1;}
+.eq-knob-ticks {opacity:.66;}
+.eq-knob-face {
+  border-color:#101c28;
+  background:radial-gradient(circle at 34% 26%,#48596b 0%,#263746 18%,#0c1725 53%,#030810 91%);
+  box-shadow:inset 0 1px 1px #829bb144,inset 0 -4px 7px #000d,
+    0 2px 0 #02060a,0 4px 8px #000d,0 0 0 1px #4f6b8244;
+}
+.eq-knob-pointer {height:10px;background:#cde7f5;}
+
+/* Shorter, wider rubber pads with centered, bright legends.
+   Keep raised edges *inside* the button to prevent bottom clipping. */
+.transport-cluster {
+  grid-template-rows:var(--dj-platter-size) 49px;
+  row-gap:11px;
+  align-content:center;
+}
+.transport-cluster .cue-button,
+.transport-cluster .play-button,
+.transport-cluster .sync-button {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:49px;
+  min-height:49px;
+  max-height:49px;
+  padding:0 9px;
+  border-radius:5px;
+  border:1px solid #455262;
+  border-bottom:2px solid #03060a;
+  background:linear-gradient(180deg,#303a44 0%,#202933 10%,#121923 37%,#0b111a 88%,#070c13 100%);
+  box-shadow:inset 0 2px 1px #f3f9ff20,inset 0 -3px 4px #000c,
+    0 2px 0 #020408,0 4px 7px #0008;
+  color:#fff;
+  font-family:inherit;
+  font-size:14px;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:.03em;
+  text-align:center;
+  text-shadow:0 1px 1px #000d;
+  transition:transform .075s ease,box-shadow .075s ease,background .1s ease;
+}
+.transport-cluster .play-button {font-size:25px;}
+.transport-cluster .cue-button:hover,
+.transport-cluster .play-button:hover,
+.transport-cluster .sync-button:hover {
+  background:linear-gradient(180deg,#3b4857,#192737 40%,#0a1420);
+  border-color:#6f899f;
+  box-shadow:inset 0 2px 1px #fff3,inset 0 -3px 3px #000b,
+    0 2px 0 #020408,0 4px 8px #0009;
+}
+.transport-cluster .cue-button:active,
+.transport-cluster .play-button:active,
+.transport-cluster .sync-button:active {
+  transform:translateY(2px);
+  border-bottom-width:1px;
+  background:linear-gradient(180deg,#0a1018,#152231);
+  box-shadow:inset 0 3px 7px #000e,0 1px 0 #010306;
+}
+.transport-cluster .round-button.active {
+  background:linear-gradient(180deg,#173548,#0b1d2d);
+  border-color:#4ba4d2;
+  color:#fff;
+  box-shadow:inset 0 3px 5px #0009,0 1px 0 #020408,0 0 8px #17bcff24;
+}
+.deck-b .transport-cluster .round-button.active {border-color:#d463a0;color:#fff;}
+.hotcue-panel .cue-grid button {
+  height:46px;
+  padding:0 9px;
+  border-radius:5px;
+  border-bottom:2px solid #020408!important;
+  background:linear-gradient(180deg,#27323f,#141e2a 38%,#0a111a 100%);
+  box-shadow:inset 0 1px 1px #e2f0ff23,inset 0 -2px 2px #000a,
+    0 2px 0 #020408,0 4px 7px #0007;
+}
+.hotcue-panel .cue-grid button:active {
+  transform:translateY(2px);
+  box-shadow:inset 0 2px 6px #000c,0 1px 0 #020408;
+}
+.hotcue-panel .cue-grid .cue-name {
+  font-size:12px;
+  font-weight:900;
+  color:#fafcff;
+  text-align:center;
+  line-height:1;
+}
+.hotcue-panel .cue-grid .cue-letter {font-size:11px;}
+.hotcue-panel .grid-controls button,
+.tempo-panel .reset-tempo,
+.master-button,
+.track-start-button,
+.sidebar-footer button,
+.load-buttons button {
+  display:grid;
+  place-items:center;
+  padding:0 5px;
+  border-radius:5px;
+  color:#fff;
+  font-weight:900;
+  text-align:center;
+  line-height:1.05;
+  letter-spacing:0;
+}
+.hotcue-panel .grid-controls button {font-size:10px;min-height:31px;}
+.tempo-panel .reset-tempo {height:33px;font-size:10px;}
+.master-button {font-size:10px;}
+.track-start-button {font-size:10px;}
+.sidebar-footer button {font-size:10px;}
+.load-buttons button {font-size:10px;}
+.mixer-channel .cue-monitor {
+  height:34px;min-height:34px;
+  padding:0 6px;
+  display:grid;place-items:center;
+  font-size:12px;font-weight:900;line-height:1;
+  border-radius:5px;
+  background:linear-gradient(180deg,#293645,#141d29 46%,#090f18);
+  border-bottom:2px solid #010408;
+  box-shadow:inset 0 1px 1px #eaf7ff2a,inset 0 -2px 2px #000b,
+    0 2px 0 #020408,0 4px 7px #0008;
+}
+.mixer-channel .cue-monitor:active {
+  transform:translateY(2px);
+  box-shadow:inset 0 2px 6px #000c,0 1px 0 #020408;
+}
+.nav-pill {font-size:11px;font-weight:900;}
+.topbar-right .top-action {font-size:11px;font-weight:900;}
+
+/* Charcoal fader caps with discreet highlights instead of silver. */
+.tempo-slot input.vertical-range::-webkit-slider-thumb,
+.cue-level-control .channel-fader::-webkit-slider-thumb {
+  appearance:none;
+  width:31px;height:19px;
+  margin-left:-12px;margin-top:0;
+  border:1px solid #42576b;border-radius:4px;
+  background:linear-gradient(180deg,#75879a 0 9%,#243647 12% 31%,#121e2b 33% 46%,#506579 47% 54%,#121e2b 56% 70%,#293b4c 72% 90%,#65798b 94%);
+  box-shadow:inset 0 1px 1px #becfdd77,inset 0 -2px 2px #000a,
+    0 2px 6px #000c,0 0 0 1px #04080e;
+}
+.tempo-slot input.vertical-range::-moz-range-thumb,
+.cue-level-control .channel-fader::-moz-range-thumb {
+  width:31px;height:19px;border:1px solid #405468;border-radius:4px;
+  background:linear-gradient(180deg,#6a7e90,#1b2a39 32% 70%,#5a6d7f);
+  box-shadow:inset 0 1px 1px #d4e3ef55,0 3px 6px #000c;
+}
+#crossfader::-webkit-slider-thumb {
+  appearance:none;
+  width:29px;height:23px;margin-top:-8px;
+  border:1px solid #405568;border-radius:4px;
+  background:linear-gradient(90deg,#45576a,#111c28 25%,#273c4f 45%,#60758a 50%,#273c4f 56%,#111c28 76%,#45576a);
+  box-shadow:inset 0 1px 1px #d9e8f27a,0 3px 6px #000c;
+}
+#masterVolume::-webkit-slider-thumb {
+  appearance:none;
+  width:27px;height:23px;margin-top:-9px;
+  border:1px solid #415569;border-radius:4px;
+  background:linear-gradient(180deg,#728498,#1d2e3f 30%,#101b28 48%,#455a70 54%,#172638 70%,#708395);
+  box-shadow:inset 0 1px 1px #f6fbff55,0 3px 7px #000d;
+}
+#crossfader::-moz-range-thumb,
+#masterVolume::-moz-range-thumb {
+  width:27px;height:22px;border:1px solid #405569;border-radius:4px;
+  background:linear-gradient(#637789,#172536 42%,#354b5f 60%,#64798b);
+  box-shadow:inset 0 1px 1px #f4faff55,0 3px 6px #000c;
+}
