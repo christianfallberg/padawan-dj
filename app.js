@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.46';
+const APP_VERSION = '6.2.50';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1280,8 +1280,8 @@ function drawWaveform(deck) {
 
   const track = deck.track;
   if (!track?.peaks) {
-    ctx.fillStyle = '#4d5867';
-    ctx.font = `${9 * ratio}px ui-sans-serif`;
+    ctx.fillStyle = '#8193a5';
+    ctx.font = `500 ${10 * ratio}px "SFMono-Regular", Consolas, "Liberation Mono", monospace`;
     ctx.textAlign = 'center';
     ctx.fillText(`DECK ${deck.id === 'A' ? '1' : '2'} — LOAD TRACK`, width / 2, centerY + 3 * ratio);
     for (let x = 0; x < width; x += 80 * ratio) {

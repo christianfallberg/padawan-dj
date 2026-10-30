@@ -2894,7 +2894,7 @@ body { overflow: visible; }
   background:#10212f;
   box-shadow:inset 0 1px 3px #000a;
 }
-.deck-panel .deck-display .display-seek-rail:focus-within {
+.deck-panel .deck-display .display-seek-rail:has(.display-seek-input:focus-visible) {
   outline:1px solid #3ccfff;
   outline-offset:3px;
 }
@@ -4094,3 +4094,40 @@ body { overflow: visible; }
 .topbar .topbar-right #helpButton,.topbar .topbar-right #fullscreenButton {width:36px;min-width:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
 .topbar .top-divider {height:22px;background:#2b3744;margin:0 4px;flex:none;}
 .topbar #clock {border:0;padding-left:8px;color:#8193a5;}
+
+/* Dark console surfaces with a restrained cool sheen at their edges. */
+.topbar {
+  background:radial-gradient(ellipse at 12% 0%,#12304455,transparent 48%),linear-gradient(180deg,#0b1118,#05080d);
+  border-bottom-color:#223240;
+  box-shadow:inset 0 1px 0 #ffffff05,0 3px 12px #0005;
+}
+.library-section {
+  --library-bg:#05090e;
+  --library-panel:#090f16;
+  --library-line:#1e2a35;
+  box-shadow:inset 0 1px 0 #ffffff04;
+}
+.library-section .browser-sidebar {
+  background:linear-gradient(135deg,#10223144,transparent 65%),linear-gradient(180deg,#090f16,#05090e);
+}
+.library-section .browser-toolbar {
+  background:radial-gradient(ellipse at 0 0,#14374c44,transparent 65%),linear-gradient(180deg,#0d151e,#080d13);
+  box-shadow:inset 0 1px 0 #ffffff05;
+}
+.library-section .track-table thead th {background:#0a1119;}
+.library-section .track-table td {background:#070c12;border-bottom-color:#14202b;}
+.library-section .track-table tbody tr:nth-child(even) td {background:#0a1119;}
+.library-section .track-table tbody tr:hover td {background:#152634;}
+.library-section .track-table tbody tr.selected td {background:#123247;}
+.library-section .search-box {background:#04080d;box-shadow:inset 0 1px 3px #0006;}
+.library-section .search-box:focus-within {box-shadow:0 0 0 1px #16c8ff;}
+
+/* Large displays: grow the physical controls, keep the library density. */
+@media (min-width:1800px) and (min-height:1200px) {
+  .workspace {grid-template-rows:148px 710px minmax(248px,1fr);}
+  .deck-panel .deck-main {zoom:1.2;}
+}
+@media (min-width:2200px) and (min-height:1350px) {
+  .workspace {grid-template-rows:156px 736px minmax(248px,1fr);}
+  .deck-panel .deck-main {zoom:1.25;}
+}

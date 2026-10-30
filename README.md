@@ -1,4 +1,4 @@
-# Padawan DJ — v6.2.46
+# Padawan DJ — v6.2.50
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -76,7 +76,7 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 6.2.46
+## Latest release: 6.2.50
 
 This release refreshes the decks, music library, top bar, logo and dialogs; smooths waveform rendering and corrects waveform sizing and zoom labels; adds a larger center-snapping crossfader; and makes headphone CUE selection exclusive. Existing track data and saved Hot Cues keep their storage format.
 
@@ -117,10 +117,10 @@ For a custom domain, add it under **Firebase Console → Hosting → Add custom 
 
 Deploy new HTML, CSS and JavaScript to the same domain. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.46 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.50 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v6.2.46';
+const CACHE_VERSION = 'padawan-dj-v6.2.50';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
