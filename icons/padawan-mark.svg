@@ -1,23 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Padawan DJ logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Padawan DJ vinyl logo">
 <defs>
-<radialGradient id="base" cx="30%" cy="12%" r="100%"><stop stop-color="#173245"/><stop offset=".55" stop-color="#081725"/><stop offset="1" stop-color="#03080f"/></radialGradient>
-<linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#98faff"/><stop offset=".32" stop-color="#39dcf9"/><stop offset=".65" stop-color="#139fff"/><stop offset="1" stop-color="#3059e8"/></linearGradient>
-<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e0fdff" stop-opacity=".7"/><stop offset=".35" stop-color="#e0fdff" stop-opacity=".04"/><stop offset="1" stop-color="#042040" stop-opacity=".4"/></linearGradient>
-<radialGradient id="vinyl" cx="32%" cy="20%" r="90%"><stop stop-color="#48586c"/><stop offset=".25" stop-color="#233144"/><stop offset=".72" stop-color="#0c1420"/><stop offset="1" stop-color="#02060d"/></radialGradient>
-<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+ <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9bf5ff"/><stop offset=".4" stop-color="#16c8ff"/><stop offset="1" stop-color="#2853ed"/></linearGradient>
+ <linearGradient id="record" x1="0" y1="0" x2="1" y2=".6"><stop stop-color="#0b1018"/><stop offset=".27" stop-color="#3b4653"/><stop offset=".44" stop-color="#111923"/><stop offset=".7" stop-color="#02050a"/><stop offset="1" stop-color="#303d4c"/></linearGradient>
+ <linearGradient id="stem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b0f8ff"/><stop offset=".35" stop-color="#35d9f6"/><stop offset="1" stop-color="#008ee8"/></linearGradient>
 </defs>
-<rect width="256" height="256" rx="51" fill="url(#base)"/>
-<rect x="5" y="5" width="246" height="246" rx="47" stroke="#3282a2" stroke-opacity=".67" stroke-width="2" fill="none"/>
-<path d="M50 198V87Q50 51 86 51H137C189 51 219 85 219 127C219 173 186 206 139 206H112V174H137C167 174 186 155 186 129C186 102 168 85 137 85H92V198Q92 220 71 220Q50 220 50 198Z" fill="#1079ef" opacity=".42" filter="url(#halo)"/>
-<path d="M50 198V87Q50 51 86 51H137C189 51 219 85 219 127C219 173 186 206 139 206H112V174H137C167 174 186 155 186 129C186 102 168 85 137 85H92V198Q92 220 71 220Q50 220 50 198Z" fill="url(#blue)"/>
-<path d="M56 120V86Q56 57 86 57H136C162 57 183 68 196 86" fill="none" stroke="url(#rim)" stroke-width="4" stroke-linecap="round"/>
-<circle cx="141" cy="129" r="46" fill="#030a12"/>
-<circle cx="141" cy="129" r="43" fill="url(#vinyl)"/>
-<circle cx="141" cy="129" r="37" stroke="#9ab2c5" stroke-opacity=".15" stroke-width="2" fill="none"/>
-<circle cx="141" cy="129" r="31" stroke="#a5bacb" stroke-opacity=".25" stroke-width="1.5" fill="none"/>
-<circle cx="141" cy="129" r="26" stroke="#b4c1ce" stroke-opacity=".18" stroke-width="1.1" fill="none"/>
-<circle cx="141" cy="129" r="21" stroke="#b4c1ce" stroke-opacity=".25" stroke-width="1.1" fill="none"/>
-<path d="M111 102Q135 87 163 98" fill="none" stroke="#d8f4ff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round"/>
-<circle cx="141" cy="129" r="13.5" fill="url(#blue)"/>
-<circle cx="141" cy="129" r="4" fill="#e5ffff"/>
+<circle cx="142" cy="128" r="91" fill="url(#rim)"/>
+<circle cx="142" cy="128" r="74" fill="#02060b"/>
+<circle cx="142" cy="128" r="69" fill="url(#record)"/>
+<g fill="none" stroke="#a3bbce" stroke-opacity=".13">
+ <circle cx="142" cy="128" r="61"/><circle cx="142" cy="128" r="56"/><circle cx="142" cy="128" r="51"/><circle cx="142" cy="128" r="46"/>
+</g>
+<path d="M33 218V85c0-31 21-48 50-48h48v28H84c-14 0-21 8-21 22v104c0 17-10 27-30 27Z" fill="url(#stem)"/>
+<path d="M39 84c0-26 18-40 44-40h39" fill="none" stroke="#d1fbff" stroke-opacity=".55" stroke-width="2"/>
+<circle cx="142" cy="128" r="21" fill="#03080e"/>
+<circle cx="142" cy="128" r="16" fill="url(#rim)"/>
+<circle cx="142" cy="128" r="4" fill="#ddfbff"/>
 </svg>

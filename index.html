@@ -11,37 +11,39 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="icons/padawan-mark.svg?v=6.1.8">
+  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=6.2.46">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6.1.8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6.1.8">
-  <link rel="stylesheet" href="styles.css?v=6.2.12">
+  <link rel="stylesheet" href="styles.css?v=6.2.46">
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="topbar-left">
-        <img class="brand-icon" src="icons/padawan-mark.svg" alt="" width="27" height="27">
-        <span class="brand-name">PADAWAN <strong>DJ</strong></span>
+        <img class="brand-icon" src="icons/padawan-emblem.png?v=6.2.46" alt="" width="27" height="27">
+        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=6.2.46" alt="Padawan DJ" width="240" height="24">
       </div>
-      <nav class="topbar-center app-navigation" aria-label="App navigation">
-        <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><span aria-hidden="true">♫</span> LIBRARY</button>
-        <button id="navMixer" class="nav-pill" type="button" title="Focus the mixer"><span aria-hidden="true">☷</span> MIXER</button>
-        <button id="navAudio" class="nav-pill" type="button" title="Audio and headphone settings"><span aria-hidden="true">◉</span> AUDIO</button>
+      <nav class="topbar-center app-navigation" hidden aria-label="App navigation">
+        <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l9-2v9M8 8l9-2"/><ellipse cx="5" cy="15" rx="3" ry="2"/><ellipse cx="14" cy="13" rx="3" ry="2"/></svg> LIBRARY</button>
+        <button id="navMixer" class="nav-pill" type="button" title="Focus the mixer"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3v14M10 3v14M15 3v14M3 7h4M8 13h4M13 6h4"/></svg> MIXER</button>
+        <button id="navAudio" class="nav-pill" type="button" title="Audio and headphone settings"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11V9a7 7 0 0 1 14 0v2"/><rect x="2" y="10" width="4" height="7" rx="1.5"/><rect x="14" y="10" width="4" height="7" rx="1.5"/></svg> AUDIO</button>
       </nav>
       <div class="topbar-right">
         <span id="libraryStatus" class="status-text">0 TRACKS</span>
         <button id="installButton" class="top-action install-action" type="button" hidden>INSTALL APP</button>
-        <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL</span><strong id="storageCompact">--</strong></button>
-        <button id="importButton" class="top-action primary" type="button">＋ ADD TRACKS</button>
-        <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing">AUDIO OUTPUT</button>
+        <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL STORAGE</span><strong id="storageCompact">--</strong></button>
+        <button id="importButton" class="top-action primary" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg> ADD TRACKS</button>
+        <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing">AUDIO</button>
+        <span class="top-divider" aria-hidden="true"></span>
         <button id="helpButton" class="top-action" type="button" aria-label="Help and About Padawan DJ" title="Help, About and system requirements">?</button>
+        <button id="fullscreenButton" class="top-action" type="button" aria-label="Enter fullscreen" title="Enter fullscreen"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg></button>
         <time id="clock">--:--</time>
       </div>
       <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
     </header>
 
     <dialog id="audioOutputDialog" class="audio-output-dialog" aria-labelledby="audioOutputTitle">
-      <h2 id="audioOutputTitle">AUDIO OUTPUT</h2>
+      <header class="audio-dialog-header"><h2 id="audioOutputTitle">Audio output</h2><button id="closeAudioOutputX" type="button" aria-label="Close audio output">×</button></header>
       <p>Master plays through the system default speakers. Keep your iMac speakers selected in macOS Sound settings.</p>
       <label for="headphoneOutput">HEADPHONE CUE OUTPUT</label>
       <div class="headphone-output-select">
@@ -211,10 +213,13 @@
             </div>
           </div>
           <div class="master-volume" aria-label="Master output volume">
-            <label for="masterVolume">MASTER</label>
+            <label for="masterVolume">MASTER VOLUME</label>
             <input id="masterVolume" type="range" min="0" max="1" value="0.85" step="0.01" aria-label="Master output volume">
           </div>
           <div class="crossfader-area">
+            <label for="crossfader">CROSS FADE</label>
+            <div class="crossfader-scale crossfader-scale-a" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="crossfader-scale crossfader-scale-b" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <span>1</span><input id="crossfader" type="range" min="-1" max="1" value="0" step="0.01" aria-label="Crossfade between deck 1 and deck 2"><span>2</span>
           </div>
 
@@ -328,7 +333,7 @@
           <header class="browser-toolbar">
             <div class="browser-title"><strong id="browserHeading">Collection</strong><span id="browserCount">0 tracks</span></div>
             <div class="browser-actions">
-              <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search tracks, artists, BPM…"></label>
+              <label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m12.5 12.5 4 4"/></svg><input id="searchInput" aria-label="Search tracks, artists or BPM" type="search" placeholder="Search tracks, artists, BPM…"></label>
             </div>
           </header>
           <div class="track-table-wrap">
@@ -362,16 +367,25 @@
     <form method="dialog">
       <header>
         <div class="help-dialog-heading">
-          <img src="icons/padawan-mark.svg" width="32" height="32" alt="">
+          <img src="icons/padawan-emblem.png?v=6.2.46" width="32" height="32" alt="">
           <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
         </div>
         <button type="submit" aria-label="Close help">×</button>
       </header>
+        <div class="about-brand">
+          <img src="icons/padawan-emblem.png?v=6.2.46" width="82" height="82" alt="Padawan DJ logo">
+          <div>
+
+            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=6.2.46" alt="Padawan DJ" width="390" height="38"></h2>
+            <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
+            <p>Two decks. One flow.</p>
+          </div>
+        </div>
       <nav class="help-tabs" role="tablist" aria-label="Help sections">
-        <button type="button" class="help-tab active" role="tab" id="helpTabShortcuts" aria-controls="helpShortcutsPanel" aria-selected="true" data-help-tab="shortcuts">SHORTCUTS</button>
-        <button type="button" class="help-tab" role="tab" id="helpTabAbout" aria-controls="helpAboutPanel" aria-selected="false" data-help-tab="about">ABOUT / SYSTEM</button>
+        <button type="button" class="help-tab active" role="tab" id="helpTabAbout" aria-controls="helpAboutPanel" aria-selected="true" data-help-tab="about">ABOUT / SYSTEM</button>
+        <button type="button" class="help-tab" role="tab" id="helpTabShortcuts" aria-controls="helpShortcutsPanel" aria-selected="false" data-help-tab="shortcuts">SHORTCUTS</button>
       </nav>
-      <section id="helpShortcutsPanel" class="help-tab-panel" role="tabpanel" aria-labelledby="helpTabShortcuts">
+      <section id="helpShortcutsPanel" class="help-tab-panel" role="tabpanel" aria-labelledby="helpTabShortcuts" hidden>
       <div class="shortcut-grid">
         <kbd>1</kbd><span>Select Deck 1</span>
         <kbd>2</kbd><span>Select Deck 2</span>
@@ -393,16 +407,9 @@
       </div>
       <p>Tip: hold Shift while dragging a jog wheel for extra-fine movement. Chrome or Edge gives the most consistent Web Audio performance.</p>
       </section>
-      <section id="helpAboutPanel" class="help-tab-panel about-panel" role="tabpanel" aria-labelledby="helpTabAbout" hidden>
-        <div class="about-brand">
-          <img src="icons/padawan-mark.svg" width="82" height="82" alt="Padawan DJ logo">
-          <div>
-            <span class="about-eyebrow">LOCAL-FIRST DJ SOFTWARE</span>
-            <h2>PADAWAN <em>DJ</em></h2>
-            <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
-            <p>Two decks. One flow. Your music stays on your device.</p>
-          </div>
-        </div>
+      <section id="helpAboutPanel" class="help-tab-panel about-panel" role="tabpanel" aria-labelledby="helpTabAbout">
+        <p class="about-intro">Your music. Your mix. A two-deck workspace with hands-on mixing, Hot Cues and a library that stays on your device.</p>
+        <div class="about-technical">
         <div class="about-cards">
           <section class="about-card">
             <h3>RECOMMENDED SETUP</h3>
@@ -425,15 +432,16 @@
           <div><span>AUDIO / LIBRARY</span><strong id="aboutCoreSupport">Checking…</strong></div>
           <div><span>SEPARATE OUTPUT</span><strong id="aboutOutputSupport">Checking…</strong></div>
         </div>
-        <div class="about-footer">Padawan DJ is a browser-based mixing workspace. Browser capabilities and audio hardware determine which features are available.</div>
+        <div class="about-footer">Browser capabilities and audio hardware determine which features are available.</div>
+        </div>
       </section>
     </form>
   </dialog>
 
 
-  <dialog id="storageDialog" class="hardware-dialog storage-dialog">
+  <dialog id="storageDialog" class="hardware-dialog storage-dialog" aria-labelledby="storageTitle">
     <form method="dialog">
-      <header><div><strong>Local storage</strong><span id="storageOrigin">This browser</span></div><button type="submit" aria-label="Close">×</button></header>
+      <header><div><strong id="storageTitle">Local storage</strong><span id="storageOrigin">This browser</span></div><button type="submit" aria-label="Close">×</button></header>
       <div class="storage-content">
         <div class="storage-stat-grid">
           <div class="storage-stat"><span>TRACKS</span><strong id="storageTrackCount">0</strong><small>saved locally</small></div>
@@ -475,6 +483,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6.2.12"></script>
+  <script src="app.js?v=6.2.46"></script>
 </body>
 </html>

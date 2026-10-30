@@ -2742,7 +2742,7 @@ body { overflow: visible; }
 /* Avoid splitting the display with bright section borders. */
 .deck-panel .deck-display .deck-header {
   display:grid;
-  grid-template-columns:38px 58px minmax(0,1fr) 34px 60px;
+  grid-template-columns:38px 58px minmax(0,1fr) 34px 78px;
   gap:9px;
   align-items:center;
   height:78px;
@@ -3086,14 +3086,14 @@ body { overflow: visible; }
   display:flex;
   flex-direction:column-reverse;
   align-items:center;
-  justify-content:flex-end;
-  width:24px;
-  min-width:24px;
-  height:181px;
-  min-height:181px;
-  max-height:181px;
-  margin:179px 0 0;
-  padding:0;
+  justify-content:center;
+  width:30px;
+  min-width:30px;
+  height:192px;
+  min-height:192px;
+  max-height:192px;
+  margin:171px 0 0;
+  padding:8px 6px;
   gap:4px;
   border:0;
   background:transparent;
@@ -3116,13 +3116,13 @@ body { overflow: visible; }
    gets narrower and is centered inside the existing desktop deck panels. */
 .deck-panel .deck-main,
 .deck-b .deck-main {
-  grid-template-columns:72px minmax(0,426px) 72px;
+  grid-template-columns:72px minmax(0,386px) 72px;
   justify-content:center;
 }
 .deck-panel .deck-main > .transport-panel {
   box-sizing:border-box;
   width:100%;
-  max-width:426px;
+  max-width:386px;
   min-width:0;
   padding:9px 11px;
   margin:0;
@@ -3141,7 +3141,7 @@ body { overflow: visible; }
   grid-template-columns:repeat(3,minmax(0,1fr));
   grid-template-rows:36px var(--dj-platter-size) 42px;
   column-gap:9px;
-  row-gap:6px;
+  row-gap:16px;
   align-self:center;
   align-content:center;
   justify-items:stretch;
@@ -3175,3 +3175,922 @@ body { overflow: visible; }
   min-height:42px;
   max-height:42px;
 }
+
+/* Align the side controls with the hot cues, platter and transport rows. */
+.deck-panel .deck-main > .eq-panel,
+.deck-panel .deck-main > .tempo-panel {
+  align-self:center;
+  grid-template-rows:36px var(--dj-platter-size) 42px;
+  row-gap:16px;
+  padding:0;
+}
+.deck-panel .tempo-panel .reset-tempo {
+  width:51px;
+  height:42px;
+  min-height:42px;
+  margin:0;
+  align-self:center;
+  justify-self:center;
+}
+/* Match the buttons to the recessed EQ and tempo material. State colors stay
+   on labels, borders and cue markers so playback remains easy to read. */
+:root { --control-backdrop:linear-gradient(180deg,#010408 0%,#05090f 100%); }
+.deck-panel .eq-panel .eq-bank,
+.deck-panel .tempo-panel .tempo-slot,
+.deck-panel .deck-main .transport-cluster button,
+.deck-panel .deck-main .tempo-panel .reset-tempo,
+.deck-panel .deck-display .master-button,
+.mixer-panel .mixer-channel .cue-monitor,
+.topbar button,
+.sidebar-footer button,
+.load-buttons button {
+  background:var(--control-backdrop);
+}
+
+/* v6.2.14 — molded rubber pads and recessed LED lenses. */
+.deck-panel .deck-main .transport-cluster button:is(:hover, :focus-visible, :not(:hover)),
+.deck-panel .deck-main .tempo-panel .reset-tempo:is(:hover, :focus-visible, :not(:hover)),
+.deck-panel .deck-display .master-button:is(:hover, :focus-visible, :not(:hover)),
+.mixer-panel .mixer-channel .cue-monitor:is(:hover, :focus-visible, :not(:hover)),
+.topbar button:is(:hover, :focus-visible, :not(:hover)),
+.sidebar-footer button:is(:hover, :focus-visible, :not(:hover)),
+.load-buttons button:is(:hover, :focus-visible, :not(:hover)) {
+  background:var(--control-backdrop);
+  border:1px solid #29343f;
+  box-shadow:inset 0 1px 2px #ffffff09,0 1px 2px #0003;
+}
+.deck-panel .deck-display .master-button {
+  min-width:66px;
+  height:32px;
+  padding:0 10px;
+  font-size:10px;
+}
+.deck-a { --pad-accent:#16c8ff; }
+.deck-b { --pad-accent:#f73597; }
+.mixer-channel[data-deck="A"] { --pad-accent:#16c8ff; }
+.mixer-channel[data-deck="B"] { --pad-accent:#f73597; }
+.deck-panel .deck-display .master-button.active,
+.deck-panel .deck-main .transport-cluster .play-button.active,
+.mixer-panel .mixer-channel .cue-monitor.active,
+.deck-panel .deck-main .transport-cluster .hotcue-button.is-set {
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--pad-accent) 90%,#101821),
+    color-mix(in srgb,var(--pad-accent) 72%,#101821));
+  border:1px solid color-mix(in srgb,var(--pad-accent) 80%,#b7d0df);
+  color:#fff;
+  box-shadow:inset 0 1px 2px #ffffff12,0 1px 2px #0003;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-button.is-set {
+  --pad-accent:var(--hot-cue-accent);
+}
+.deck-panel .deck-main .transport-cluster .hotcue-button.is-set::after { display:none; }
+.deck-panel .deck-main .transport-cluster button:active,
+.deck-panel .deck-main .tempo-panel .reset-tempo:active,
+.deck-panel .deck-display .master-button:active,
+.mixer-panel .mixer-channel .cue-monitor:active,
+.topbar button:active,
+.sidebar-footer button:active,
+.load-buttons button:active {
+  transform:translateY(1px);
+  box-shadow:inset 0 1px 2px #0003;
+}
+.mixer-panel .mixer-channels > .level-meter {
+  border-radius:4px;
+  background:linear-gradient(90deg,#020407,#0b1219 45%,#020407);
+  box-shadow:inset 1px 1px 3px #000,0 1px 0 #ffffff12;
+}
+.mixer-panel .mixer-channels > .level-meter i {
+  --led-color:#39ee85;
+  position:relative;
+  border:1px solid #000b;
+  background:linear-gradient(180deg,#ffffff12,transparent 45%,#0006),color-mix(in srgb,var(--led-color) 13%,#09100f);
+  box-shadow:inset 0 1px 1px #ffffff12,0 1px 1px #000b;
+}
+.mixer-panel .mixer-channels > .level-meter i:nth-child(n+7) { --led-color:#ffcf38; }
+.mixer-panel .mixer-channels > .level-meter i:nth-child(n+9) { --led-color:#ff4759; }
+.mixer-panel .mixer-channels > .level-meter i.is-lit {
+  background:linear-gradient(180deg,#ffffff80,transparent 40%,#0003),var(--led-color);
+  box-shadow:inset 0 1px 1px #ffffff85,0 1px 5px color-mix(in srgb,var(--led-color) 55%,transparent);
+}
+
+/* Hover keeps the molded surface; only its brightness changes. */
+:is(.deck-panel .deck-main .transport-cluster button,
+.deck-panel .deck-main .tempo-panel .reset-tempo,
+.deck-panel .deck-display .master-button,
+.mixer-panel .mixer-channel .cue-monitor,
+.topbar button,.sidebar-footer button,.load-buttons button):hover {
+  filter:brightness(1.1);
+  transform:none;
+}
+
+/* Keep canvas intrinsic dimensions from expanding the waveform grid tracks. */
+.waveform-stage {
+  display:grid;
+  grid-template-rows:18px repeat(2,minmax(0,1fr));
+}
+.waveform-stage .waveform-ruler {
+  position:relative;
+  inset:auto;
+  height:auto;
+  min-height:0;
+}
+.waveform-stage .waveform-row {
+  position:relative;
+  inset:auto;
+  height:auto;
+  min-height:0;
+  min-width:0;
+  grid-template-columns:26px minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr);
+  overflow:hidden;
+}
+.waveform-stage .waveform-row canvas {
+  min-width:0;
+  min-height:0;
+  width:100%;
+  height:100%;
+}
+.waveform-ruler-marks {
+  position:relative;
+  margin-left:26px;
+  padding:0;
+  display:block;
+}
+.waveform-ruler-marks span {
+  position:absolute;
+  top:50%;
+  transform:translate(-50%,-50%);
+}
+.waveform-ruler-marks span:first-child {transform:translate(0,-50%);}
+.waveform-ruler-marks span:last-child {transform:translate(-100%,-50%);}
+
+/* Music library: a compact, readable browsing surface beside the console. */
+.library-section {
+  --library-bg:#080d13;
+  --library-panel:#101720;
+  --library-line:#26323e;
+  --library-muted:#a3b2c2;
+  background:var(--library-bg);
+  border-color:var(--library-line);
+  box-shadow:none;
+  overflow:hidden;
+}
+.library-section .browser-sidebar {
+  background:var(--library-panel);
+  border-color:var(--library-line);
+  padding:12px;
+  overflow-y:auto;
+  gap:3px;
+}
+.library-section .browser-sidebar > * {flex-shrink:0;}
+.library-section .sidebar-title {
+  padding:2px 8px 10px;
+  color:#e0e8f0;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.library-section .source-item,
+.library-section .playlist-select {
+  height:36px;
+  font-size:12px;
+  font-weight:500;
+  color:#c1cedb;
+  border-radius:4px;
+}
+.library-section .source-item:hover,
+.library-section .playlist-row:hover {background:#1b2733;}
+.library-section .source-item.active,
+.library-section .playlist-select.active {
+  background:#173448;
+  color:#e8f8ff;
+  box-shadow:inset 2px 0 0 #16c8ff;
+}
+.library-section .source-item span,
+.library-section .playlist-select span {color:#9db2c4;}
+.library-section .playlist-heading {
+  margin-top:12px;
+  padding:8px 8px 4px;
+  color:var(--library-muted);
+  border-color:var(--library-line);
+  font-size:10px;
+  letter-spacing:.06em;
+}
+.library-section .playlist-heading button,
+.library-section .playlist-remove {width:28px;height:28px;color:#a3b2c2;opacity:1;}
+.library-section .playlist-row {grid-template-columns:minmax(0,1fr) 28px;}
+.library-section .playlist-select small {font-size:11px;color:var(--library-muted);}
+.library-section .playlist-select {overflow:hidden;white-space:nowrap;}
+.library-section .sidebar-footer {padding-top:12px;border-color:var(--library-line);}
+.library-section .sidebar-footer button {height:32px;font-size:10px;font-weight:600;}
+.library-section .track-browser {
+  background:var(--library-bg);
+  grid-template-rows:52px minmax(0,1fr) 30px;
+}
+.library-section .browser-toolbar {
+  padding:0 14px;
+  background:var(--library-panel);
+  border-color:var(--library-line);
+}
+.library-section .browser-title strong {font-size:14px;font-weight:650;color:#edf3f8;}
+.library-section .browser-title span {font-size:12px;color:var(--library-muted);}
+.library-section .search-box {
+  width:clamp(260px,27vw,420px);
+  height:34px;
+  border-radius:4px;
+  border-color:#344352;
+  background:#060b10;
+  color:var(--library-muted);
+}
+.library-section .search-box svg {width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;}
+.library-section .search-box input {font-size:12px;color:#edf3f8;}
+.library-section .search-box input::placeholder {color:#94a5b7;opacity:1;}
+.library-section .search-box:focus-within {border-color:#16c8ff;box-shadow:0 0 0 1px #16c8ff;}
+.library-section .track-table {
+  border-collapse:separate;
+  border-spacing:0;
+  padding:0;
+  font-size:12px;
+}
+.library-section .track-table thead th {
+  height:32px;
+  padding:0 12px;
+  background:#121b25;
+  border-bottom:1px solid var(--library-line);
+  color:#aebdcd;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+.library-section .track-table th span {color:#94a5b7;}
+.library-section .track-table th.load-column {width:132px;}
+.library-section .track-table th:nth-child(2) {width:34%;}
+.library-section .track-table th:nth-child(3) {width:22%;}
+.library-section .track-table th:nth-child(4) {width:76px;}
+.library-section .track-table th:nth-child(5) {width:60px;}
+.library-section .track-table th:nth-child(6) {width:76px;}
+.library-section .track-table th:nth-child(7) {width:88px;}
+.library-section .track-table td {
+  height:46px;
+  padding:0 12px;
+  background:#0c131c;
+  color:#c9d5e1;
+  border:0;
+  border-bottom:1px solid #1b2632;
+  border-radius:0;
+  box-shadow:none;
+}
+.library-section .track-table tbody tr:nth-child(even) td {background:#101923;}
+.library-section .track-table tbody tr:hover td {background:#1a2937;}
+.library-section .track-table tbody tr.selected td {background:#16364a;color:#f0f7fc;}
+.library-section .track-table tbody tr.selected td:first-child {box-shadow:inset 2px 0 0 #16c8ff;}
+.library-section .track-table .track-title-text {font-size:13px;font-weight:600;color:#edf3f8;}
+.library-section .track-table .track-title-cell {gap:10px;}
+.library-section .track-table .track-title-cell img {width:30px;height:30px;border-radius:3px;border:0;}
+.library-section .track-table td:nth-child(5),
+.library-section .track-table td:nth-child(7) {color:#aebdcd;font-variant-numeric:tabular-nums;}
+.library-section .load-buttons {gap:4px;}
+.library-section .load-buttons button {
+  width:30px;
+  height:30px;
+  flex:none;
+  font-size:12px;
+  font-weight:650;
+  border-radius:4px;
+}
+.library-section .load-buttons button[data-load="A"] {color:#73dfff;}
+.library-section .load-buttons button[data-load="B"] {color:#ff89c4;}
+.library-section .load-buttons .track-remove {margin-left:4px;background:transparent;box-shadow:none;border-color:transparent;color:#98a9bb;}
+.library-section .load-buttons .track-remove:hover {color:#ff9baf;background:#351d28;border-color:#65404d;}
+.library-section .track-table .empty-state td {height:90px;text-align:center;color:var(--library-muted);font-size:13px;}
+.library-section .browser-footer {background:var(--library-bg);border-color:var(--library-line);color:var(--library-muted);font-size:10px;padding:0 14px;gap:16px;}
+.library-section .browser-footer #totalDuration {white-space:nowrap;font-variant-numeric:tabular-nums;}
+.library-section :is(.track-table-wrap,.browser-sidebar) {scrollbar-width:thin;scrollbar-color:#405364 #0b1118;}
+.library-section button:focus-visible {outline:2px solid #16c8ff;outline-offset:2px;}
+@media (pointer:coarse) {
+  .library-section .load-buttons button {height:44px;}
+  .library-section .source-item,.library-section .playlist-select {height:44px;}
+}
+
+/* Header: shared typography, quiet utilities and a clear import action. */
+.topbar {
+  background:#101720;
+  border-bottom:1px solid #26323e;
+  box-shadow:none;
+  grid-template-columns:minmax(260px,1fr) auto minmax(465px,1.35fr);
+  gap:20px;
+}
+.topbar .topbar-left {gap:10px;}
+.topbar .brand-icon {width:40px;height:40px;filter:none;border-radius:7px;}
+.topbar .brand-name {font-size:22px;letter-spacing:.055em;text-shadow:none;}
+.topbar .brand-name strong {color:#16c8ff;text-shadow:none;}
+.topbar .app-navigation {gap:4px;}
+.topbar .app-navigation .nav-pill {
+  min-height:40px;
+  padding:0 14px;
+  gap:8px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.025em;
+  border:1px solid transparent;
+  border-radius:4px;
+  background:transparent;
+  color:#afbfce;
+  box-shadow:none;
+  filter:none;
+}
+.topbar .app-navigation .nav-pill:hover {background:#1b2733;color:#edf3f8;}
+.topbar .app-navigation .nav-pill.active {
+  background:#173448;
+  border-color:#2e5b72;
+  color:#85e3ff;
+  box-shadow:none;
+}
+.topbar svg {width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.topbar .topbar-right {gap:8px;}
+.topbar .topbar-right .status-text {font-size:11px;color:#a3b2c2;letter-spacing:0;margin-right:4px;}
+.topbar .topbar-right .top-action {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  height:36px;
+  padding:0 11px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.025em;
+  border:1px solid #34404b;
+  border-radius:4px;
+  background:var(--control-backdrop);
+  color:#cfdae5;
+  box-shadow:inset 0 1px 2px #ffffff09;
+  filter:none;
+}
+.topbar .topbar-right .top-action[hidden],
+.topbar .topbar-right #audioOutputButton {display:none;}
+.topbar .topbar-right .top-action:hover {background:#18232e;border-color:#536677;color:#edf3f8;filter:none;}
+.topbar .topbar-right .top-action.primary {
+  background:#16c8ff;
+  border-color:#58d8ff;
+  color:#04131d;
+  font-weight:700;
+  box-shadow:none;
+}
+.topbar .topbar-right .top-action.primary:hover {background:#55d8ff;color:#04131d;}
+.topbar .topbar-right .top-action.primary.drop-target {background:#85e3ff;outline:2px solid #16c8ff;outline-offset:3px;transform:none;}
+.topbar .storage-action span {font-size:10px;letter-spacing:.03em;color:#a3b2c2;}
+.topbar .storage-action strong {font-size:11px;font-weight:600;color:#e0e8f0;}
+.topbar .topbar-right #helpButton {width:36px;min-width:36px;padding:0;font-size:17px;font-weight:600;}
+.topbar #clock {height:32px;min-width:50px;padding-left:12px;border-color:#34404b;color:#b9c8d6;font-family:inherit;font-size:12px;letter-spacing:0;}
+.topbar button:focus-visible {outline:2px solid #16c8ff;outline-offset:3px;}
+@media (pointer:coarse) {
+  .topbar .app-navigation .nav-pill,.topbar .topbar-right .top-action {min-height:44px;}
+  .topbar .topbar-right #helpButton {width:44px;min-width:44px;}
+}
+
+/* Settings and help share the library's quiet dark surfaces and readable type. */
+:is(#audioOutputDialog,#helpDialog,#storageDialog) {
+  color:#e4edf5;
+  background:#101720;
+  border:1px solid #344352;
+  border-radius:10px;
+  box-shadow:0 20px 64px #0009;
+  max-height:calc(100dvh - 40px);
+  max-width:calc(100vw - 32px);
+  font-size:13px;
+  line-height:1.55;
+  color-scheme:dark;
+  scrollbar-width:thin;
+  scrollbar-color:#405364 #101720;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog)::backdrop {background:#03070cbf;backdrop-filter:none;}
+#audioOutputDialog {width:560px;padding:24px;}
+#helpDialog {width:740px;padding:0;}
+#storageDialog {width:720px;padding:0;}
+:is(#helpDialog,#storageDialog) form {background:transparent;margin:0;}
+:is(#helpDialog,#storageDialog) header,
+#audioOutputDialog .audio-dialog-header {
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  min-height:72px;padding:16px 24px;
+  background:#141e29;border-bottom:1px solid #2b3947;
+}
+#audioOutputDialog .audio-dialog-header {margin:-24px -24px 20px;}
+#audioOutputDialog h2,
+#helpDialog .help-dialog-heading strong,
+#storageDialog header strong {margin:0;color:#edf3f8;font-size:18px;font-weight:650;letter-spacing:0;}
+#helpDialog .help-dialog-heading img {width:36px;height:36px;border-radius:6px;filter:none;}
+#helpDialog .help-dialog-heading small,
+#storageDialog header span {color:#a3b2c2;font-size:11px;letter-spacing:.02em;}
+:is(#audioOutputDialog,#helpDialog,#storageDialog) header button {
+  display:grid;place-items:center;flex:none;width:36px;height:36px;
+  padding:0;border:1px solid #344352;border-radius:4px;
+  background:#080d13;color:#c9d5e1;font-family:inherit;font-size:23px;font-weight:400;line-height:1;cursor:pointer;box-shadow:none;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog) header button:hover {background:#233140;color:#fff;border-color:#526779;}
+#audioOutputDialog p {font-size:13px;color:#b6c5d4;line-height:1.6;}
+#audioOutputDialog label {font-size:11px;font-weight:650;letter-spacing:.04em;color:#cfdae5;margin-top:22px;}
+#audioOutputDialog #headphoneOutput {min-height:44px;font-size:13px;border:1px solid #405364;border-radius:4px;background:#080d13;color:#edf3f8;}
+#audioOutputDialog .audio-output-note {font-size:12px;color:#a3b2c2;}
+#audioOutputDialog input[type="range"] {accent-color:#16c8ff;min-height:28px;}
+#audioOutputDialog #cueOutputStatus {padding:10px 12px;background:#172330;border-radius:4px;color:#c4d7e6;font-size:12px;}
+#audioOutputDialog .audio-output-actions {gap:8px;padding-top:16px;border-top:1px solid #2b3947;}
+#audioOutputDialog .audio-output-actions button,
+#audioOutputDialog .audio-detect-button,
+#storageDialog .storage-actions button {
+  min-height:40px;padding:9px 12px;border:1px solid #344352;border-radius:4px;
+  background:#080d13;color:#cfdae5;font-size:11px;font-weight:600;letter-spacing:.02em;box-shadow:none;
+}
+#audioOutputDialog #enableHeadphones,
+#storageDialog .storage-actions .storage-primary {background:#16c8ff;border-color:#58d8ff;color:#04131d;}
+#audioOutputDialog #closeAudioOutput {margin-left:auto;}
+#storageDialog .storage-actions .storage-danger {color:#ffabbc;background:#291821;border-color:#64404d;}
+:is(#audioOutputDialog,#storageDialog) button:hover {filter:brightness(1.12);}
+#helpDialog form {max-height:calc(100dvh - 42px);}
+#helpDialog header,#helpDialog .help-tabs {flex-shrink:0;}
+#helpDialog .help-tabs {padding:0 24px;gap:16px;background:#101720;border-color:#2b3947;}
+#helpDialog .help-tab {padding:14px 0;font-size:12px;font-weight:600;letter-spacing:.025em;color:#a3b2c2;}
+#helpDialog .help-tab.active {color:#85e3ff;border-bottom-color:#16c8ff;}
+#helpDialog .shortcut-grid {padding:20px 24px;grid-template-columns:142px minmax(0,1fr);gap:12px 20px;font-size:13px;color:#c9d5e1;line-height:1.55;}
+#helpDialog .shortcut-grid kbd {height:auto;min-height:30px;padding:5px 8px;background:#18232f;border:1px solid #344352;border-radius:4px;font-size:11px;font-weight:600;color:#e2edf6;letter-spacing:0;}
+#helpDialog p {padding:16px 24px;background:transparent;border-color:#2b3947;color:#aebdcd;font-size:12px;line-height:1.6;}
+#helpDialog .about-panel {padding:24px;}
+#helpDialog .about-brand {flex-direction:row;text-align:left;gap:20px;border-color:#2b3947;}
+#helpDialog .about-brand img {width:64px;height:64px;border-radius:10px;filter:none;}
+#helpDialog .about-brand h2 {font-size:22px;letter-spacing:.035em;}
+#helpDialog .about-brand p {padding:8px 0 0;border:0;}
+#helpDialog .about-eyebrow {font-size:10px;color:#a3b2c2;letter-spacing:.05em;}
+#helpDialog .about-version {background:#172330;border-color:#344352;color:#c4d7e6;font-size:10px;}
+#helpDialog .about-cards {gap:16px;}
+#helpDialog .about-card {background:#141e29;border:1px solid #2b3947;border-radius:6px;padding:16px;}
+#helpDialog .about-card h3 {font-size:12px;color:#85e3ff;letter-spacing:.025em;}
+#helpDialog .about-item,#helpDialog .about-item strong {font-size:12px;}
+#helpDialog .about-item span {color:#afbfce;}
+#helpDialog .about-diagnostics > div {background:#141e29;border-color:#2b3947;}
+#helpDialog .about-diagnostics span {font-size:10px;letter-spacing:.02em;color:#a3b2c2;}
+#helpDialog .about-diagnostics strong {font-size:12px;}
+#storageDialog .storage-content {padding:24px;}
+#storageDialog .storage-stat-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+#storageDialog .storage-stat {padding:16px;background:#141e29;border:1px solid #2b3947;border-radius:6px;box-shadow:none;}
+#storageDialog .storage-stat span {font-size:10px;letter-spacing:.04em;color:#afbfce;}
+#storageDialog .storage-stat strong {font-family:inherit;font-size:24px;font-weight:600;color:#edf3f8;text-shadow:none;}
+#storageDialog .storage-stat small {font-size:11px;color:#a3b2c2;}
+#storageDialog .storage-meter {margin:20px 0;height:8px;background:#060b10;border:0;box-shadow:none;}
+#storageDialog .storage-meter span {background:#16c8ff;}
+#storageDialog .storage-status-row {min-height:44px;font-size:13px;color:#c9d5e1;border-color:#2b3947;}
+#storageDialog .storage-badge {font-size:10px;letter-spacing:.02em;border-radius:4px;}
+#storageDialog .storage-note {font-size:12px;color:#aebdcd;line-height:1.6;margin:20px 0;}
+#storageDialog .storage-actions {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+#storageDialog .storage-actions .storage-danger {grid-column:1 / -1;justify-self:start;}
+:is(#audioOutputDialog,#helpDialog,#storageDialog) :is(button,select,input):focus-visible {outline:2px solid #16c8ff;outline-offset:3px;}
+@media (max-width:600px) {
+  #helpDialog .shortcut-grid {grid-template-columns:110px minmax(0,1fr);gap:12px;font-size:12px;padding:16px;}
+  #helpDialog .about-cards,#helpDialog .about-diagnostics {grid-template-columns:1fr;}
+  #helpDialog .about-brand {align-items:flex-start;gap:12px;}
+  #helpDialog .about-brand img {width:44px;height:44px;}
+  #helpDialog .about-brand h2 {font-size:18px;}
+  #storageDialog .storage-content {padding:16px;}
+  #storageDialog .storage-actions {grid-template-columns:1fr;}
+  #storageDialog .storage-actions .storage-danger {justify-self:stretch;}
+}
+
+/* Dialog controls use the same quiet hardware style as the deck buttons. */
+:is(#audioOutputDialog,#helpDialog,#storageDialog) button {
+  transition:background-color .12s,border-color .12s,color .12s,filter .12s,transform .08s;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog) button:active {transform:translateY(1px);}
+:is(#audioOutputDialog,#helpDialog,#storageDialog) button:disabled {opacity:.5;cursor:not-allowed;}
+#helpDialog .help-dialog-heading {gap:12px;}
+#helpDialog .help-dialog-heading strong {font-size:20px;}
+#helpDialog .help-dialog-heading small {font-size:11px;color:#afbfce;letter-spacing:.04em;}
+#helpDialog .about-panel {scrollbar-width:thin;}
+#helpDialog .about-brand {padding:4px 0 22px;}
+#helpDialog .about-brand h2 {font-size:25px;}
+#helpDialog .about-cards {padding:18px 0;}
+#helpDialog .about-card h3 {display:flex;align-items:center;gap:8px;}
+#helpDialog .help-tabs .help-tab {min-height:46px;}
+#storageDialog .storage-badge {
+  display:inline-flex;align-items:center;gap:7px;
+  min-width:118px;justify-content:center;
+  padding:6px 10px;border:1px solid #405364;border-radius:4px;
+  background:#17212c;color:#c4d7e6;
+  font-size:10px;font-weight:700;letter-spacing:.035em;
+}
+#storageDialog .storage-badge::before {content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
+#storageDialog .storage-badge.good {color:#68e0a0;border-color:#285842;background:#10271e;}
+#storageDialog .storage-badge.warn {color:#ffd078;border-color:#64512d;background:#292112;}
+#storageDialog .storage-badge:not(.good):not(.warn) {color:#82dfff;border-color:#315469;background:#122331;}
+
+/* Shared action-button material and interaction states across application chrome. */
+:root {
+  --button-surface:linear-gradient(180deg,#010408,#05090f);
+  --button-border:#344352;
+  --button-text:#cfdae5;
+  --button-radius:4px;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog,#actionDialog,.topbar-right,.sidebar-footer) button:not(.help-tab) {
+  background:var(--button-surface);
+  border:1px solid var(--button-border);
+  border-radius:var(--button-radius);
+  color:var(--button-text);
+  box-shadow:inset 0 1px 2px #ffffff09;
+  font-family:inherit;
+  font-weight:600;
+  letter-spacing:.02em;
+  text-shadow:none;
+  filter:none;
+  transition:filter .12s,border-color .12s,box-shadow .12s;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog,#actionDialog,.topbar-right,.sidebar-footer) button:not(.help-tab):hover {
+  background:var(--button-surface);
+  color:var(--button-text);
+  border-color:var(--button-border);
+  box-shadow:inset 0 1px 2px #ffffff09;
+  filter:brightness(1.16);
+  transform:none;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog,#actionDialog,.topbar-right,.sidebar-footer) button:not(.help-tab):active {
+  transform:translateY(1px);
+  box-shadow:inset 0 1px 2px #0004;
+  filter:brightness(.94);
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog,#actionDialog,.topbar-right,.sidebar-footer) button:not(.help-tab):focus-visible {
+  outline:2px solid #16c8ff;outline-offset:3px;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog,#actionDialog,.topbar-right,.sidebar-footer) button:disabled {
+  opacity:.45;cursor:not-allowed;filter:none;transform:none;
+}
+#importButton,#enableHeadphones,#requestPersistenceButton,#actionDialogConfirm {
+  --button-surface:#16c8ff;--button-border:#58d8ff;--button-text:#04131d;
+}
+#clearLibraryDialogButton,#actionDialogConfirm.danger {
+  --button-surface:#291821;--button-border:#64404d;--button-text:#ffabbc;
+}
+:is(#audioOutputDialog,#helpDialog,#storageDialog,#actionDialog) header button {
+  margin:0;width:36px;height:36px;min-width:36px;min-height:36px;
+  padding:0;display:grid;place-items:center;line-height:1;font-size:22px;
+}
+#helpDialog .help-dialog-heading {display:flex;flex-direction:row;align-items:center;gap:12px;}
+#helpDialog .help-dialog-heading > div {display:flex;flex-direction:column;gap:3px;}
+#helpDialog .help-dialog-heading img {flex:none;}
+#helpDialog .help-tabs .help-tab {transform:none;filter:none;}
+#helpDialog .help-tabs .help-tab:hover {background:transparent;color:#edf3f8;}
+#helpDialog .about-version {letter-spacing:.02em;}
+#storageDialog .storage-status-row {display:grid;grid-template-columns:minmax(0,1fr) 172px;gap:16px;padding:8px 0;}
+#storageDialog .storage-badge {width:100%;min-width:0;justify-content:flex-start;text-align:left;padding:6px 10px;line-height:1.4;}
+#storageDialog .storage-badge::before {flex:none;box-shadow:none;width:6px;height:6px;}
+#storageDialog .storage-actions {align-items:stretch;gap:10px;}
+#storageDialog .storage-actions button {text-align:left;line-height:1.45;min-height:44px;}
+#storageDialog .storage-actions .storage-danger {justify-self:stretch;}
+#helpDialog .about-diagnostics > div {gap:6px;}
+#helpDialog .about-diagnostics strong {line-height:1.5;}
+@media (max-width:480px) {
+  #storageDialog .storage-status-row {grid-template-columns:1fr;gap:6px;}
+  #storageDialog .storage-badge {width:auto;justify-self:start;min-width:172px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  button {transition:none;}
+}
+#storageDialog .storage-stat-grid {background:transparent;border:0;}
+:is(#audioOutputDialog,#helpDialog,#storageDialog)[open] {animation:none;}
+
+
+/* Vinyl identity and a stable Help frame inspired by the original controller. */
+.topbar .brand-icon {width:48px;height:48px;border-radius:8px;}
+.topbar .brand-name {font-size:25px;font-weight:900;letter-spacing:.055em;}
+.topbar .brand-name strong {color:#16c8ff;}
+#helpDialog {
+  width:740px;
+  height:min(900px,calc(100dvh - 40px));
+  max-height:calc(100dvh - 40px);
+  padding:0;
+  border:1px solid #249ac4;
+  background:radial-gradient(ellipse at 50% 0%,#102333,#080f17 65%);
+  overflow:hidden;
+}
+#helpDialog form {position:relative;height:100%;max-height:none;display:flex;flex-direction:column;}
+#helpDialog form > header {position:absolute;top:12px;right:12px;z-index:2;min-height:0;padding:0;border:0;background:transparent;}
+#helpDialog header .help-dialog-heading {display:none;}
+#helpDialog .about-brand {
+  flex:none;display:flex;flex-direction:column;align-items:center;
+  gap:12px;padding:28px 28px 20px;border:0;text-align:center;
+}
+#helpDialog .about-brand > img {width:116px;height:116px;filter:drop-shadow(0 6px 18px #009bdb38);border-radius:20px;}
+#helpDialog .about-brand h2 {font:900 30px/1.15 "Arial Black",system-ui,sans-serif;letter-spacing:.04em;margin:0 0 8px;color:#f2f7fb;}
+#helpDialog .about-brand h2 em {color:#16c8ff;font-style:normal;}
+#helpDialog .about-version {display:block;padding:0;border:0;background:transparent;color:#a9bdce;font-size:12px;letter-spacing:.035em;}
+#helpDialog .about-version strong {color:#dce9f3;}
+#helpDialog .about-brand p {padding:0;margin:10px 0 0;border:0;background:transparent;color:#b6cadb;font-size:14px;}
+#helpDialog .help-tabs {padding:0 28px;justify-content:center;background:#07111b;border-top:1px solid #203d50;border-bottom:1px solid #203d50;gap:28px;}
+#helpDialog .help-tabs .help-tab {padding:14px 8px;min-height:48px;}
+#helpDialog .help-tab-panel {flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#405364 #080f17;}
+#helpDialog .about-panel {padding:24px 28px;background:transparent;}
+#helpDialog .about-intro {padding:0 0 20px;border:0;background:transparent;font-size:13px;color:#b6cadb;line-height:1.65;}
+#helpDialog .about-cards {padding:0 0 24px;gap:28px;}
+#helpDialog .about-card {padding:0;border:0;border-radius:0;background:transparent;}
+#helpDialog .about-card + .about-card {padding-left:24px;border-left:1px solid #253e50;}
+#helpDialog .about-card h3 {font-size:11px;letter-spacing:.04em;color:#72d9fa;}
+#helpDialog .about-item {margin-top:14px;gap:4px;}
+#helpDialog .about-item span {color:#afc3d4;}
+#helpDialog .about-diagnostics {padding-top:18px;border-top:1px solid #253e50;gap:16px;}
+#helpDialog .about-diagnostics > div {padding:0;border:0;background:transparent;}
+#helpDialog .about-footer {padding-top:16px;font-size:11px;color:#9fb5c7;}
+#helpDialog .shortcut-grid {max-height:none;}
+@media (max-height:760px) {
+  #helpDialog .about-brand {flex-direction:row;justify-content:center;text-align:left;padding:20px 28px;gap:20px;}
+  #helpDialog .about-brand > img {width:72px;height:72px;border-radius:12px;}
+  #helpDialog .about-brand h2 {font-size:24px;}
+}
+@media (max-width:600px) {
+  #helpDialog .about-brand > img {width:72px;height:72px;border-radius:12px;}
+  #helpDialog .about-brand h2 {font-size:24px;}
+  #helpDialog .about-panel {padding:20px;}
+  #helpDialog .about-card + .about-card {padding:20px 0 0;border-left:0;border-top:1px solid #253e50;}
+}
+
+/* Solid custom lettering and a fixed three-row dialog frame. */
+.topbar .brand-wordmark {display:block;width:240px;height:auto;}
+#helpDialog[open] {
+  box-sizing:border-box;
+  width:min(900px,calc(100vw - 32px));
+  min-width:0;
+  height:min(880px,calc(100dvh - 40px));
+  min-height:min(880px,calc(100dvh - 40px));
+  max-height:min(880px,calc(100dvh - 40px));
+  overflow:hidden;
+}
+#helpDialog > form {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:258px 49px minmax(0,1fr);
+  height:100%;min-height:0;max-height:100%;overflow:hidden;
+}
+#helpDialog .about-brand {grid-row:1;margin:0;padding:24px;gap:12px;justify-content:center;}
+#helpDialog .about-brand > img {width:112px;height:112px;border-radius:0;}
+#helpDialog .about-brand .about-wordmark {display:block;width:390px;max-width:100%;height:auto;border-radius:0;filter:none;}
+#helpDialog .about-brand h2 {margin:0 0 12px;}
+#helpDialog .help-tabs {grid-row:2;}
+#helpDialog .help-tab-panel {grid-row:3;min-height:0;height:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;}
+#helpDialog #helpShortcutsPanel {display:flex;flex-direction:column;overflow:hidden;}
+#helpDialog #helpShortcutsPanel .shortcut-grid {flex:1;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#405364 #080f17;}
+#helpDialog #helpShortcutsPanel > p {flex:none;}
+#helpDialog form > header {grid-row:1;}
+@media (max-height:760px) {
+  #helpDialog > form {grid-template-rows:156px 49px minmax(0,1fr);}
+  #helpDialog .about-brand {flex-direction:row;gap:24px;}
+  #helpDialog .about-brand > img {width:88px;height:88px;}
+  #helpDialog .about-brand .about-wordmark {width:320px;}
+}
+@media (max-width:600px) {
+  #helpDialog .about-brand .about-wordmark {width:280px;}
+  #helpDialog .about-brand > img {width:88px;height:88px;}
+  #helpDialog #helpShortcutsPanel > p {font-size:11px;padding:12px 16px;}
+}
+/* Reference-derived vinyl artwork and metallic wordmark. */
+.topbar .brand-icon {object-fit:contain;border-radius:0;}
+.topbar .brand-wordmark {width:250px;height:auto;object-fit:contain;}
+#helpDialog .about-brand > img {object-fit:contain;filter:none;border-radius:0;}
+#helpDialog .about-brand .about-wordmark {width:410px;max-width:100%;height:auto;object-fit:contain;}
+
+/* Hot cues: translucent illuminated pads with a small locator beside the number. */
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button {
+  position:relative;
+  overflow:hidden;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:0;
+  font-variant-numeric:tabular-nums;
+  border-radius:5px;
+  color:#c0d0dd;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--hot-cue-accent) 9%,#080e16),#060b11 75%);
+  border-color:color-mix(in srgb,var(--hot-cue-accent) 22%,#29343f);
+  box-shadow:inset 0 1px 1px #ffffff0a,0 1px 2px #0003;
+  transition:filter .12s,border-color .12s,box-shadow .12s;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button::before {
+  content:"";
+  position:absolute;
+  left:12px;
+  top:calc(50% - 2px);
+  width:4px;height:4px;
+  border-radius:1px;
+  background:var(--hot-cue-accent);
+  opacity:.45;
+  pointer-events:none;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button.is-set {
+  color:#fff;
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--hot-cue-accent) 92%,#132333),
+    color-mix(in srgb,var(--hot-cue-accent) 65%,#102333) 65%,
+    color-mix(in srgb,var(--hot-cue-accent) 77%,#102333));
+  border-color:color-mix(in srgb,var(--hot-cue-accent) 65%,#d9f2ff);
+  box-shadow:inset 0 1px 1px #ffffff26,inset 0 -1px 1px #0002,0 2px 5px #0004;
+  text-shadow:0 1px 2px #0005;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button.is-set::before {
+  background:#fff;
+  opacity:.9;
+  box-shadow:0 0 5px color-mix(in srgb,var(--hot-cue-accent) 30%,white);
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button:hover {
+  filter:brightness(1.12);
+  border-color:color-mix(in srgb,var(--hot-cue-accent) 65%,#d9f2ff);
+  transform:none;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button:active,
+.deck-panel .deck-main .transport-cluster .hotcue-strip .hotcue-button.is-triggered {
+  filter:brightness(1.22);
+  box-shadow:inset 0 1px 3px #0004;
+}
+
+/* Longer hardware crossfader cap with a visible center detent. */
+.mixer-panel .crossfader-area {
+  grid-template-columns:10px minmax(0,1fr) 10px;
+  gap:4px;padding:8px 6px 4px;
+}
+.mixer-panel .crossfader-area::before {font-size:8px;color:#a3b7c8;letter-spacing:.08em;top:0;}
+.mixer-panel #crossfader {height:40px;min-width:0;margin:0;cursor:ew-resize;}
+.mixer-panel #crossfader::-webkit-slider-runnable-track {
+  height:12px;border-radius:3px;border:1px solid #02070b;
+  background:linear-gradient(90deg,transparent calc(50% - 1px),#c4d8e7 calc(50% - 1px),#c4d8e7 calc(50% + 1px),transparent calc(50% + 1px)),linear-gradient(90deg,#124d66,#080e16 42% 58%,#63213f);
+  box-shadow:inset 0 2px 3px #0009;
+}
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  appearance:none;-webkit-appearance:none;
+  width:44px;height:30px;margin-top:-10px;border:1px solid #526779;border-radius:4px;
+  background:linear-gradient(90deg,#243442,#788c9d 12%,#bccbd6 44%,#263b4b 46% 54%,#bccbd6 56%,#788c9d 88%,#243442);
+  box-shadow:inset 0 1px 1px #ffffff66,0 2px 4px #0008;
+}
+.mixer-panel #crossfader::-moz-range-track {
+  height:12px;border-radius:3px;border:1px solid #02070b;
+  background:linear-gradient(90deg,transparent calc(50% - 1px),#c4d8e7 calc(50% - 1px),#c4d8e7 calc(50% + 1px),transparent calc(50% + 1px)),linear-gradient(90deg,#124d66,#080e16 42% 58%,#63213f);
+  box-shadow:inset 0 2px 3px #0009;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  width:44px;height:30px;border:1px solid #526779;border-radius:4px;
+  background:linear-gradient(90deg,#243442,#788c9d 12%,#bccbd6 44%,#263b4b 46% 54%,#bccbd6 56%,#788c9d 88%,#243442);
+  box-shadow:inset 0 1px 1px #ffffff66,0 2px 4px #0008;
+}
+
+/* Mixer output controls share the headphone-label scale and balanced insets. */
+.mixer-panel {grid-template-rows:44px minmax(0,1fr) 68px 68px;}
+.mixer-panel .master-volume,
+.mixer-panel .crossfader-area {padding:8px 12px;background:#060d17;}
+.mixer-panel .master-volume > label,
+.mixer-panel .crossfader-area > label {
+  font-size:9px;font-weight:700;line-height:12px;letter-spacing:.015em;
+  color:#b5cad9;text-align:center;
+}
+.mixer-panel .crossfader-area {
+  grid-template-columns:10px minmax(0,1fr) 10px;
+  grid-template-rows:12px 36px;column-gap:6px;row-gap:4px;
+}
+.mixer-panel .crossfader-area::before {content:none;}
+.mixer-panel .crossfader-area > label {grid-row:1;grid-column:1 / -1;}
+.mixer-panel .crossfader-area > span {grid-row:2;text-align:center;color:#9aafc0;}
+.mixer-panel #crossfader {
+  grid-row:2;height:36px;padding:0;margin:0;
+  background:var(--control-backdrop);border-radius:5px;
+}
+.mixer-panel #crossfader::-webkit-slider-runnable-track {
+  height:7px;border:0;border-radius:2px;
+  background:#101c29;box-shadow:inset 0 1px 2px #000c;
+}
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  width:44px;height:30px;margin-top:-11.5px;
+  border:1px solid #405367;border-radius:4px;
+  background:linear-gradient(90deg,#627488,#1b2939 40%,#51677a 55%,#223141 80%,#617587);
+  box-shadow:inset 0 1px 1px #ffffff3d,0 1px 3px #0008;
+}
+.mixer-panel #crossfader::-moz-range-track {
+  height:7px;border:0;border-radius:2px;
+  background:#101c29;box-shadow:inset 0 1px 2px #000c;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  width:44px;height:30px;border:1px solid #405367;border-radius:4px;
+  background:linear-gradient(90deg,#627488,#1b2939 40%,#51677a 55%,#223141 80%,#617587);
+  box-shadow:inset 0 1px 1px #ffffff3d,0 1px 3px #0008;
+}
+
+/* Cyan locator on the large crossfader cap and a visible center detent. */
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  background:linear-gradient(90deg,#627488,#1b2939 38%,#0c2940 46%,#26ceff 49% 51%,#164c6a 54%,#223141 80%,#617587);
+  border-color:#456379;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  background:linear-gradient(90deg,#627488,#1b2939 38%,#0c2940 46%,#26ceff 49% 51%,#164c6a 54%,#223141 80%,#617587);
+  border-color:#456379;
+}
+.mixer-panel #crossfader::-webkit-slider-runnable-track {
+  background:linear-gradient(90deg,transparent calc(50% - 1px),#24c8f4 calc(50% - 1px),#24c8f4 calc(50% + 1px),transparent calc(50% + 1px)),#101c29;
+}
+.mixer-panel #crossfader::-moz-range-track {
+  background:linear-gradient(90deg,transparent calc(50% - 1px),#24c8f4 calc(50% - 1px),#24c8f4 calc(50% + 1px),transparent calc(50% + 1px)),#101c29;
+}
+
+/* A broad illuminated center keeps the locator visible at normal mixer size. */
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  border-color:#21bfe9;
+  background:linear-gradient(90deg,#526f83 0%,#152b3d 24%,#0b3955 34%,#159fd0 44%,#80eaff 49% 51%,#159fd0 56%,#0b3955 66%,#152b3d 76%,#526f83 100%);
+  box-shadow:inset 0 1px 1px #e1f9ff60,0 1px 4px #0008;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  border-color:#21bfe9;
+  background:linear-gradient(90deg,#526f83 0%,#152b3d 24%,#0b3955 34%,#159fd0 44%,#80eaff 49% 51%,#159fd0 56%,#0b3955 66%,#152b3d 76%,#526f83 100%);
+  box-shadow:inset 0 1px 1px #e1f9ff60,0 1px 4px #0008;
+}
+
+/* Blue-to-cyan rail across the full horizontal crossfader travel. */
+.mixer-panel #crossfader::-webkit-slider-runnable-track {
+  background:linear-gradient(90deg,#167fca,#18c9f5 50%,#33d9ee);
+  box-shadow:inset 0 1px 2px #00172888;
+}
+.mixer-panel #crossfader::-moz-range-track {
+  background:linear-gradient(90deg,#167fca,#18c9f5 50%,#33d9ee);
+  box-shadow:inset 0 1px 2px #00172888;
+}
+
+/* Dark metallic cap over the colored crossfader rail. */
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  border-color:#405367;
+  background:linear-gradient(90deg,#627488,#1b2939 40%,#51677a 55%,#223141 80%,#617587);
+  box-shadow:inset 0 1px 1px #ffffff3d,0 1px 3px #0008;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  border-color:#405367;
+  background:linear-gradient(90deg,#627488,#1b2939 40%,#51677a 55%,#223141 80%,#617587);
+  box-shadow:inset 0 1px 1px #ffffff3d,0 1px 3px #0008;
+}
+
+/* A charcoal cap and fixed center ticks distinguish the handle from the rail. */
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  border:1px solid #37424e;
+  background:linear-gradient(90deg,#202a34 0%,#0a0f15 18% 44%,#4a5662 49% 51%,#0a0f15 56% 82%,#202a34 100%);
+  box-shadow:inset 0 1px 1px #ffffff12,0 2px 3px #0009;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  border:1px solid #37424e;
+  background:linear-gradient(90deg,#202a34 0%,#0a0f15 18% 44%,#4a5662 49% 51%,#0a0f15 56% 82%,#202a34 100%);
+  box-shadow:inset 0 1px 1px #ffffff12,0 2px 3px #0009;
+}
+.mixer-panel .crossfader-area::after {
+  content:"";position:absolute;
+  left:calc(50% - 1px);bottom:3px;width:2px;height:44px;
+  background:linear-gradient(to bottom,#cbd9e4 0 5px,transparent 5px 38px,#cbd9e4 38px);
+  border-radius:1px;pointer-events:none;
+}
+
+/* Mixer-inspired crossfader: dark slot, white cap locator and tapered scales. */
+.mixer-panel {grid-template-rows:44px minmax(0,1fr) 68px 84px;}
+.mixer-panel .crossfader-area {grid-template-rows:12px 52px;padding:8px 12px;row-gap:4px;}
+.mixer-panel #crossfader {position:relative;z-index:1;height:52px;background:transparent;}
+.mixer-panel #crossfader::-webkit-slider-runnable-track {
+  height:12px;border:1px solid #020407;border-radius:7px;
+  background:linear-gradient(90deg,#16c8ff 0%,#16c8ff 35%,#927ef1 50%,#f73597 65%,#f73597 100%) center/100% 3px no-repeat,#010408;
+  box-shadow:inset 0 2px 3px #000c;
+}
+.mixer-panel #crossfader::-moz-range-track {
+  height:12px;border:1px solid #020407;border-radius:7px;
+  background:linear-gradient(90deg,#16c8ff 0%,#16c8ff 35%,#927ef1 50%,#f73597 65%,#f73597 100%) center/100% 3px no-repeat,#010408;
+  box-shadow:inset 0 2px 3px #000c;
+}
+.mixer-panel #crossfader::-webkit-slider-thumb {
+  width:32px;height:42px;margin-top:-16px;border:1px solid #303842;border-radius:5px;
+  background:linear-gradient(90deg,#020304,#080b0e 15%,#030507 43%,#b9c5ce 47% 53%,#030507 57%,#080b0e 85%,#020304) #030507;
+  box-shadow:inset 0 1px 1px #ffffff15,0 2px 4px #000b;
+}
+.mixer-panel #crossfader::-moz-range-thumb {
+  width:32px;height:42px;border:1px solid #303842;border-radius:5px;
+  background:linear-gradient(90deg,#020304,#080b0e 15%,#030507 43%,#b9c5ce 47% 53%,#030507 57%,#080b0e 85%,#020304) #030507;
+  box-shadow:inset 0 1px 1px #ffffff15,0 2px 4px #000b;
+}
+.mixer-panel .crossfader-area::after {
+  bottom:5px;height:50px;
+  background:linear-gradient(to bottom,#cbd9e4 0 4px,transparent 4px 46px,#cbd9e4 46px);
+}
+.crossfader-scale {
+  position:absolute;left:28px;right:28px;display:flex;gap:3px;height:5px;
+  pointer-events:none;
+}
+.crossfader-scale-a {bottom:49px;align-items:flex-start;}
+.crossfader-scale-b {bottom:9px;align-items:flex-end;flex-direction:row-reverse;}
+.crossfader-scale i {display:block;flex:1;background:#91a5b7;height:5px;opacity:.6;}
+.crossfader-scale i:nth-child(n+5) {height:4px;}
+.crossfader-scale i:nth-child(n+8) {height:3px;}
+.crossfader-scale i:nth-child(n+11) {height:2px;}
+.crossfader-scale i:nth-child(n+13) {height:1px;}
+
+/* Keep application tools together, with breathing room after the brand. */
+.topbar {grid-template-columns:auto minmax(0,1fr);gap:28px;}
+.topbar .app-navigation[hidden] {display:none;}
+.topbar .topbar-right {gap:8px;justify-self:end;}
+.topbar .topbar-right .status-text {display:none;}
+.topbar .topbar-right .top-action {height:36px;min-height:36px;padding:0 12px;font-size:11px;font-weight:600;letter-spacing:.025em;background:#0c131c;border:1px solid #2b3744;box-shadow:inset 0 1px 0 #ffffff08;color:#b9c8d6;}
+.topbar .topbar-right #audioOutputButton {display:inline-flex;}
+.topbar .topbar-right #importButton {order:-1;background:#132b39;border-color:#284b60;color:#6bdaff;}
+.topbar .topbar-right #importButton:hover {background:#1b3a4b;color:#b3edff;}
+.topbar .storage-action span {font-size:11px;color:inherit;}
+.topbar .storage-action strong {color:#8193a5;font-size:10px;font-weight:500;}
+.topbar .topbar-right #helpButton,.topbar .topbar-right #fullscreenButton {width:36px;min-width:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
+.topbar .top-divider {height:22px;background:#2b3744;margin:0 4px;flex:none;}
+.topbar #clock {border:0;padding-left:8px;color:#8193a5;}
