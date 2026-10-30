@@ -1,21 +1,29 @@
-# Padawan DJ — V6 PWA
+# Padawan DJ — v6.2.46
 
-A local-first, Rekordbox-inspired two-deck DJ web application built with plain HTML, CSS and JavaScript.
+Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
 ## What is included
 
 - Two playable audio decks
 - Large interactive jog wheels
 - Click/drag main waveforms and full-track overview waveforms
-- Waveform zoom controls
-- Hot Cues A–D saved per track
-- Beatgrid, tempo, Sync, EQ, channel volume and crossfader
+- Smooth, antialiased waveforms with zoom controls and a matching time ruler
+- Four illuminated Hot Cue pads (1–4), saved per track
+- Beatgrid, tempo, Sync, EQ, channel volume and master volume
+- Large hardware-style crossfader with deck-colored rail, center marks and center snapping
+- Separate headphone output selection and independent per-deck CUE levels
+- Exclusive headphone CUE: selecting one deck turns off the other; click again to disable
+- Segmented master level meter
 - Drag tracks from Collection directly onto a jog wheel
 - MP3 album artwork extraction with generated fallback covers
 - Local Collection, playlists and history
 - IndexedDB storage for audio files, artwork and track metadata
 - PWA installation
 - Offline app shell and offline demo tracks
+- Refreshed deck controls, library, top-bar tools and app branding
+- Audio, Local Storage and Help/About dialogs with outside-click dismissal
+- Fixed-size About/Shortcuts dialog with scrollable shortcuts
+- Fullscreen control where supported
 - Storage usage meter
 - Persistent-storage request
 - Metadata/playlist/Hot Cue JSON export
@@ -34,6 +42,8 @@ Then open:
 ```text
 http://localhost:8080
 ```
+
+For the existing development session on port 8081, run `python3 -m http.server 8081` and open `http://localhost:8081` instead. Keep using the same port to retain access to that origin’s library.
 
 Port `8080` is only used by the local development server. The deployed app uses the normal HTTPS port on your domain.
 
@@ -56,7 +66,19 @@ https://www.example.com
 
 The library is also separate per browser and browser profile. Clearing site data removes it.
 
-Open **LOCAL** in the top bar to see storage usage and request persistent storage. Persistent storage reduces the chance that the browser evicts app data automatically, although manually clearing site data still removes it.
+Open **LOCAL STORAGE** in the top bar to see storage usage and request persistent storage. Persistent storage reduces the chance that the browser evicts app data automatically, although manually clearing site data still removes it.
+
+## Headphone monitoring
+
+Open **AUDIO** in the top bar to detect and select a separate headphone output. Master audio uses the system default output; select a different device for headphones, then enable headphone monitoring. Device detection may request temporary microphone permission to reveal output names; the app immediately releases the microphone and does not record it.
+
+Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the other deck switches monitoring to it; clicking the selected CUE again turns monitoring off. Each deck has its own CUE LEVEL, and the Audio dialog controls overall headphone volume.
+
+Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
+
+## Latest release: 6.2.46
+
+This release refreshes the decks, music library, top bar, logo and dialogs; smooths waveform rendering and corrects waveform sizing and zoom labels; adds a larger center-snapping crossfader; and makes headphone CUE selection exclusive. Existing track data and saved Hot Cues keep their storage format.
 
 ## Install as a PWA
 
@@ -95,11 +117,13 @@ For a custom domain, add it under **Firebase Console → Hosting → Add custom 
 
 Deploy new HTML, CSS and JavaScript to the same domain. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. V6 currently uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.46 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v6.1.0';
+const CACHE_VERSION = 'padawan-dj-v6.2.46';
 ```
+
+Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
 
 Users with an older service worker receive an update message and can refresh when convenient.
 
