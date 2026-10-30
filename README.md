@@ -1,4 +1,4 @@
-# Padawan DJ — v6.2.54
+# Padawan DJ — v6.2.56
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -77,9 +77,11 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 6.2.54
+## Latest release: 6.2.56
 
-This release adds a maximized music library view: the MAXIMIZE button in the library toolbar (or the `L` key) folds the decks away so the library and playlists fill the screen, while the waveform strip stays visible. `RESTORE`, `L` or `Esc` brings the decks back. The jog wheels get a new deck-coloured vinyl centre with a true-centre spindle, BPM above and pitch below it, and strobe ticks that turn with the platter. It also darkens the top bar and library surfaces and scales the deck controls up on large displays. Existing track data and saved Hot Cues keep their storage format.
+This release fixes the jog wheel at the end of a track: it now stops cleanly instead of stuttering. The waveform view no longer seeks the audio back when the player's reported duration is slightly longer than the decoded track.
+
+Previous release (6.2.54): This release adds a maximized music library view: the MAXIMIZE button in the library toolbar (or the `L` key) folds the decks away so the library and playlists fill the screen, while the waveform strip stays visible. `RESTORE`, `L` or `Esc` brings the decks back. The jog wheels get a new deck-coloured vinyl centre with a true-centre spindle, BPM above and pitch below it, and strobe ticks that turn with the platter. It also darkens the top bar and library surfaces and scales the deck controls up on large displays. Existing track data and saved Hot Cues keep their storage format.
 
 ## Install as a PWA
 
@@ -118,10 +120,10 @@ For a custom domain, add it under **Firebase Console → Hosting → Add custom 
 
 Deploy new HTML, CSS and JavaScript to the same domain. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.54 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.56 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v6.2.54';
+const CACHE_VERSION = 'padawan-dj-v6.2.56';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

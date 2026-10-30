@@ -1291,7 +1291,7 @@ function drawWaveform(deck) {
     return;
   }
 
-  const current = deck.audio.currentTime || 0;
+  const current = Math.min(deck.audio.currentTime || 0, track.duration || Infinity);
   const halfWindow = state.waveformWindowSeconds / 2;
   const startTime = current - halfWindow;
   const endTime = current + halfWindow;
@@ -1333,8 +1333,6 @@ function drawWaveform(deck) {
   }
   ctx.globalAlpha = 1;
   ctx.textAlign = 'left';
-
-  if (current > track.duration) deck.audio.currentTime = track.duration;
 }
 
 function drawOverview(deck) {
