@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.12';
+const APP_VERSION = '6.2.46';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -11,7 +11,7 @@ const JOG_NUDGE_SECONDS_PER_REVOLUTION = 0.45;
 const JOG_SCRATCH_RADIUS_RATIO = 0.90; // Only the outermost 10% is nudge.
 const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal dragging.
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
-const HOT_CUE_COLORS = { A: '#ff4759', B: '#4b9dff', C: '#42dc7f', D: '#bd6cff' };
+const HOT_CUE_COLORS = { A: '#ff5278', B: '#459eff', C: '#24dca6', D: '#b17aff' };
 const HOT_CUE_NUMBERS = { A: 1, B: 2, C: 3, D: 4 }; // Keep original A-D storage keys.
 
 const state = {
@@ -869,7 +869,7 @@ class Deck {
       const time = hotCues[letter];
       const isSet = Number.isFinite(time);
       button.classList.toggle('is-set', isSet);
-      // White numeric labels; the saved cue color remains a discreet state marker.
+      // Keep pad colors consistent with their waveform markers.
       button.style.removeProperty('color');
       button.style.setProperty('--hot-cue-accent', HOT_CUE_COLORS[letter]);
       const number = HOT_CUE_NUMBERS[letter];
@@ -1211,6 +1211,57 @@ function canvasSize(canvas) {
   return { width, height, ratio };
 }
 
+// Draw a continuous, antialiased envelope instead of stair-stepped columns.
+// Interpolate when zoomed in; preserve the loudest peak in each pixel when zoomed out.
+function drawWaveformEnvelope(ctx, peaks, duration, startTime, endTime, width, height, ratio, deckId) {
+  const points = [];
+  const columns = Math.ceil(width / ratio);
+  const peakAt = (position) => {
+    const index = clamp(position, 0, peaks.length - 1);
+    const left = Math.floor(index);
+    return peaks[left] + (peaks[Math.min(left + 1, peaks.length - 1)] - peaks[left]) * (index - left);
+  };
+  const timePerColumn = (endTime - startTime) / columns;
+  for (let column = 0; column <= columns; column += 1) {
+    const time = startTime + column * timePerColumn;
+    if (time < 0 || time > duration) continue;
+    const position = time / duration * (peaks.length - 1);
+    const halfBin = timePerColumn / duration * (peaks.length - 1) / 2;
+    let amplitude = peakAt(position);
+    if (halfBin > 0.5) {
+      for (let index = Math.max(0, Math.ceil(position - halfBin)); index <= Math.min(peaks.length - 1, Math.floor(position + halfBin)); index += 1) {
+        amplitude = Math.max(amplitude, peaks[index]);
+      }
+    }
+    points.push({ x: column / columns * width, h: amplitude * height * 0.44 });
+  }
+  if (points.length < 2) return;
+  const center = height / 2;
+  const outline = points.map((point) => ({ x: point.x, y: center - point.h }));
+  for (let index = points.length - 1; index >= 0; index -= 1) {
+    outline.push({ x: points[index].x, y: center + points[index].h });
+  }
+  ctx.beginPath();
+  ctx.moveTo(outline[0].x, outline[0].y);
+  for (let index = 1; index < outline.length - 1; index += 1) {
+    const point = outline[index];
+    const next = outline[index + 1];
+    ctx.quadraticCurveTo(point.x, point.y, (point.x + next.x) / 2, (point.y + next.y) / 2);
+  }
+  const last = outline[outline.length - 1];
+  ctx.lineTo(last.x, last.y);
+  ctx.closePath();
+  const cyan = deckId === 'A';
+  const fill = ctx.createLinearGradient(0, 0, 0, height);
+  fill.addColorStop(0, cyan ? '#168bbd' : '#a91b66');
+  fill.addColorStop(0.32, cyan ? '#16c8ff' : '#f73597');
+  fill.addColorStop(0.5, cyan ? '#a1edff' : '#ffb0dc');
+  fill.addColorStop(0.68, cyan ? '#16c8ff' : '#f73597');
+  fill.addColorStop(1, cyan ? '#168bbd' : '#a91b66');
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
 function drawWaveform(deck) {
   const canvas = $(`#waveform${deck.id}`);
   const ctx = canvas.getContext('2d');
@@ -1261,27 +1312,7 @@ function drawWaveform(deck) {
     }
   }
 
-  const primary = deck.id === 'A' ? '#16c8ff' : '#f73597';
-  const secondary = deck.id === 'A' ? '#77e6ff' : '#ff8acb';
-  const peaks = track.peaks;
-  const duration = track.duration || 1;
-  const step = Math.max(1, Math.floor(ratio));
-
-  for (let x = 0; x < width; x += step) {
-    const time = startTime + (x / width) * (endTime - startTime);
-    if (time < 0 || time > duration) continue;
-    const index = clamp(Math.floor((time / duration) * peaks.length), 0, peaks.length - 1);
-    const amplitude = peaks[index];
-    const h = Math.max(1, amplitude * height * 0.9);
-    ctx.fillStyle = amplitude > 0.72 ? secondary : primary;
-    ctx.globalAlpha = 0.95;
-    ctx.fillRect(x, centerY - h / 2, step, h);
-    ctx.fillStyle = '#f5f7fb';
-    ctx.globalAlpha = 0.92;
-    const core = h * (0.16 + amplitude * 0.18);
-    ctx.fillRect(x, centerY - core / 2, step, core);
-  }
-  ctx.globalAlpha = 1;
+  drawWaveformEnvelope(ctx, track.peaks, track.duration || 1, startTime, endTime, width, height, ratio, deck.id);
 
   for (const [letter, cueTime] of Object.entries(normaliseHotCues(track.hotCues))) {
     if (cueTime < startTime || cueTime > endTime) continue;
@@ -1309,22 +1340,12 @@ function drawWaveform(deck) {
 function drawOverview(deck) {
   const canvas = $(`#overview${deck.id}`);
   const ctx = canvas.getContext('2d');
-  const { width, height } = canvasSize(canvas);
+  const { width, height, ratio } = canvasSize(canvas);
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#000204';
   ctx.fillRect(0, 0, width, height);
   if (!deck.track?.peaks) return;
-  const peaks = deck.track.peaks;
-  const center = height / 2;
-  const primary = deck.id === 'A' ? '#16c8ff' : '#f73597';
-  ctx.fillStyle = primary;
-  for (let x = 0; x < width; x += 1) {
-    const index = Math.floor((x / width) * peaks.length);
-    const h = Math.max(1, peaks[index] * height * 0.88);
-    ctx.globalAlpha = 0.8;
-    ctx.fillRect(x, center - h / 2, 1, h);
-  }
-  ctx.globalAlpha = 1;
+  drawWaveformEnvelope(ctx, deck.track.peaks, deck.track.duration || 1, 0, deck.track.duration || 1, width, height, ratio, deck.id);
 
   const duration = deck.track.duration || 1;
   for (const [letter, cueTime] of Object.entries(normaliseHotCues(deck.track.hotCues))) {
@@ -1363,7 +1384,7 @@ function updateMeter() {
   average /= data.length || 1;
   const active = Math.round((average / 255) * ui.levelBars.length * 1.8);
   ui.levelBars.forEach((bar, index) => {
-    bar.style.opacity = index < active ? '1' : '.22';
+    bar.classList.toggle('is-lit', index < active);
   });
 }
 
@@ -1721,6 +1742,13 @@ function bindOverviewControls(deck) {
 function setWaveformZoom(seconds) {
   state.waveformWindowSeconds = clamp(Number(seconds) || DEFAULT_WAVEFORM_WINDOW_SECONDS, 8, 180);
   $('#waveZoomLabel').textContent = `${Math.round(state.waveformWindowSeconds)}s`;
+  $$('.waveform-ruler-marks span').forEach((mark, index, marks) => {
+    const fraction = index / (marks.length - 1);
+    const seconds = (fraction - 0.5) * state.waveformWindowSeconds;
+    const label = Number(Math.abs(seconds).toFixed(1));
+    mark.textContent = seconds < 0 ? `−${label}` : seconds > 0 ? `+${label}` : '0';
+    mark.style.left = `${fraction * 100}%`;
+  });
   drawWaveform(decks.A);
   drawWaveform(decks.B);
 }
@@ -2063,6 +2091,18 @@ function bindEvents() {
   const activateNavigation = (id) => {
     $$('.app-navigation .nav-pill').forEach((button) => button.classList.toggle('active', button.id === id));
   };
+  const fullscreenButton = $('#fullscreenButton');
+  fullscreenButton.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (error) { showToast('Fullscreen is unavailable in this browser.'); }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    const label = document.fullscreenElement ? 'Exit fullscreen' : 'Enter fullscreen';
+    fullscreenButton.setAttribute('aria-label', label);
+    fullscreenButton.title = label;
+  });
   $('#navLibrary').addEventListener('click', () => {
     activateNavigation('navLibrary');
     $('#searchInput').focus({ preventScroll: true });
@@ -2076,14 +2116,17 @@ function bindEvents() {
     $('#audioOutputButton').click();
   });
   $('#helpButton').addEventListener('click', () => {
-    showHelpTab('shortcuts');
+    showHelpTab('about');
     ui.helpDialog.showModal();
   });
   $$('.help-tab').forEach((button) => button.addEventListener('click', () => showHelpTab(button.dataset.helpTab)));
   $$('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
     const deckId = button.closest('.mixer-channel')?.dataset.deck;
     if (!deckId) return;
-    button.classList.toggle('active');
+    const activate = !button.classList.contains('active');
+    $$('.cue-monitor').forEach((cueButton) => {
+      cueButton.classList.toggle('active', activate && cueButton === button);
+    });
     refreshCueGates();
     setSelectedDeck(deckId);
     showToast(`Deck ${deckId === 'A' ? '1' : '2'} cue ${button.classList.contains('active') ? 'on' : 'off'}${cueEnabled ? '' : ' — configure headphones in AUDIO OUTPUT'}`, 2000);
@@ -2093,6 +2136,25 @@ function bindEvents() {
     $('#audioOutputDialog').showModal();
   });
   $('#closeAudioOutput').addEventListener('click', () => $('#audioOutputDialog').close());
+  $('#closeAudioOutputX').addEventListener('click', () => $('#audioOutputDialog').close());
+  // Only dismiss when the gesture starts and ends outside the dialog itself.
+  // Clicking padding or dragging a slider beyond an edge must leave it open.
+  [ui.helpDialog, ui.storageDialog, $('#audioOutputDialog')].forEach((dialog) => {
+    let startedOutside = false;
+    const isOutside = (event) => {
+      const rect = dialog.getBoundingClientRect();
+      return event.clientX < rect.left || event.clientX > rect.right
+        || event.clientY < rect.top || event.clientY > rect.bottom;
+    };
+    dialog.addEventListener('pointerdown', (event) => {
+      startedOutside = event.target === dialog && isOutside(event);
+    });
+    dialog.addEventListener('pointercancel', () => { startedOutside = false; });
+    dialog.addEventListener('click', (event) => {
+      if (startedOutside && event.target === dialog && isOutside(event)) dialog.close();
+      startedOutside = false;
+    });
+  });
   $('#detectHeadphones').addEventListener('click', () => {
     discoverCueDevices().catch((error) => {
       $('#cueOutputStatus').textContent = describeCueError(error);
@@ -2133,7 +2195,24 @@ function bindEvents() {
       }
     }).catch(console.error);
   });
-  $('#crossfader').addEventListener('input', (event) => applyCrossfader(event.target.value));
+  const crossfader = $('#crossfader');
+  let keyboardCrossfader = false;
+  crossfader.addEventListener('pointerdown', () => { keyboardCrossfader = false; });
+  crossfader.addEventListener('keydown', () => { keyboardCrossfader = true; });
+  crossfader.addEventListener('keyup', () => { keyboardCrossfader = false; });
+  crossfader.addEventListener('blur', () => { keyboardCrossfader = false; });
+  const updateCrossfader = () => {
+    // Native range controls can cancel pointer events during a drag. Snap from
+    // the input value itself, while retaining precise keyboard adjustments.
+    if (!keyboardCrossfader && Math.abs(Number(crossfader.value)) <= 0.1) crossfader.value = '0';
+    applyCrossfader(crossfader.value);
+  };
+  crossfader.addEventListener('input', updateCrossfader);
+  crossfader.addEventListener('change', updateCrossfader);
+  crossfader.addEventListener('dblclick', () => {
+    crossfader.value = '0';
+    applyCrossfader(0);
+  });
   $('#masterVolume').addEventListener('input', (event) => masterGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $('#masterA').addEventListener('click', () => setMasterDeck('A'));
   $('#masterB').addEventListener('click', () => setMasterDeck('B'));
@@ -2228,7 +2307,7 @@ function bindEvents() {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.target.matches('input, textarea') || ui.helpDialog.open) return;
+    if (event.target.matches('input, textarea, select') || document.querySelector('dialog[open]')) return;
     const deck = decks[state.selectedDeck];
     if (event.code === 'Digit1') return setSelectedDeck('A');
     if (event.code === 'Digit2') return setSelectedDeck('B');

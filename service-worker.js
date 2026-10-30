@@ -1,13 +1,14 @@
 'use strict';
 
-const CACHE_VERSION = 'padawan-dj-v6.2.12';
+const CACHE_VERSION = 'padawan-dj-v6.2.46';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './manifest.webmanifest',
-  './icons/padawan-mark.svg',
+  './icons/padawan-emblem.png',
+  './icons/padawan-wordmark.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
