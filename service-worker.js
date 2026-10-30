@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'padawan-dj-v6.2.50';
+const CACHE_VERSION = 'padawan-dj-v6.2.52';
 const APP_SHELL = [
   './',
   './index.html',

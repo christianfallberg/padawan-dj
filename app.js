@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.50';
+const APP_VERSION = '6.2.52';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -2015,6 +2015,31 @@ async function promptInstall() {
   showToast(choice.outcome === 'accepted' ? 'Installing Padawan DJ…' : 'Installation cancelled');
 }
 
+function setLibraryMaximized(maximized) {
+  const workspace = $('.workspace');
+  if (maximized && !workspace.classList.contains('library-maximized')) {
+    // Start the library exactly where the deck panels start, whatever the layout breakpoint.
+    workspace.style.setProperty('--deck-inset-top', getComputedStyle($('.decks-section')).paddingTop);
+  }
+  workspace.classList.toggle('library-maximized', maximized);
+  const button = $('#libraryMaximizeButton');
+  const label = maximized ? 'Restore decks' : 'Maximize library';
+  button.setAttribute('aria-pressed', String(maximized));
+  button.setAttribute('aria-label', label);
+  button.title = `${label} (L)`;
+  button.querySelector('span').textContent = maximized ? 'RESTORE' : 'MAXIMIZE';
+  $('#selectionHint').textContent = maximized
+    ? 'Double-click or use the 1 / 2 buttons to load. Press L or Esc to bring the decks back.'
+    : 'Double-click to load, or drag a track directly onto a jog wheel.';
+  if (!maximized) {
+    // Overview canvases were hidden, so redraw them at their restored size.
+    requestAnimationFrame(() => {
+      drawOverview(decks.A);
+      drawOverview(decks.B);
+    });
+  }
+}
+
 function bindEvents() {
   ui.importButton.addEventListener('click', () => ui.fileInput.click());
   const resetImportDropState = () => {
@@ -2107,7 +2132,11 @@ function bindEvents() {
     activateNavigation('navLibrary');
     $('#searchInput').focus({ preventScroll: true });
   });
+  $('#libraryMaximizeButton').addEventListener('click', () => {
+    setLibraryMaximized(!$('.workspace').classList.contains('library-maximized'));
+  });
   $('#navMixer').addEventListener('click', () => {
+    setLibraryMaximized(false);
     activateNavigation('navMixer');
     $('#crossfader').focus({ preventScroll: true });
   });
@@ -2314,6 +2343,8 @@ function bindEvents() {
     if (event.code === 'Space') { event.preventDefault(); return deck.playPause().catch(console.error); }
     if (event.key.toLowerCase() === 'c') return deck.cue();
     if (event.key.toLowerCase() === 's') return deck.syncTo(decks[state.masterDeck]);
+    if (event.key.toLowerCase() === 'l') return setLibraryMaximized(!$('.workspace').classList.contains('library-maximized'));
+    if (event.code === 'Escape' && $('.workspace').classList.contains('library-maximized')) return setLibraryMaximized(false);
     if (event.code === 'ArrowLeft' && deck.track) { event.preventDefault(); deck.audio.currentTime = Math.max(0, deck.audio.currentTime - 5); }
     if (event.code === 'ArrowRight' && deck.track) { event.preventDefault(); deck.audio.currentTime = Math.min(deck.audio.duration || 0, deck.audio.currentTime + 5); }
     if (event.code === 'Enter' && state.selectedTrackId) return loadTrackToDeck(state.selectedTrackId, state.selectedDeck).catch(console.error);

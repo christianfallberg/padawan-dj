@@ -1,4 +1,4 @@
-# Padawan DJ — v6.2.50
+# Padawan DJ — v6.2.52
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -17,6 +17,7 @@ Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-o
 - Drag tracks from Collection directly onto a jog wheel
 - MP3 album artwork extraction with generated fallback covers
 - Local Collection, playlists and history
+- Maximizable music library (MAXIMIZE button or `L`; `Esc` restores) that keeps the waveform strip visible
 - IndexedDB storage for audio files, artwork and track metadata
 - PWA installation
 - Offline app shell and offline demo tracks
@@ -76,9 +77,9 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 6.2.50
+## Latest release: 6.2.52
 
-This release refreshes the decks, music library, top bar, logo and dialogs; smooths waveform rendering and corrects waveform sizing and zoom labels; adds a larger center-snapping crossfader; and makes headphone CUE selection exclusive. Existing track data and saved Hot Cues keep their storage format.
+This release adds a maximized music library view: the MAXIMIZE button in the library toolbar (or the `L` key) folds the decks away so the library and playlists fill the screen, while the waveform strip stays visible. `RESTORE`, `L` or `Esc` brings the decks back. It also darkens the top bar and library surfaces and scales the deck controls up on large displays. Existing track data and saved Hot Cues keep their storage format.
 
 ## Install as a PWA
 
@@ -117,10 +118,10 @@ For a custom domain, add it under **Firebase Console → Hosting → Add custom 
 
 Deploy new HTML, CSS and JavaScript to the same domain. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.50 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.52 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v6.2.50';
+const CACHE_VERSION = 'padawan-dj-v6.2.52';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
