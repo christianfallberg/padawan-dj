@@ -4152,3 +4152,42 @@ body { overflow: visible; }
   .workspace.library-maximized > .library-section {animation:library-rise .18s ease-out;}
   @keyframes library-rise {from {opacity:.6;transform:translateY(14px);} to {opacity:1;transform:none;}}
 }
+
+/* Jog centre: a deck-coloured vinyl label with a true-centre spindle and strobe ticks on the platter. */
+.deck-panel .transport-cluster .jogwheel {--jog-accent:#16c8ff;--jog-accent-soft:#16c8ff40;}
+.deck-panel.deck-b .transport-cluster .jogwheel {--jog-accent:#ef3a97;--jog-accent-soft:#ef3a9740;}
+/* Strobe ticks ride on the rotating platter, so playback and scratching read as motion. */
+.deck-panel .transport-cluster .jog-ring::before {
+  content:"";position:absolute;inset:3.5%;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(var(--jog-accent) 0 1.1deg,transparent 1.1deg 7.5deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));
+  opacity:.5;
+}
+.deck-panel .transport-cluster .jog-label {
+  background:
+    conic-gradient(from 300deg,#ffffff00,#ffffff12 7%,#ffffff00 16%,#ffffff00 50%,#ffffff0c 57%,#ffffff00 66%),
+    repeating-radial-gradient(circle,#ffffff07 0 1px,transparent 1px 4px),
+    radial-gradient(circle,#0e1823 0,#060b12 58%,#02060b 100%);
+  box-shadow:inset 0 0 0 2px var(--jog-accent),inset 0 0 0 6px #02060b,inset 0 0 0 7px var(--jog-accent-soft),0 0 22px var(--jog-accent-soft);
+}
+.deck-panel .transport-cluster .jog-label .jog-cover-fallback {display:none;}
+.deck-panel .transport-cluster .jog-label::after {background:radial-gradient(circle,#02060b26 0,#02060bb0 100%);}
+.deck-panel .transport-cluster .jog-label::before,
+.deck-panel .transport-cluster .jog-label.has-cover::before {
+  content:"";display:block;position:absolute;z-index:3;inset:auto;top:50%;left:50%;
+  width:13%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,#f2fdff 0 20%,var(--jog-accent) 25% 56%,#02060b 60% 72%,var(--jog-accent-soft) 76% 100%);
+  filter:drop-shadow(0 0 8px var(--jog-accent));
+}
+.deck-panel .transport-cluster .jog-label strong {
+  position:absolute;top:24%;left:0;right:0;margin:0;text-align:center;line-height:1;
+  font-size:clamp(17px,1.3vw,22px);color:#eef9ff;letter-spacing:.02em;
+}
+.deck-panel .transport-cluster .jog-label strong::after {content:"BPM";display:block;margin-top:4px;font-family:inherit;font-size:8px;font-weight:700;letter-spacing:.14em;color:#8193a5;}
+.deck-panel .transport-cluster .jog-label > span[id^="pitch"] {
+  position:absolute;bottom:25%;left:50%;transform:translateX(-50%);padding:2px 7px;border-radius:9px;
+  background:#02060bc4;font-family:"SFMono-Regular",Consolas,monospace;font-size:11px;font-weight:600;color:var(--jog-accent);
+}
+.deck-panel .transport-cluster .jog-label strong {text-shadow:0 0 8px #000,0 1px 3px #000;}
+.deck-panel .transport-cluster .jog-ring::after {background:var(--jog-accent);box-shadow:0 0 11px var(--jog-accent);}
