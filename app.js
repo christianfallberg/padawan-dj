@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.61';
+const APP_VERSION = '6.2.62';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -44,7 +44,6 @@ const state = {
 const ui = {
   fileInput: $('#fileInput'),
   importButton: $('#importButton'),
-  loadDemosButton: $('#loadDemosButton'),
   trackTableBody: $('#trackTableBody'),
   searchInput: $('#searchInput'),
   libraryStatus: $('#libraryStatus'),
@@ -1032,55 +1031,6 @@ async function addFiles(fileList) {
   updateLibraryStats();
   await updateStorageUi();
   showToast(`${files.length} track${files.length === 1 ? '' : 's'} imported`);
-}
-
-async function addDemoTracks() {
-  const demos = [
-    { url: 'assets/demo-a.wav', filename: 'Neon District - Signal Run.wav', title: 'Signal Run', artist: 'Neon District', bpm: 128, key: '8A' },
-    { url: 'assets/demo-b.wav', filename: 'Static Theory - After Dark.wav', title: 'After Dark', artist: 'Static Theory', bpm: 124, key: '4A' },
-  ];
-  const existingNames = new Set(state.tracks.map((track) => track.filename));
-  let added = 0;
-  await ensureAudioReady();
-
-  for (const demo of demos) {
-    if (existingNames.has(demo.filename)) continue;
-    try {
-      const response = await fetch(demo.url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      const file = new File([blob], demo.filename, { type: 'audio/wav' });
-      const buffer = await audioContext.decodeAudioData((await blob.arrayBuffer()).slice(0));
-      const track = {
-        id: crypto.randomUUID(),
-        title: demo.title,
-        artist: demo.artist,
-        bpm: demo.bpm,
-        key: demo.key,
-        duration: buffer.duration,
-        addedAt: Date.now() + added,
-        filename: demo.filename,
-        gridOffset: 0,
-        hotCues: {},
-        album: 'Padawan DJ Demos',
-        coverBlob: null,
-        blob: file,
-        buffer,
-        peaks: createPeaks(buffer),
-      };
-      state.tracks.push(track);
-      await dbPut(track);
-      added += 1;
-    } catch (error) {
-      console.error(error);
-      showToast('Demo tracks require the included local web server');
-      return;
-    }
-  }
-  renderTable();
-  await updateStorageUi();
-  if (added) showToast('Demo tracks added to Collection');
-  else showToast('Demo tracks are already in Collection');
 }
 
 const pendingDeckLoads = new Set();
@@ -2146,7 +2096,6 @@ function bindEvents() {
     addFiles(event.target.files).catch(console.error);
     event.target.value = '';
   });
-  ui.loadDemosButton.addEventListener('click', () => addDemoTracks().catch(console.error));
   ui.storageButton.addEventListener('click', () => {
     updateStorageUi().catch(console.error);
     ui.storageDialog.showModal();

@@ -1,4 +1,4 @@
-# Padawan DJ — v6.2.61
+# Padawan DJ — v6.2.62
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -20,7 +20,7 @@ Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-o
 - Maximizable music library (MAXIMIZE button or `L`; `Esc` restores) that keeps the waveform strip visible
 - IndexedDB storage for audio files, artwork and track metadata
 - PWA installation
-- Offline app shell and offline demo tracks
+- Offline app shell
 - Refreshed deck controls, library, top-bar tools and app branding
 - Audio, Local Storage and Help/About dialogs with outside-click dismissal
 - Fixed-size About/Shortcuts dialog with scrollable shortcuts
@@ -77,7 +77,11 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 6.2.61
+## Latest release: 6.2.62
+
+- Removed the bundled demo tracks and the LOAD DEMO TRACKS button. Demo tracks already added to a library stay until removed.
+
+### Previous release: 6.2.61
 
 - Refined playing-track confirmation with clear current/replacement track details and a focused Keep Playing action.
 
@@ -105,7 +109,7 @@ Previous release (6.2.54): This release adds a maximized music library view: the
 
 The **INSTALL APP** button appears in supported browsers after the service worker and manifest are ready. Installation requires HTTPS, except that browsers treat `localhost` as a secure development origin.
 
-After the first successful load, the interface and bundled demo tracks can start offline. Imported music remains available offline because it is stored locally in IndexedDB.
+After the first successful load, the interface can start offline. Imported music remains available offline because it is stored locally in IndexedDB.
 
 ## Host it yourself
 
@@ -120,7 +124,6 @@ Padawan DJ is a static site. There is no build step, no server-side code and no 
    service-worker.js
    manifest.webmanifest
    icons/
-   assets/
    ```
 
    `README.md`, `start.command` and dotfiles are not needed on the server.
@@ -140,10 +143,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.61 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.62 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v6.2.61';
+const CACHE_VERSION = 'padawan-dj-v6.2.62';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

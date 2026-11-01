@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'padawan-dj-v6.2.61';
+const CACHE_VERSION = 'padawan-dj-v6.2.62';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,9 +12,7 @@ const APP_SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png',
-  './assets/demo-a.wav',
-  './assets/demo-b.wav'
+  './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
