@@ -2,6 +2,10 @@
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
+![Padawan DJ: two decks with jog wheels, mixer and music library](docs/screenshot.png)
+
+Try it live at **[dj.padawan.se](https://dj.padawan.se)**.
+
 ## What is included
 
 - Two playable audio decks
@@ -102,7 +106,7 @@ Padawan DJ is a static site. There is no build step, no server-side code and no 
    icons/
    ```
 
-   `README.md`, `start.command` and dotfiles are not needed on the server.
+   `README.md`, `docs/`, `start.command` and dotfiles are not needed on the server.
 
 2. Serve the site over **HTTPS**. Service workers, PWA installation, persistent storage and headphone output selection (`setSinkId()`) only work in a secure context. Most hosts provide free certificates.
 
