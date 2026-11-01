@@ -4191,3 +4191,204 @@ body { overflow: visible; }
 }
 .deck-panel .transport-cluster .jog-label strong {text-shadow:0 0 8px #000,0 1px 3px #000;}
 .deck-panel .transport-cluster .jog-ring::after {background:var(--jog-accent);box-shadow:0 0 11px var(--jog-accent);}
+
+/* Help: compact brand signature, readable reference columns and a quiet status rail. */
+#helpDialog[open] {
+  width:min(860px,calc(100vw - 32px));
+  height:min(880px,calc(100dvh - 40px));
+  min-height:0;
+  max-height:calc(100dvh - 40px);
+  border-color:#344858;
+  border-radius:12px;
+  background:#0c131c;
+  box-shadow:0 24px 80px #0009;
+}
+#helpDialog > form {grid-template-rows:152px 53px minmax(0,1fr);}
+#helpDialog .about-brand {
+  flex-direction:row;justify-content:flex-start;text-align:left;
+  padding:32px 40px;gap:24px;
+  background:linear-gradient(120deg,#152331,#0c131c 75%);
+}
+#helpDialog .about-brand > img {width:88px;height:88px;}
+#helpDialog .about-brand > div {min-width:0;}
+#helpDialog .about-brand .about-wordmark {width:330px;}
+#helpDialog .about-brand h2 {margin:0 0 12px;}
+#helpDialog .about-version {font-size:10px;letter-spacing:.08em;color:#9aafc1;font-weight:500;}
+#helpDialog .about-version strong {font-weight:600;font-variant-numeric:tabular-nums;}
+#helpDialog .about-brand p {margin:8px 0 0;font-size:14px;color:#bdccda;}
+#helpDialog form > header {top:12px;right:12px;}
+#helpDialog header button {width:36px;height:36px;background:transparent;border-color:transparent;color:#aebfcd;}
+#helpDialog header button:hover {background:#1c2b39;border-color:#425565;color:#f1f7fc;}
+#helpDialog .help-tabs {justify-content:flex-start;padding:0 40px;gap:28px;background:#0c131c;border-color:#273644;}
+#helpDialog .help-tabs .help-tab {min-height:52px;padding:16px 0;font-size:11px;letter-spacing:.045em;}
+#helpDialog .help-tabs .help-tab:focus-visible {outline-offset:-5px;border-radius:3px;}
+#helpDialog .about-panel {padding:28px 40px 24px;scrollbar-gutter:stable;}
+#helpDialog .about-intro {margin:0 0 24px;padding:0;max-width:70ch;font-size:14px;line-height:1.7;color:#c5d2de;}
+#helpDialog .about-intro strong {display:block;margin-bottom:5px;font-size:20px;line-height:1.3;font-weight:600;letter-spacing:-.02em;color:#f0f5f9;}
+#helpDialog .about-cards {gap:32px;padding:0 0 28px;}
+#helpDialog .about-card + .about-card {padding-left:28px;border-color:#273644;}
+#helpDialog .about-card h3 {margin:0 0 18px;color:#91aabd;font-size:10px;font-weight:600;letter-spacing:.1em;}
+#helpDialog .about-item {margin-top:14px;gap:5px;font-size:13px;line-height:1.55;}
+#helpDialog .about-item strong {font-size:12px;font-weight:600;color:#e0e9f0;}
+#helpDialog .about-item span {color:#acbece;}
+#helpDialog .about-diagnostics {padding:20px 0 0;gap:20px;border-color:#273644;}
+#helpDialog .about-diagnostics span {font-size:9px;letter-spacing:.075em;color:#91aabd;}
+#helpDialog .about-diagnostics strong {font-size:12px;font-weight:500;line-height:1.6;}
+#helpDialog .about-diagnostics strong[data-status="available"] {color:#8ad8bc;}
+#helpDialog .about-diagnostics strong[data-status="limited"] {color:#e7c48d;}
+#helpDialog .about-panel .about-footer {margin:0;padding-top:20px;color:#91aabd;font-size:11px;line-height:1.6;}
+#helpDialog .shortcut-grid {padding:28px 40px;gap:14px 24px;}
+#helpDialog .help-tab-panel:focus-visible {outline:2px solid #16c8ff;outline-offset:-4px;}
+@media (max-height:760px) and (min-width:601px) {
+  #helpDialog > form {grid-template-rows:136px 53px minmax(0,1fr);}
+  #helpDialog .about-brand {padding:20px 40px;}
+  #helpDialog .about-brand > img {width:72px;height:72px;}
+}
+@media (max-width:600px) {
+  #helpDialog[open] {width:calc(100vw - 24px);height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);}
+  #helpDialog > form {grid-template-rows:164px 53px minmax(0,1fr);}
+  #helpDialog .about-brand {padding:36px 20px 24px;gap:16px;}
+  #helpDialog .about-brand > img {width:56px;height:56px;}
+  #helpDialog .about-brand .about-wordmark {width:250px;}
+  #helpDialog .about-brand p {font-size:12px;}
+  #helpDialog .help-tabs {padding:0 20px;gap:24px;}
+  #helpDialog .about-panel {padding:24px 20px;}
+  #helpDialog .about-cards {grid-template-columns:1fr;gap:28px;}
+  #helpDialog .about-card + .about-card {padding:24px 0 0;border-left:0;border-top:1px solid #273644;}
+  #helpDialog .about-diagnostics {grid-template-columns:1fr;gap:18px;}
+  #helpDialog .shortcut-grid {padding:24px 20px;grid-template-columns:100px minmax(0,1fr);gap:14px;}
+}
+
+/* Shared line icons keep controls independent of platform font glyphs. */
+.ui-icon {width:18px;height:18px;flex:none;display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.play-button .ui-icon {width:26px;height:26px;}
+.play-button .ui-icon path {fill:currentColor;}
+.play-button.active .ui-icon path {fill:none;stroke-width:3;}
+.source-item .ui-icon,.playlist-select .ui-icon {width:15px;height:15px;}
+.playlist-remove .ui-icon {width:13px;height:13px;}
+.track-table th .ui-icon {width:12px;height:12px;margin-left:4px;opacity:.65;}
+.playlist-heading button,.waveform-zoom button {display:inline-flex;align-items:center;justify-content:center;}
+.topbar .topbar-right #audioOutputButton {align-items:center;gap:7px;}
+.audio-cue-badge {font-size:9px;letter-spacing:.04em;color:#93a8b9;padding-left:7px;border-left:1px solid #344858;}
+.audio-cue-badge[data-ready="true"] {color:#8ad8bc;}
+
+/* Audio and Storage use the same material, spacing and type as Help. */
+:is(#audioOutputDialog,#storageDialog) {
+  box-sizing:border-box;width:min(720px,calc(100vw - 32px));
+  min-width:0;max-height:calc(100dvh - 40px);overflow-y:auto;
+  border:1px solid #344858;border-radius:12px;background:#0c131c;
+  box-shadow:0 24px 80px #0009;color:#c5d2de;
+}
+#audioOutputDialog {padding:0 40px 32px;}
+#audioOutputDialog .audio-dialog-header,#storageDialog header {
+  min-height:96px;padding:24px 40px;box-sizing:border-box;
+  background:linear-gradient(120deg,#152331,#0c131c 75%);border-color:#273644;
+}
+#audioOutputDialog .audio-dialog-header {margin:0 -40px 28px;}
+#audioOutputDialog h2,#storageDialog header strong {font-size:22px;font-weight:600;letter-spacing:-.02em;}
+:is(#audioOutputDialog,#storageDialog) header button {background:transparent;border-color:transparent;color:#aebfcd;}
+:is(#audioOutputDialog,#storageDialog) header button:hover {background:#1c2b39;border-color:#425565;color:#f1f7fc;}
+#audioOutputDialog .audio-route-summary {display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:0 0 24px;border-bottom:1px solid #273644;}
+#audioOutputDialog .audio-route-summary > div {display:flex;flex-direction:column;gap:7px;min-width:0;}
+#audioOutputDialog .audio-route-summary span {font-size:10px;font-weight:600;letter-spacing:.08em;color:#91aabd;}
+#audioOutputDialog .audio-route-summary strong {font-size:14px;font-weight:600;line-height:1.5;color:#e0e9f0;overflow-wrap:anywhere;}
+#audioOutputDialog .audio-route-summary small {font-size:12px;line-height:1.6;color:#acbece;}
+#audioOutputDialog #headphoneRouteState[data-ready="true"] {color:#8ad8bc;}
+#audioOutputDialog label {display:block;margin:24px 0 10px;color:#91aabd;font-size:10px;font-weight:600;letter-spacing:.08em;}
+#audioOutputDialog .audio-output-note {font-size:12px;line-height:1.7;margin:14px 0;color:#acbece;}
+#audioOutputDialog #cueOutputStatus {margin:20px 0;padding:14px 16px;background:#131f2b;color:#c5d2de;border:1px solid #273644;border-radius:6px;line-height:1.6;}
+#audioOutputDialog .audio-output-actions {display:flex;flex-wrap:wrap;gap:10px;border-color:#273644;padding-top:20px;}
+:is(#audioOutputDialog,#storageDialog) button {transition:background-color .15s,border-color .15s;}
+#audioOutputDialog :is(.audio-output-actions button,.audio-detect-button),#storageDialog .storage-actions button,#storageDialog .storage-maintenance button {
+  min-height:42px;padding:10px 14px;border:1px solid #344858;border-radius:5px;
+  background:#101b26;color:#c5d2de;font-size:10px;font-weight:600;letter-spacing:.035em;box-shadow:none;
+}
+#audioOutputDialog #enableHeadphones,#storageDialog .storage-actions .storage-primary {background:#153143;border-color:#2e607a;color:#9de4ff;}
+:is(#audioOutputDialog,#storageDialog) button:hover {filter:none;background:#203344;border-color:#536c80;}
+:is(#audioOutputDialog,#storageDialog) button:disabled {opacity:.4;cursor:not-allowed;}
+#audioOutputDialog #closeAudioOutput {margin-left:0;}
+#storageDialog .storage-content {padding:28px 40px 32px;}
+#storageDialog .storage-stat-grid {gap:24px 32px;}
+#storageDialog .storage-stat {padding:0;border:0;border-radius:0;background:none;}
+#storageDialog .storage-stat span {font-size:10px;color:#91aabd;letter-spacing:.08em;}
+#storageDialog .storage-stat strong {font-size:26px;line-height:1.5;font-weight:500;font-variant-numeric:tabular-nums;}
+#storageDialog .storage-stat small {font-size:12px;color:#acbece;}
+#storageDialog .storage-status-row {border-color:#273644;min-height:46px;}
+#storageDialog .storage-note {margin:24px 0;font-size:13px;line-height:1.7;color:#acbece;}
+#storageDialog .storage-actions {gap:12px;}
+#storageDialog .storage-maintenance {display:flex;align-items:center;gap:24px;margin-top:28px;padding-top:24px;border-top:1px solid #273644;}
+#storageDialog .storage-maintenance h3 {margin:0 0 6px;color:#e0e9f0;font-size:13px;font-weight:600;}
+#storageDialog .storage-maintenance p {margin:0;color:#acbece;font-size:12px;line-height:1.6;}
+#storageDialog .storage-maintenance button {flex:none;color:#efb4c2;background:transparent;border-color:#63414d;}
+#storageDialog .storage-maintenance button:hover {background:#30202a;border-color:#a26275;}
+@media (max-width:600px) {
+  :is(#audioOutputDialog,#storageDialog) {width:calc(100vw - 24px);max-height:calc(100dvh - 24px);}
+  #audioOutputDialog {padding:0 20px 24px;}
+  #audioOutputDialog .audio-dialog-header {margin:0 -20px 24px;padding:20px;}
+  #storageDialog header {padding:20px;}
+  #storageDialog .storage-content {padding:24px 20px;}
+  #audioOutputDialog .audio-route-summary {grid-template-columns:1fr;gap:20px;}
+  #storageDialog .storage-actions {grid-template-columns:1fr;}
+  #storageDialog .storage-maintenance {align-items:flex-start;flex-direction:column;gap:16px;}
+  #audioOutputDialog .audio-output-actions button {flex:1 1 42%;}
+}
+@media (prefers-reduced-motion:reduce) {
+  :is(#audioOutputDialog,#storageDialog) button {transition:none;}
+}
+
+/* Visible selection, restart and sorting affordances. */
+.deck-panel .deck-display .display-elapsed-button {display:inline-flex;align-items:center;gap:6px;min-height:24px;}
+.deck-panel .deck-display .restart-icon {width:13px;height:13px;color:#91aabd;}
+.deck-panel .deck-display .display-elapsed-button:hover .restart-icon {color:#85e3ff;}
+.deck-panel .deck-display .deck-number {cursor:pointer;border:1px solid transparent;font-family:inherit;}
+.deck-panel.selected-deck .deck-display .deck-number {outline:2px solid #8ce5ff;outline-offset:3px;}
+.deck-panel.deck-b.selected-deck .deck-display .deck-number {outline-color:#ff99ca;}
+.deck-panel .deck-display .deck-number:focus-visible {outline:2px solid #fff;outline-offset:3px;}
+#helpDialog .shortcut-section-title {grid-column:1 / -1;margin:12px 0 6px;color:#e0e9f0;font-size:15px;font-weight:600;letter-spacing:0;}
+#helpDialog .shortcut-section-title:first-child {margin-top:0;}
+.library-section .track-table th .sort-button {display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0;border:0;border-radius:2px;background:none;box-shadow:none;color:inherit;font:inherit;letter-spacing:inherit;text-align:inherit;cursor:pointer;}
+.library-section .track-table th[aria-sort="ascending"],.library-section .track-table th[aria-sort="descending"] {color:#8ce5ff;}
+.library-section .track-table th[aria-sort="ascending"] .ui-icon,.library-section .track-table th[aria-sort="descending"] .ui-icon {opacity:1;}
+.library-section .track-table th .sort-button:hover {color:#edf7ff;}
+.library-section .track-table th .sort-button:focus-visible {outline:2px solid #85e3ff;outline-offset:2px;}
+.deck-panel .deck-display .display-timeline {grid-template-columns:max-content minmax(0,1fr) max-content;gap:12px;}
+#helpDialog .shortcut-grid {grid-auto-rows:min-content;align-content:start;}
+
+/* Playback replacement: a focused decision with both track names in view. */
+#actionDialog.playback-confirm {
+  width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);
+  box-sizing:border-box;padding:0;overflow-y:auto;animation:none;
+  border:1px solid #344858;border-radius:12px;background:#0c131c;
+  box-shadow:0 24px 80px #0009;color:#e0e9f0;
+  scrollbar-width:thin;scrollbar-color:#405364 #0c131c;
+}
+#actionDialog.playback-confirm::backdrop {background:#03070cbf;backdrop-filter:none;}
+#actionDialog.playback-confirm form {margin:0;border:0;background:none;box-shadow:none;}
+#actionDialog.playback-confirm header {min-height:88px;padding:24px 28px;gap:20px;border:0;border-bottom:1px solid #273644;background:linear-gradient(120deg,#152331,#0c131c 75%);box-shadow:none;}
+#actionDialog.playback-confirm header::before,#actionDialog.playback-confirm header::after,#actionDialog.playback-confirm #actionDialogCode {display:none;}
+#actionDialog.playback-confirm #actionDialogTitle {font-size:22px;line-height:1.3;letter-spacing:-.02em;font-weight:600;}
+#actionDialog.playback-confirm header button {display:grid;place-items:center;flex:none;width:36px;height:36px;margin:0;padding:0;border-color:transparent;background:transparent;color:#aebfcd;}
+#actionDialog.playback-confirm header button:hover {background:#1c2b39;border-color:#425565;color:#fff;}
+#actionDialog.playback-confirm .action-dialog-content {padding:24px 28px 28px;}
+#actionDialog.playback-confirm #actionDialogMessage {font-size:13px;line-height:1.7;color:#acbece;}
+#actionDialog .playback-track-details[hidden] {display:none;}
+#actionDialog.playback-confirm .playback-track-details {margin:24px 0 0;}
+#actionDialog.playback-confirm .playback-track-details > div {display:grid;grid-template-columns:104px minmax(0,1fr);gap:16px;align-items:baseline;padding:16px 0;border-top:1px solid #273644;}
+#actionDialog.playback-confirm .playback-track-details > div:last-child {padding-bottom:0;}
+#actionDialog.playback-confirm dt {font-size:12px;color:#91aabd;line-height:1.6;}
+#actionDialog.playback-confirm dd {margin:0;font-size:14px;font-weight:500;line-height:1.6;overflow-wrap:anywhere;color:#e0e9f0;}
+#actionDialog.playback-confirm footer {display:flex;gap:12px;padding:20px 28px;border-color:#273644;background:transparent;}
+#actionDialog.playback-confirm footer button {flex:1;min-height:44px;height:auto;padding:12px 16px;border:1px solid #344858;border-radius:5px;background:#101b26;color:#d4e1ec;font-size:11px;font-weight:600;letter-spacing:.035em;box-shadow:none;}
+#actionDialog.playback-confirm #actionDialogConfirm {background:#30261a;border-color:#6b5536;color:#f2d3a2;}
+#actionDialog.playback-confirm #actionDialogConfirm:hover {background:#44331f;border-color:#a58454;}
+#actionDialog.playback-confirm #actionDialogCancel:hover {background:#203344;border-color:#536c80;}
+#actionDialog.playback-confirm button:focus-visible {outline:2px solid #85e3ff;outline-offset:3px;}
+@media (max-width:600px) {
+  #actionDialog.playback-confirm {width:calc(100vw - 24px);}
+  #actionDialog.playback-confirm header {padding:20px;}
+  #actionDialog.playback-confirm #actionDialogTitle {font-size:20px;}
+  #actionDialog.playback-confirm .action-dialog-content {padding:20px;}
+  #actionDialog.playback-confirm .playback-track-details > div {grid-template-columns:1fr;gap:5px;}
+  #actionDialog.playback-confirm footer {padding:20px;flex-wrap:wrap;}
+  #actionDialog.playback-confirm footer button {min-width:125px;}
+}

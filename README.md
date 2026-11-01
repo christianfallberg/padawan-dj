@@ -1,4 +1,4 @@
-# Padawan DJ — v6.2.56
+# Padawan DJ — v6.2.61
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -77,7 +77,25 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 6.2.56
+## Latest release: 6.2.61
+
+- Refined playing-track confirmation with clear current/replacement track details and a focused Keep Playing action.
+
+- Added restart icons, selectable deck-number highlights and distinct CUE tooltips.
+- Grouped Help into keyboard and mouse/touch controls; added accessible library sort indicators.
+- Confirm before replacing a playing track across every loading method; paused decks load immediately.
+
+- Audited Help against current controls: elapsed-time return to start, ADD TRACKS, deck loading and cue behavior.
+- Prevented focused waveform arrow keys from also triggering the global seek shortcut.
+
+- Added Master/headphone routing summaries and a persistent CUE on/off indicator.
+- Empty decks show no BPM until a track loads; controls use consistent SVG icons.
+- Audio and Storage dialogs now match Help, with Clear Library separated from everyday library controls.
+
+- Refined Help / About with a compact brand header, clearer typography, responsive reference columns and system-status colors.
+- Added keyboard tab navigation and corrected the displayed application version.
+
+### Previous release: 6.2.56
 
 This release fixes the jog wheel at the end of a track: it now stops cleanly instead of stuttering. The waveform view no longer seeks the audio back when the player's reported duration is slightly longer than the decoded track.
 
@@ -120,10 +138,10 @@ For a custom domain, add it under **Firebase Console → Hosting → Add custom 
 
 Deploy new HTML, CSS and JavaScript to the same domain. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.56 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.61 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v6.2.56';
+const CACHE_VERSION = 'padawan-dj-v6.2.61';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

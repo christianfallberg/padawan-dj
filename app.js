@@ -1,10 +1,17 @@
 'use strict';
 
-const APP_VERSION = '6.2.54';
+const APP_VERSION = '6.2.61';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const UI_ICONS = {
+  "play": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"m8 5 11 7-11 7Z\"/></svg>",
+  "pause": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9 5v14M15 5v14\"/></svg>",
+  "music": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9 17V5l11-2v12M9 8l11-2\"/><ellipse cx=\"6\" cy=\"18\" rx=\"3\" ry=\"2\"/><ellipse cx=\"17\" cy=\"16\" rx=\"3\" ry=\"2\"/></svg>",
+  "close": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"m6 6 12 12M18 6 6 18\"/></svg>",
+  "plus": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"/></svg>"
+};
 const TAU = Math.PI * 2;
 const JOG_SCRATCH_SECONDS_PER_REVOLUTION = 1.8;
 const JOG_NUDGE_SECONDS_PER_REVOLUTION = 0.45;
@@ -38,7 +45,6 @@ const ui = {
   fileInput: $('#fileInput'),
   importButton: $('#importButton'),
   loadDemosButton: $('#loadDemosButton'),
-  clearLibraryButton: $('#clearLibraryButton'),
   trackTableBody: $('#trackTableBody'),
   searchInput: $('#searchInput'),
   libraryStatus: $('#libraryStatus'),
@@ -83,9 +89,14 @@ function showToast(message, duration = 2200) {
   showToast.timer = setTimeout(() => ui.toast.classList.remove('show'), duration);
 }
 
-function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', value = '', type = 'text', min, max, step, confirmText = 'CONFIRM', danger = false }) {
+function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', value = '', type = 'text', min, max, step, confirmText = 'CONFIRM', danger = false, focusCancel = false, playback = null }) {
   return new Promise((resolve) => {
     const hasInput = Boolean(label);
+    ui.actionDialog.classList.toggle('playback-confirm', Boolean(playback));
+    $('#playbackTrackDetails').hidden = !playback;
+    $('#playbackCurrentTrack').textContent = playback?.current || '';
+    $('#playbackNextTrack').textContent = playback?.next || '';
+    ui.actionDialogCancel.textContent = playback ? 'KEEP PLAYING' : 'CANCEL';
     ui.actionDialogCode.textContent = code;
     ui.actionDialogTitle.textContent = title;
     ui.actionDialogMessage.textContent = message;
@@ -124,7 +135,7 @@ function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', val
     ui.actionDialog.addEventListener('cancel', cancelEvent);
     ui.actionDialog.showModal();
     if (hasInput) requestAnimationFrame(() => { ui.actionDialogInput.focus(); ui.actionDialogInput.select(); });
-    else requestAnimationFrame(() => ui.actionDialogConfirm.focus());
+    else requestAnimationFrame(() => (focusCancel ? ui.actionDialogCancel : ui.actionDialogConfirm).focus());
   });
 }
 
@@ -422,6 +433,27 @@ cueAudio.playsInline = true;
 const cueGains = {};
 let cueDeviceId = null;
 let cueEnabled = false;
+let masterOutputLabel = 'System default';
+
+function updateAudioRoutingUi() {
+  const select = $('#headphoneOutput');
+  const supported = typeof cueAudio.setSinkId === 'function' && window.isSecureContext;
+  const activeOption = Array.from(select.options).find(option => option.value === cueDeviceId);
+  const selectedLabel = select.value ? select.selectedOptions[0]?.textContent : null;
+  $('#masterRouteName').textContent = masterOutputLabel;
+  $('#headphoneRouteName').textContent = cueEnabled
+    ? activeOption?.textContent || 'Selected headphone output'
+    : selectedLabel || 'No output selected';
+  $('#headphoneRouteState').textContent = !supported ? 'Separate output unavailable in this browser'
+    : cueEnabled ? 'Monitoring enabled' : selectedLabel ? 'Selected · monitoring off' : 'Monitoring off';
+  $('#headphoneRouteState').dataset.ready = String(cueEnabled);
+  $('#audioCueBadge').textContent = cueEnabled ? 'CUE ON' : 'CUE OFF';
+  $('#audioCueBadge').dataset.ready = String(cueEnabled);
+  $('#audioOutputButton').title = `Master: ${masterOutputLabel} · Headphones: ${cueEnabled ? $('#headphoneRouteName').textContent : 'off'}`;
+  $('#testHeadphones').disabled = !cueEnabled;
+  $('#disableHeadphones').disabled = !cueEnabled;
+  $('#enableHeadphones').disabled = !supported;
+}
 
 function refreshCueGates() {
   for (const [id, gain] of Object.entries(cueGains)) {
@@ -436,10 +468,13 @@ async function listCueDevices() {
   const select = $('#headphoneOutput');
   if (!navigator.mediaDevices?.enumerateDevices) {
     select.replaceChildren(new Option('Device selection not available in this browser', ''));
+    updateAudioRoutingUi();
     return [];
   }
   const previous = select.value || cueDeviceId;
-  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
+  const allDevices = await navigator.mediaDevices.enumerateDevices();
+  masterOutputLabel = allDevices.find(device => device.kind === 'audiooutput' && device.deviceId === 'default')?.label || 'System default';
+  const devices = allDevices.filter(
     (device) => device.kind === 'audiooutput' && device.deviceId && !['default', 'communications'].includes(device.deviceId)
   );
   select.replaceChildren(new Option('Select USB headphones / audio interface', ''));
@@ -447,6 +482,7 @@ async function listCueDevices() {
     select.add(new Option(device.label || `Audio output ${index + 1} (permission needed)`, device.deviceId));
   }
   if (devices.some((device) => device.deviceId === previous)) select.value = previous;
+  updateAudioRoutingUi();
   return devices;
 }
 
@@ -504,6 +540,7 @@ async function enableCueOutput(deviceId) {
   if (!deviceId || typeof cueAudio.setSinkId !== 'function') throw new Error('This browser cannot select a separate headphone output. Try Chrome or Edge.');
   cueAudio.muted = true;
   cueEnabled = false;
+  updateAudioRoutingUi();
   cueAudio.pause();
   await ensureAudioReady();
   await cueAudio.setSinkId(deviceId);
@@ -511,6 +548,7 @@ async function enableCueOutput(deviceId) {
   await cueAudio.play();
   cueAudio.muted = false;
   cueEnabled = true;
+  updateAudioRoutingUi();
   $('#cueOutputStatus').textContent = 'Headphone monitoring enabled';
   showToast('Headphone CUE enabled');
 }
@@ -520,6 +558,7 @@ function disableCueOutput() {
   cueAudio.pause();
   cueEnabled = false;
   cueDeviceId = null;
+  updateAudioRoutingUi();
   $('#cueOutputStatus').textContent = 'Headphone monitoring disabled';
   showToast('Headphone CUE disabled');
 }
@@ -585,6 +624,20 @@ class Deck {
   async load(track) {
     await ensureAudioReady();
     await ensureTrackDecoded(track);
+    // Check after decoding: the existing track may have started while preparing.
+    if (this.track && !this.audio.paused && !this.audio.ended) {
+      if (ui.actionDialog.open) {
+        showToast('Finish the open dialog before replacing a playing track.');
+        return false;
+      }
+      const confirmed = await requestDialog({
+        title: `Replace track on Deck ${this.id === 'A' ? '1' : '2'}?`,
+        message: 'This deck is playing. Replacing its track will stop the current playback.',
+        confirmText: 'REPLACE TRACK', code: 'DECK PLAYBACK', focusCancel: true,
+        playback: { current: this.track.title, next: track.title }
+      });
+      if (!confirmed) return false;
+    }
     this.stopScratchGrain();
     this.pause();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
@@ -600,6 +653,7 @@ class Deck {
     this.updateTrackUi();
     drawOverview(this);
     renderTable();
+    return true;
   }
 
   async playPause() {
@@ -822,11 +876,9 @@ class Deck {
   }
 
   updateTrackUi() {
-    const fallbackBpm = this.track?.bpm || 128;
     $(`#title${this.id}`).textContent = this.track?.title || 'No track loaded';
     $(`#artist${this.id}`).textContent = this.track?.artist || 'Import music and load a track';
     $(`#key${this.id}`).textContent = this.track?.key || '--';
-    $(`#bpm${this.id}`).textContent = fallbackBpm.toFixed(2);
     $(`#elapsed${this.id}`).textContent = '00:00';
     $(`#remaining${this.id}`).textContent = `−${formatTime(this.track?.duration || 0)}`;
     $(`#overviewProgress${this.id}`).style.width = '0%';
@@ -880,17 +932,18 @@ class Deck {
   }
 
   updateTempoUi() {
-    const bpm = this.track ? this.track.bpm * this.audio.playbackRate : 128;
-    $(`#bpm${this.id}`).textContent = bpm.toFixed(2);
+    const bpm = this.track ? this.track.bpm * this.audio.playbackRate : null;
+    $(`#bpm${this.id}`).textContent = Number.isFinite(bpm) ? bpm.toFixed(2) : '—';
     $(`#pitch${this.id}`).textContent = `${this.tempoPercent >= 0 ? '+' : ''}${this.tempoPercent.toFixed(1)}%`;
   }
 
   updatePlayState() {
     const isPlaying = !this.audio.paused && !this.audio.ended;
     const playButton = $(`#play${this.id}`);
-    playButton.textContent = isPlaying ? 'Ⅱ' : '▶';
+    playButton.innerHTML = isPlaying ? UI_ICONS.pause : UI_ICONS.play;
     playButton.classList.toggle('active', isPlaying);
     playButton.setAttribute('aria-pressed', String(isPlaying));
+    playButton.setAttribute('aria-label', `${isPlaying ? 'Pause' : 'Play'} deck ${this.id === 'A' ? 1 : 2}`);
     $(`#jog${this.id}`).classList.toggle('is-playing', isPlaying);
   }
 }
@@ -912,7 +965,11 @@ async function ensureTrackDecoded(track) {
 function setSelectedDeck(id) {
   const changed = state.selectedDeck !== id;
   state.selectedDeck = id;
-  $$('.deck-panel').forEach((panel) => panel.classList.toggle('selected-deck', panel.dataset.deck === id));
+  $$('.deck-panel').forEach((panel) => {
+    const selected = panel.dataset.deck === id;
+    panel.classList.toggle('selected-deck', selected);
+    panel.querySelector('[data-select-deck]').setAttribute('aria-pressed', String(selected));
+  });
   if (changed) showToast(`Deck ${id === 'A' ? '1' : '2'} selected`, 900);
 }
 
@@ -1026,19 +1083,24 @@ async function addDemoTracks() {
   else showToast('Demo tracks are already in Collection');
 }
 
+const pendingDeckLoads = new Set();
+
 async function loadTrackToDeck(trackId, deckId) {
   const track = state.tracks.find((item) => item.id === trackId);
-  if (!track) return;
+  if (!track || pendingDeckLoads.has(deckId)) return;
+  pendingDeckLoads.add(deckId);
   setSelectedDeck(deckId);
   showToast(`Loading ${track.title} into Deck ${deckId === 'A' ? '1' : '2'}…`, 1000);
   try {
-    await decks[deckId].load(track);
+    if (!await decks[deckId].load(track)) return;
     state.history = [track.id, ...state.history.filter((id) => id !== track.id)].slice(0, 100);
     localStorage.setItem('dualDeckHistory', JSON.stringify(state.history));
     showToast(`${track.title} loaded into Deck ${deckId === 'A' ? '1' : '2'}`);
   } catch (error) {
     console.error(error);
     showToast('This audio file could not be decoded');
+  } finally {
+    pendingDeckLoads.delete(deckId);
   }
 }
 
@@ -1085,7 +1147,7 @@ function renderPlaylistList() {
     button.type = 'button';
     button.className = 'playlist-select';
     button.dataset.playlist = playlist.id;
-    button.innerHTML = `<span>♪</span>${escapeHtml(playlist.name)} <small>${playlist.trackIds.length}</small>`;
+    button.innerHTML = `${UI_ICONS.music}${escapeHtml(playlist.name)} <small>${playlist.trackIds.length}</small>`;
     button.classList.toggle('active', state.source === `playlist:${playlist.id}`);
     button.addEventListener('click', () => {
       state.source = `playlist:${playlist.id}`;
@@ -1114,7 +1176,7 @@ function renderPlaylistList() {
     removeButton.className = 'playlist-remove';
     removeButton.setAttribute('aria-label', `Remove playlist ${playlist.name}`);
     removeButton.title = `Remove ${playlist.name}`;
-    removeButton.textContent = '×';
+    removeButton.innerHTML = UI_ICONS.close;
     removeButton.addEventListener('click', async () => {
       const confirmed = await requestDialog({ title: 'Remove playlist?', message: `“${playlist.name}” will be removed. Its tracks will stay in your Collection.`, code: 'PLAYLIST CONTROL', confirmText: 'REMOVE PLAYLIST', danger: true });
       if (!confirmed) return;
@@ -1135,6 +1197,17 @@ function renderPlaylistList() {
 }
 
 function renderTable() {
+  $$('.track-table th[data-sort]').forEach(heading => {
+    const sorted = state.source === 'collection' && heading.dataset.sort === state.sort.field;
+    const direction = sorted ? (state.sort.direction === 'asc' ? 'ascending' : 'descending') : 'none';
+    heading.setAttribute('aria-sort', direction);
+    heading.querySelector('svg path').setAttribute('d', direction === 'ascending'
+      ? 'M12 20V4m-5 5 5-5 5 5' : direction === 'descending'
+        ? 'M12 4v16m-5-5 5 5 5-5' : 'm8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4');
+    const label = heading.textContent.trim();
+    const next = sorted && direction === 'ascending' ? 'descending' : 'ascending';
+    heading.querySelector('button').setAttribute('aria-label', `Sort ${label.toLowerCase()} ${next}`);
+  });
   const tracks = getVisibleTracks();
   const rows = tracks.map((track) => {
     const classes = [
@@ -2039,10 +2112,11 @@ function setLibraryMaximized(maximized) {
 }
 
 function bindEvents() {
+  $$('[data-select-deck]').forEach(button => button.addEventListener('click', () => setSelectedDeck(button.dataset.selectDeck)));
   ui.importButton.addEventListener('click', () => ui.fileInput.click());
   const resetImportDropState = () => {
     ui.importButton.classList.remove('drop-target');
-    ui.importButton.textContent = '＋ ADD TRACKS';
+    ui.importButton.innerHTML = `${UI_ICONS.plus} ADD TRACKS`;
   };
   ui.importButton.addEventListener('dragenter', (event) => {
     if (![...event.dataTransfer.types].includes('Files')) return;
@@ -2073,7 +2147,6 @@ function bindEvents() {
     event.target.value = '';
   });
   ui.loadDemosButton.addEventListener('click', () => addDemoTracks().catch(console.error));
-  ui.clearLibraryButton.addEventListener('click', () => clearLocalLibrary().catch(console.error));
   ui.storageButton.addEventListener('click', () => {
     updateStorageUi().catch(console.error);
     ui.storageDialog.showModal();
@@ -2105,8 +2178,10 @@ function bindEvents() {
       $('#aboutBrowser').textContent = browser;
       const core = Boolean(window.AudioContext || window.webkitAudioContext) && Boolean(window.indexedDB);
       $('#aboutCoreSupport').textContent = core ? 'Available' : 'Missing required APIs';
+      $('#aboutCoreSupport').dataset.status = core ? 'available' : 'limited';
       const output = typeof HTMLMediaElement.prototype.setSinkId === 'function';
       $('#aboutOutputSupport').textContent = output && window.isSecureContext ? 'API available · hardware required' : 'Not available';
+      $('#aboutOutputSupport').dataset.status = output && window.isSecureContext ? 'available' : 'limited';
     }
   }
 
@@ -2147,6 +2222,16 @@ function bindEvents() {
     ui.helpDialog.showModal();
   });
   $$('.help-tab').forEach((button) => button.addEventListener('click', () => showHelpTab(button.dataset.helpTab)));
+  $('.help-tabs').addEventListener('keydown', (event) => {
+    const tabs = $$('.help-tab');
+    const current = tabs.indexOf(document.activeElement);
+    if (current < 0 || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+      : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    showHelpTab(tabs[next].dataset.helpTab);
+    tabs[next].focus();
+  });
   $$('.cue-monitor').forEach((button) => button.addEventListener('click', () => {
     const deckId = button.closest('.mixer-channel')?.dataset.deck;
     if (!deckId) return;
@@ -2158,8 +2243,11 @@ function bindEvents() {
     setSelectedDeck(deckId);
     showToast(`Deck ${deckId === 'A' ? '1' : '2'} cue ${button.classList.contains('active') ? 'on' : 'off'}${cueEnabled ? '' : ' — configure headphones in AUDIO OUTPUT'}`, 2000);
   }));
+  updateAudioRoutingUi();
+  $('#headphoneOutput').addEventListener('change', updateAudioRoutingUi);
   $('#audioOutputButton').addEventListener('click', () => {
-    listCueDevices().catch(console.error);
+    updateAudioRoutingUi();
+    listCueDevices().catch(error => { $('#cueOutputStatus').textContent = describeCueError(error); });
     $('#audioOutputDialog').showModal();
   });
   $('#closeAudioOutput').addEventListener('click', () => $('#audioOutputDialog').close());
@@ -2204,10 +2292,12 @@ function bindEvents() {
       await enableCueOutput(id);
       await listCueDevices();
       $('#headphoneOutput').value = id;
+      updateAudioRoutingUi();
     } catch (error) {
       cueAudio.muted = true;
       cueAudio.pause();
       cueEnabled = false;
+      updateAudioRoutingUi();
       status.textContent = describeCueError(error);
       showToast(`Headphone output failed: ${error.name || 'error'} — see Audio Output`, 3500);
       console.error('Headphone output failed:', error);
@@ -2275,7 +2365,7 @@ function bindEvents() {
     showToast(`${name.trim()} created — drag tracks onto it`);
   });
 
-  $$('.track-table th[data-sort]').forEach((heading) => heading.addEventListener('click', () => {
+  $$('.track-table th[data-sort]').forEach((heading) => heading.querySelector('button').addEventListener('click', () => {
     const field = heading.dataset.sort;
     if (state.sort.field === field) state.sort.direction = state.sort.direction === 'asc' ? 'desc' : 'asc';
     else state.sort = { field, direction: 'asc' };
@@ -2334,7 +2424,8 @@ function bindEvents() {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.target.matches('input, textarea, select') || document.querySelector('dialog[open]')) return;
+    if (event.target.closest('.sort-button, [data-select-deck]') && ['Enter', 'Space'].includes(event.code)) return;
+    if (event.defaultPrevented || event.target.matches('input, textarea, select') || document.querySelector('dialog[open]')) return;
     const deck = decks[state.selectedDeck];
     if (event.code === 'Digit1') return setSelectedDeck('A');
     if (event.code === 'Digit2') return setSelectedDeck('B');
