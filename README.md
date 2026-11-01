@@ -165,3 +165,7 @@ It intentionally does not include original audio files or binary album artwork.
 ## Browser recommendation
 
 Chrome or Edge on desktop gives the most consistent Web Audio, PWA installation and persistent-storage behavior. Safari can run the core app, but browser capabilities and installation behavior differ.
+
+## License
+
+Padawan DJ is released under the [MIT License](LICENSE).
