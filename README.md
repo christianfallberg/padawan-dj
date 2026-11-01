@@ -28,7 +28,7 @@ Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-o
 - Storage usage meter
 - Persistent-storage request
 - Metadata/playlist/Hot Cue JSON export
-- Firebase Hosting configuration
+- No build step and no backend: static files that can be hosted anywhere
 
 ## Run locally
 
@@ -44,9 +44,9 @@ Then open:
 http://localhost:8080
 ```
 
-For the existing development session on port 8081, run `python3 -m http.server 8081` and open `http://localhost:8081` instead. Keep using the same port to retain access to that origin’s library.
+Any static file server works, for example `npx serve .`. Opening `index.html` directly from disk (`file://`) is not supported, because service workers and some storage APIs need an HTTP origin.
 
-Port `8080` is only used by the local development server. The deployed app uses the normal HTTPS port on your domain.
+Keep using the same port: the browser stores the library per origin, so `localhost:8080` and `localhost:8081` have separate libraries.
 
 ## Local storage model
 
@@ -107,36 +107,38 @@ The **INSTALL APP** button appears in supported browsers after the service worke
 
 After the first successful load, the interface and bundled demo tracks can start offline. Imported music remains available offline because it is stored locally in IndexedDB.
 
-## Deploy to Firebase Hosting
+## Host it yourself
 
-The folder already contains `firebase.json`.
+Padawan DJ is a static site. There is no build step, no server-side code and no database on the server, so it runs on any web host that serves files: shared hosting (FTP or a control-panel file manager), GitHub Pages, Netlify, Cloudflare Pages, Vercel, Firebase Hosting, an S3 bucket, nginx, Apache and so on.
 
-Install and sign in to Firebase CLI if needed:
+1. Upload the contents of this folder to your web root (or a subfolder):
 
-```bash
-npm install -g firebase-tools
-firebase login
-```
+   ```text
+   index.html
+   app.js
+   styles.css
+   service-worker.js
+   manifest.webmanifest
+   icons/
+   assets/
+   ```
 
-From this folder, connect the intended Firebase project:
+   `README.md`, `start.command` and dotfiles are not needed on the server.
 
-```bash
-firebase use --add
-```
+2. Serve the site over **HTTPS**. Service workers, PWA installation, persistent storage and headphone output selection (`setSinkId()`) only work in a secure context. Most hosts provide free certificates.
 
-Then deploy:
+3. Open the URL. The app uses relative paths, so it works both at a domain root and in a subfolder (for example `https://example.com/dj/`).
 
-```bash
-firebase deploy --only hosting
-```
+Optional server settings:
 
-You can also double-click `deploy-firebase.command` after the project has been selected.
+- Serve `.webmanifest` as `application/manifest+json` if your server doesn't already.
+- Avoid long cache lifetimes on `service-worker.js` so browsers notice updates quickly. Other assets are versioned with `?v=` query strings and can be cached.
 
-For a custom domain, add it under **Firebase Console → Hosting → Add custom domain**. Keep the final domain stable because changing origin creates a new, empty local browser library.
+Keep the final domain stable: each origin (protocol + domain + port) has its own local library, so moving the app to a new address starts users with an empty library.
 
 ## Updating the deployed app
 
-Deploy new HTML, CSS and JavaScript to the same domain. Existing IndexedDB and localStorage data normally remain untouched.
+Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
 When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 6.2.61 uses:
 
