@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '6.2.62';
+const APP_VERSION = '1.0.0';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];

@@ -490,7 +490,7 @@ kbd { height: 26px; margin: 3px 0; border: 1px solid #4b545e; border-radius: 3px
 .audio-output-dialog .audio-detect-button:hover { filter: brightness(1.2); }
 .audio-output-dialog #cueOutputStatus { overflow-wrap: anywhere; color: #d5dce6; }
 
-/* v6.1.8 – branded help / about */
+/* branded help / about */
 .brand-icon { width: 27px; height: 27px; flex: none; border-radius: 6px; }
 .help-dialog-heading { display: flex; align-items: center; gap: 10px; }
 .help-dialog-heading > div { display: flex; flex-direction: column; gap: 3px; }
@@ -524,7 +524,7 @@ kbd { height: 26px; margin: 3px 0; border: 1px solid #4b545e; border-radius: 3px
 .about-panel .about-footer { margin-top: 14px; font-size: 10px; color: #8494a1; line-height: 1.5; }
 
 
-/* Padawan DJ 6.2.0 — premium performance console */
+/* premium performance console */
 :root {
   --bg: #050a11; --panel: #0a1420; --panel-2: #0d1825;
   --panel-3: #152433; --line: #243d53; --line-soft: #162b3c;
@@ -794,7 +794,7 @@ html,body { background: #030811; color: var(--text); }
 }
 
 
-/* v6.2.1 — approved reference: studio-black console, hero-sized platters and spacious cards */
+/* approved reference: studio-black console, hero-sized platters and spacious cards */
 :root {
   --bg: #03070c;
   --panel: #070d15;
@@ -1144,7 +1144,7 @@ html, body {
 }
 
 
-/* v6.2.2 — fixed desktop DJ console: never rescale platter controls on resize */
+/* fixed desktop DJ console: never rescale platter controls on resize */
 :root {
   --dj-min-width: 1580px;
   --dj-min-height: 970px;
@@ -1445,8 +1445,8 @@ body { overflow: visible; }
 }
 
 
-/* v6.2.3 — dual waveforms, sculpted EQ dial pods, tempo scale and rubber buttons */
-/* In v6.2.2 the stage was 106px high, but the second track started at 99px,
+/* dual waveforms, sculpted EQ dial pods, tempo scale and rubber buttons */
+/* Previously the stage was 106px high, but the second track started at 99px,
    leaving almost all of Deck 2 clipped by overflow:hidden. Give both full lanes. */
 .workspace { grid-template-rows: 124px 548px minmax(228px,1fr); }
 .waveform-stage { overflow: hidden; }
@@ -1639,7 +1639,7 @@ body { overflow: visible; }
 .app-shell {min-width:var(--dj-min-width);min-height:var(--dj-min-height);}
 
 
-/* v6.2.4 — tighter studio hardware finish */
+/* tighter studio hardware finish */
 /* Consistent, restrained corners: the rotary controls remain round. */
 .waveform-stage { border-radius:8px; }
 .deck-panel,.mixer-panel,.library-section { border-radius:9px; }
@@ -1872,7 +1872,7 @@ body { overflow: visible; }
 }
 
 
-/* v6.2.5 — single numbered hot cue strip and flat studio rubber pads */
+/* single numbered hot cue strip and flat studio rubber pads */
 /* A single row of four pads replaces the old two-column cue bank.
    Reclaim the obsolete side column for the platter and generous horizontal pads. */
 :root { --dj-min-height: 1070px; --dj-min-width: 1580px; }
@@ -2057,7 +2057,7 @@ body { overflow: visible; }
 /* Keep the EQ, tempo and headphone faders intact; only change deck placement. */
 
 
-/* v6.2.6 — per-deck EQ/tempo placement and simplified recessed tempo slot */
+/* per-deck EQ/tempo placement and simplified recessed tempo slot */
 /* One intentional physical arrangement for both decks: EQ | PLATTER | TEMPO. */
 .deck-panel .deck-main,
 .deck-b .deck-main {
@@ -2249,7 +2249,7 @@ body { overflow: visible; }
 /* Preserve fixed 296px jogs and 1–4 hot cue strips. */
 
 
-/* v6.2.7 — symmetrical EQ/tempo, central master fader, readable active hardware */
+/* symmetrical EQ/tempo, central master fader, readable active hardware */
 /* The per-deck three-band EQ shell matches the tempo shell exactly (51 × 259px). */
 .deck-panel .eq-panel,
 .deck-panel .tempo-panel {
@@ -2511,7 +2511,7 @@ body { overflow: visible; }
 .mixer-panel .mixer-channel .cue-monitor.active:hover {filter:brightness(1.12);}
 
 
-/* v6.2.8 — matching unframed EQ/tempo pods, full track display, horizontal master */
+/* matching unframed EQ/tempo pods, full track display, horizontal master */
 /* Larger uninterrupted black metadata window, with proportionate deck header. */
 .deck-panel {
   grid-template-rows:80px 43px minmax(0,1fr);
@@ -2718,7 +2718,7 @@ body { overflow: visible; }
 }
 
 
-/* v6.2.9 — unified track display: artwork, waveform and timeline in one black window */
+/* unified track display: artwork, waveform and timeline in one black window */
 /* A single recessed instrument display, no individual background around title or waveform. */
 .deck-panel {
   display:grid;
@@ -2956,7 +2956,7 @@ body { overflow: visible; }
 }
 
 
-/* v6.2.10 — studio-black deck display and top-corner hardware alignment */
+/* studio-black deck display and top-corner hardware alignment */
 /* Give the full instrument display one neutral black surface; no navy gradient. */
 .deck-panel .deck-display {
   background:#000204;
@@ -3006,7 +3006,7 @@ body { overflow: visible; }
   background:#000204;
 }
 
-/* v6.2.11 — seamless black deck displays and borderless tempo column */
+/* seamless black deck displays and borderless tempo column */
 /* The display itself is the dark recess: no outline or perimeter shadow. */
 .deck-panel .deck-display {
   border: 0;
@@ -3033,7 +3033,7 @@ body { overflow: visible; }
 }
 
 
-/* v6.2.12 — consistent audio palette, aligned wide VU meter and compact deck controls */
+/* consistent audio palette, aligned wide VU meter and compact deck controls */
 /* Keep the two waveform identities: Deck A cyan, Deck B magenta. */
 .deck-a-waveform .waveform-label {box-shadow:inset 3px 0 0 #16c8ff;}
 .deck-b-waveform .waveform-label {box-shadow:inset 3px 0 0 #f73597;}
@@ -3207,7 +3207,7 @@ body { overflow: visible; }
   background:var(--control-backdrop);
 }
 
-/* v6.2.14 — molded rubber pads and recessed LED lenses. */
+/* molded rubber pads and recessed LED lenses. */
 .deck-panel .deck-main .transport-cluster button:is(:hover, :focus-visible, :not(:hover)),
 .deck-panel .deck-main .tempo-panel .reset-tempo:is(:hover, :focus-visible, :not(:hover)),
 .deck-panel .deck-display .master-button:is(:hover, :focus-visible, :not(:hover)),
