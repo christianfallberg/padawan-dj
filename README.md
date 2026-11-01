@@ -4,7 +4,9 @@ Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-o
 
 ![Padawan DJ: two decks with jog wheels, mixer and music library](docs/screenshot.png)
 
-Try it live at **[dj.padawan.se](https://dj.padawan.se)**.
+Try it live at **[dj.padawan.se](https://dj.padawan.se)** or on the GitHub Pages mirror at **[christianfallberg.github.io/padawan-dj](https://christianfallberg.github.io/padawan-dj/)**. Each address keeps its own local library, so music imported on one does not show up on the other.
+
+Padawan DJ is just static files, so you can also host your own copy anywhere: fork this repo and enable GitHub Pages, or upload the files to any web host. See [Host it yourself](#host-it-yourself).
 
 ## What is included
 
@@ -94,6 +96,10 @@ After the first successful load, the interface can start offline. Imported music
 ## Host it yourself
 
 Padawan DJ is a static site. There is no build step, no server-side code and no database on the server, so it runs on any web host that serves files: shared hosting (FTP or a control-panel file manager), GitHub Pages, Netlify, Cloudflare Pages, Vercel, Firebase Hosting, an S3 bucket, nginx, Apache and so on.
+
+**Quickest: GitHub Pages.** Fork this repository, then open **Settings → Pages**, choose **Deploy from a branch**, select `main` and `/ (root)`, and save. After a minute your copy is live at `https://<your-username>.github.io/padawan-dj/`, over HTTPS, and every push to `main` updates it.
+
+**Any other host:**
 
 1. Upload the contents of this folder to your web root (or a subfolder):
 
