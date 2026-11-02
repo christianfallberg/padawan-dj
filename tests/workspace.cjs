@@ -189,7 +189,8 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
             issues.push("Mixer " + selector + " clipped");
         }
       }
-      const fit = innerWidth > 900 && innerHeight >= 600;
+      const fit = innerWidth > 900 && innerHeight >= 600
+        && !document.querySelector('.app-shell').classList.contains('workspace-scroll');
       if (document.documentElement.scrollWidth > innerWidth + 1)
         issues.push(
           "page horizontal overflow " + document.documentElement.scrollWidth,

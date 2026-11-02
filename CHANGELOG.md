@@ -1,5 +1,11 @@
 # Release notes
 
+## 1.0.4 — 2026-11-02
+
+- Enlarge the desktop toolbar reveal strip to 20px with a wider, brighter grip and hover feedback.
+- Keep the 44px touch target and reserve space so the handle does not cover waveforms.
+- Update the app, asset URLs and offline cache to 1.0.4.
+
 ## 1.0.3 — 2026-11-02
 
 - Allow scrolling when a pinned toolbar leaves insufficient room for the decks and library.

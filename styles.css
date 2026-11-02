@@ -4397,7 +4397,7 @@ body { overflow: visible; }
    platter follows the space left by its deck's display and transport rows. */
 :root {
   --dj-min-width:0px; --dj-min-height:0px;
-  --topbar-height:52px; --toolbar-reveal-height:6px; --waveform-height:80px; --library-height:232px;
+  --topbar-height:52px; --toolbar-reveal-height:20px; --waveform-height:80px; --library-height:232px;
   --display-height:120px; --control-pad:10px; --control-gap:10px;
   --cue-height:32px; --transport-height:40px; --side-width:58px;
 }
@@ -4540,10 +4540,12 @@ html,body {min-width:0;min-height:0;}
 .topbar .topbar-right #topbarPinButton[aria-pressed="false"] .pin-icon {transform:rotate(35deg);}
 .toolbar-autohide .topbar {position:fixed;inset:0 0 auto;height:var(--topbar-height);z-index:30;transform:translateY(-100%);transition:transform .18s ease;}
 .toolbar-autohide.toolbar-open .topbar,.toolbar-autohide .topbar:focus-within {transform:translateY(0);}
-.topbar-reveal {display:none;position:fixed;z-index:29;top:0;left:0;width:100%;height:6px;border:0;border-radius:0;padding:0;cursor:pointer;background:#0a1821;color:#8bdfff;}
-.topbar-reveal::after {content:"";position:absolute;width:40px;height:2px;left:calc(50% - 20px);top:2px;border-radius:2px;background:#4f91ab;}
+.topbar-reveal {display:none;position:fixed;z-index:29;top:0;left:0;width:100%;height:var(--toolbar-reveal-height);border:0;border-bottom:1px solid #304958;border-radius:0;padding:0;cursor:pointer;background:#10212d;color:#8bdfff;}
+.topbar-reveal::after {content:"";position:absolute;width:64px;height:4px;left:calc(50% - 32px);top:7px;border-radius:2px;background:#80c7df;}
+.topbar-reveal:hover {background:#193342;}
+.topbar-reveal:hover::after {background:#b4edff;}
 .toolbar-autohide .topbar-reveal {display:block;}
-.topbar-reveal:focus-visible {height:18px;outline:2px solid #77dfff;outline-offset:-2px;}
+.topbar-reveal:focus-visible {outline:2px solid #77dfff;outline-offset:-2px;}
 
 @media (min-height:1000px) and (min-width:1500px) {
   :root {--waveform-height:104px;--display-height:148px;--control-pad:16px;--control-gap:14px;--cue-height:38px;--transport-height:46px;--side-width:66px;}
