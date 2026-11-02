@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'padawan-dj-v1.0.1';
+const CACHE_VERSION = 'padawan-dj-v1.0.2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -51,13 +51,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // The first install precaches canonical shell URLs before this worker controls
+  // the page. Resolve their ?v= links against this version's cache when offline.
+  const shellAsset = APP_SHELL.some((asset) => new URL(asset, self.location.href).pathname === url.pathname);
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.open(CACHE_VERSION).then(async (cache) => {
+      const cached = await cache.match(request, { ignoreSearch: shellAsset });
       if (cached) return cached;
       return fetch(request).then((response) => {
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+          cache.put(request, copy);
         }
         return response;
       });
