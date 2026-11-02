@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -2036,6 +2036,196 @@ async function promptInstall() {
   showToast(choice.outcome === 'accepted' ? 'Installing Padawan DJ…' : 'Installation cancelled');
 }
 
+// Workspace preferences are separate from the music library and track metadata.
+function setupWorkspaceLayout() {
+  const shell = $('.app-shell');
+  const workspace = $('.workspace');
+  const toolbar = $('#appToolbar');
+  const reveal = $('#topbarReveal');
+  const pin = $('#topbarPinButton');
+  const splitter = $('#libraryResizer');
+  const compactWindow = window.matchMedia('(max-width:900px), (max-height:599px)');
+  const preferenceKey = 'padawanWorkspace';
+  let preferences = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(preferenceKey) || '{}');
+    if (saved && typeof saved === 'object' && !Array.isArray(saved)) preferences = saved;
+  } catch { /* A blocked preference store should not prevent mixing. */ }
+  let pinned = preferences.topbarPinned === true;
+  let preferredLibraryHeight = Number.isFinite(preferences.libraryHeight) ? preferences.libraryHeight : null;
+  let hideTimer;
+  let revealTimer;
+  let layoutFrame;
+  let dragging = null;
+  let libraryBounds = { min:160, max:400 };
+
+  const save = () => {
+    try {
+      localStorage.setItem(preferenceKey, JSON.stringify({ topbarPinned:pinned, libraryHeight:preferredLibraryHeight }));
+    } catch { /* Settings remain usable for this session. */ }
+  };
+  const toolbarOpen = () => pinned || shell.classList.contains('toolbar-open') || toolbar.matches(':focus-within');
+  const updateToolbarA11y = () => reveal.setAttribute('aria-expanded', String(toolbarOpen()));
+  const openToolbar = () => {
+    clearTimeout(hideTimer);
+    clearTimeout(revealTimer);
+    shell.classList.add('toolbar-open');
+    updateToolbarA11y();
+  };
+  const closeToolbar = () => {
+    if (pinned || toolbar.matches(':hover, :focus-within')) return;
+    shell.classList.remove('toolbar-open');
+    updateToolbarA11y();
+  };
+  const scheduleHide = () => {
+    clearTimeout(revealTimer);
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(closeToolbar, 700);
+  };
+  const updatePin = () => {
+    shell.classList.toggle('toolbar-autohide', !pinned);
+    shell.classList.toggle('toolbar-pinned', pinned);
+    pin.setAttribute('aria-pressed', String(pinned));
+    pin.setAttribute('aria-label', pinned ? 'Auto-hide toolbar' : 'Keep toolbar visible');
+    pin.title = pinned ? 'Auto-hide toolbar' : 'Keep toolbar visible';
+    updateToolbarA11y();
+  };
+
+  function layout() {
+    layoutFrame = null;
+    const maximized = workspace.classList.contains('library-maximized');
+    const compact = compactWindow.matches;
+    splitter.tabIndex = compact || maximized ? -1 : 0;
+    splitter.setAttribute('aria-disabled', String(compact));
+    if (!compact && !maximized) {
+      const rootStyle = getComputedStyle(workspace);
+      const number = name => parseFloat(rootStyle.getPropertyValue(name)) || 0;
+      const minimumDeck = number('--display-height') + 2 * number('--control-pad')
+        + number('--cue-height') + number('--transport-height') + 2 * number('--control-gap') + 160;
+      const available = workspace.clientHeight - $('.waveform-stage').offsetHeight - 10;
+      const budget = available - minimumDeck - 8;
+      const desiredMinimum = window.innerHeight <= 700 ? 160 : window.innerHeight >= 740 ? 244 : 214;
+      libraryBounds.min = Math.min(desiredMinimum, Math.max(160, budget));
+      libraryBounds.max = Math.max(libraryBounds.min, budget);
+      const initial = clamp(Math.round(workspace.clientHeight * .31), libraryBounds.min, 380);
+      const height = Math.round(clamp(preferredLibraryHeight ?? initial, libraryBounds.min, libraryBounds.max));
+      if (workspace.style.getPropertyValue('--library-height') !== `${height}px`) {
+        workspace.style.setProperty('--library-height', `${height}px`);
+      }
+      const percent = value => Math.round(value / workspace.clientHeight * 100);
+      splitter.setAttribute('aria-valuemin', String(percent(libraryBounds.min)));
+      splitter.setAttribute('aria-valuemax', String(percent(libraryBounds.max)));
+      splitter.setAttribute('aria-valuenow', String(percent(height)));
+      splitter.setAttribute('aria-valuetext', `Music library ${percent(height)} percent of workspace`);
+    }
+    if (maximized) return;
+    $$('.deck-main').forEach(main => {
+      if (!main.clientHeight) return;
+      const style = getComputedStyle(main);
+      const transport = main.querySelector('.transport-panel');
+      const reserved = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+        + parseFloat(style.getPropertyValue('--cue-height'))
+        + parseFloat(style.getPropertyValue('--transport-height'))
+        + 2 * parseFloat(style.getPropertyValue('--control-gap'));
+      const size = Math.floor(Math.max(120, Math.min(480, transport.clientWidth, main.clientHeight - reserved - 2)));
+      if (main.style.getPropertyValue('--dj-platter-size') !== `${size}px`) {
+        main.style.setProperty('--dj-platter-size', `${size}px`);
+      }
+    });
+    drawOverview(decks.A);
+    drawOverview(decks.B);
+  }
+  const scheduleLayout = () => {
+    if (!layoutFrame) layoutFrame = requestAnimationFrame(layout);
+  };
+
+  reveal.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'touch') return;
+    clearTimeout(hideTimer);
+    revealTimer = setTimeout(openToolbar, 120);
+  });
+  reveal.addEventListener('pointerleave', scheduleHide);
+  reveal.addEventListener('click', openToolbar);
+  toolbar.addEventListener('pointerenter', openToolbar);
+  toolbar.addEventListener('pointerleave', scheduleHide);
+  toolbar.addEventListener('focusin', openToolbar);
+  toolbar.addEventListener('focusout', scheduleHide);
+  pin.addEventListener('click', () => {
+    pinned = !pinned;
+    updatePin();
+    save();
+    scheduleLayout();
+    if (!pinned) scheduleHide();
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!pinned && !toolbar.contains(event.target) && event.target !== reveal) {
+      if (toolbar.contains(document.activeElement)) document.activeElement.blur();
+      shell.classList.remove('toolbar-open');
+      updateToolbarA11y();
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.altKey && event.code === 'KeyT') {
+      event.preventDefault();
+      openToolbar();
+      pin.focus();
+    } else if (event.code === 'Escape' && !document.querySelector('dialog[open]') && toolbar.contains(document.activeElement)) {
+      event.preventDefault();
+      document.activeElement.blur();
+      shell.classList.remove('toolbar-open');
+      updateToolbarA11y();
+    }
+  });
+
+  function setLibraryHeight(value) {
+    preferredLibraryHeight = clamp(value, libraryBounds.min, libraryBounds.max);
+    scheduleLayout();
+  }
+  const finishDrag = event => {
+    if (!dragging || event.pointerId !== dragging.id) return;
+    dragging = null;
+    workspace.classList.remove('resizing');
+    save();
+  };
+  splitter.addEventListener('pointerdown', event => {
+    if (compactWindow.matches || event.button !== 0) return;
+    event.preventDefault();
+    splitter.focus();
+    splitter.setPointerCapture(event.pointerId);
+    dragging = { id:event.pointerId, y:event.clientY, height:parseFloat(getComputedStyle(workspace).getPropertyValue('--library-height')) };
+    workspace.classList.add('resizing');
+  });
+  splitter.addEventListener('pointermove', event => {
+    if (!dragging || event.pointerId !== dragging.id) return;
+    setLibraryHeight(dragging.height + dragging.y - event.clientY);
+  });
+  splitter.addEventListener('pointerup', finishDrag);
+  splitter.addEventListener('pointercancel', finishDrag);
+  splitter.addEventListener('lostpointercapture', finishDrag);
+  splitter.addEventListener('dblclick', () => {
+    preferredLibraryHeight = null;
+    save();
+    scheduleLayout();
+  });
+  splitter.addEventListener('keydown', event => {
+    if (compactWindow.matches) return;
+    const current = parseFloat(getComputedStyle(workspace).getPropertyValue('--library-height'));
+    const step = event.shiftKey ? 40 : 16;
+    const heights = { ArrowUp:current + step, ArrowDown:current - step, Home:libraryBounds.min, End:libraryBounds.max };
+    if (!(event.code in heights)) return;
+    event.preventDefault();
+    setLibraryHeight(heights[event.code]);
+    save();
+  });
+  window.addEventListener('resize', scheduleLayout);
+  // Opening/closing the library or pinning the toolbar changes the height budget.
+  const observer = new ResizeObserver(scheduleLayout);
+  observer.observe(workspace);
+  $$('.deck-main').forEach(main => observer.observe(main));
+  updatePin();
+  scheduleLayout();
+}
+
 function setLibraryMaximized(maximized) {
   const workspace = $('.workspace');
   if (maximized && !workspace.classList.contains('library-maximized')) {
@@ -2417,6 +2607,7 @@ async function init() {
   bindDeckControls(decks.A);
   bindDeckControls(decks.B);
   setupInstallPrompt();
+  setupWorkspaceLayout();
   bindEvents();
   refreshCueGates();
   updateNetworkStatus();

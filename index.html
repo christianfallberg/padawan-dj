@@ -11,17 +11,18 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.0.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.0.1">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.0.1">
-  <link rel="stylesheet" href="styles.css?v=1.0.1">
+  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.0.2">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.0.2">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.0.2">
+  <link rel="stylesheet" href="styles.css?v=1.0.2">
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar">
+    <button id="topbarReveal" class="topbar-reveal" type="button" aria-label="Show application toolbar" aria-controls="appToolbar" aria-expanded="true" title="Show toolbar (Alt+T)"></button>
+    <header id="appToolbar" class="topbar">
       <div class="topbar-left">
-        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.0.1" alt="" width="27" height="27">
-        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.0.1" alt="Padawan DJ" width="240" height="24">
+        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.0.2" alt="" width="27" height="27">
+        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.0.2" alt="Padawan DJ" width="240" height="24">
       </div>
       <nav class="topbar-center app-navigation" hidden aria-label="App navigation">
         <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l9-2v9M8 8l9-2"/><ellipse cx="5" cy="15" rx="3" ry="2"/><ellipse cx="14" cy="13" rx="3" ry="2"/></svg> LIBRARY</button>
@@ -37,6 +38,7 @@
         <span class="top-divider" aria-hidden="true"></span>
         <button id="helpButton" class="top-action" type="button" aria-label="Help and About Padawan DJ" title="Help, About and system requirements"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4M12 16v.1"/></svg></button>
         <button id="fullscreenButton" class="top-action" type="button" aria-label="Enter fullscreen" title="Enter fullscreen"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg></button>
+        <button id="topbarPinButton" class="top-action" type="button" aria-pressed="false" aria-label="Keep toolbar visible" title="Keep toolbar visible"><svg class="ui-icon pin-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-4 2-3 5-2 1-4-4 1-2 5-3 2-4ZM8 16l-5 5"/></svg></button>
         <time id="clock">--:--</time>
       </div>
       <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
@@ -318,7 +320,8 @@
         </article>
       </section>
 
-      <section class="library-section">
+      <div id="libraryResizer" class="library-resizer" role="separator" tabindex="0" aria-label="Resize music library" aria-orientation="horizontal" aria-controls="musicLibrary" aria-valuemin="20" aria-valuemax="50" aria-valuenow="30" title="Drag to resize library · Arrow keys to adjust · Double-click to reset"></div>
+      <section id="musicLibrary" class="library-section">
         <aside class="browser-sidebar">
           <div class="sidebar-title">MUSIC LIBRARY</div>
           <button class="source-item active" data-source="collection" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>All Tracks</button>
@@ -367,16 +370,16 @@
     <form method="dialog">
       <header>
         <div class="help-dialog-heading">
-          <img src="icons/padawan-emblem.png?v=1.0.1" width="32" height="32" alt="">
+          <img src="icons/padawan-emblem.png?v=1.0.2" width="32" height="32" alt="">
           <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
         </div>
         <button type="submit" aria-label="Close help"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       </header>
         <div class="about-brand">
-          <img src="icons/padawan-emblem.png?v=1.0.1" width="82" height="82" alt="Padawan DJ logo">
+          <img src="icons/padawan-emblem.png?v=1.0.2" width="82" height="82" alt="Padawan DJ logo">
           <div>
 
-            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.0.1" alt="Padawan DJ" width="390" height="38"></h2>
+            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.0.2" alt="Padawan DJ" width="390" height="38"></h2>
             <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
             <p>Two decks. One flow.</p>
           </div>
@@ -396,6 +399,8 @@
         <kbd>← / →</kbd><span>Seek backward / forward five seconds on the selected deck. Focused waveforms use their own seek steps.</span>
         <kbd>Enter</kbd><span>Load the selected library track into the selected deck.</span>
         <kbd>L</kbd><span>Maximize or restore the music library (Esc also restores)</span>
+        <kbd>Alt + T</kbd><span>Show toolbar and focus its pin; Esc dismisses the unpinned toolbar</span>
+        <kbd>Library divider</kbd><span>Drag or use Up / Down to resize; Home / End for limits; double-click to reset</span>
         <h3 class="shortcut-section-title">Mouse &amp; touch controls</h3>
         <kbd>Hot Cues 1–4</kbd><span>Click an empty pad to set it; click a saved pad to jump and play. Shift-click or right-click deletes it.</span>
         <kbd>Large waveform</kbd><span>Click to jump or drag horizontally to scrub. Use the zoom controls above it.</span>
@@ -493,6 +498,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=1.0.1"></script>
+  <script src="app.js?v=1.0.2"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# Padawan DJ — v1.0.1
+# Padawan DJ — v1.0.2
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -83,15 +83,17 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.0.1
+## Latest release: 1.0.2
 
 See [release notes](CHANGELOG.md) for the version history.
 
-- Responsive laptop layout with compact decks, mixer and scrollable library.
-- Narrow windows stack the performance panels; very short windows allow page scrolling.
-- Updated offline cache and asset versions.
+- Adaptive deck controls with larger jog wheels where space allows, readable labels and clear KEY/MASTER spacing.
+- A denser music library with a draggable divider. Use Up/Down while the divider is focused, Home/End for its limits, or double-click to reset. The chosen height is remembered.
+- Auto-hide toolbar: hover the strip at the top, tap it, or press `Alt+T`. The pin keeps the toolbar visible. Hovering reveals an overlay without moving the decks.
+- Compact mixer layout and quieter deck-selection borders.
+- Updated app version, asset URLs and offline cache.
 
-The layout adapts to the browser viewport, including Windows display scaling. Fullscreen gives more room for the library. Large displays retain the expanded hardware controls.
+The layout adapts to the browser viewport, including Windows display scaling. Narrow or very short windows allow scrolling. Large displays keep expanded controls, and the library can still be maximized with `L`.
 
 ## Install as a PWA
 
@@ -135,10 +137,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.0.1 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.0.2 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.0.1';
+const CACHE_VERSION = 'padawan-dj-v1.0.2';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
@@ -160,6 +162,18 @@ It intentionally does not include original audio files or binary album artwork.
 ## Browser recommendation
 
 Chrome or Edge on desktop gives the most consistent Web Audio, PWA installation and persistent-storage behavior. Safari can run the core app, but browser capabilities and installation behavior differ.
+
+## Layout regression check
+
+The app still requires no build step. Its optional browser check uses Playwright as a development tool:
+
+```bash
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+node tests/workspace.cjs
+```
+
+The check imports generated test audio, loads both decks and verifies 18 viewport sizes, toolbar hover/touch/keyboard access and pin persistence, library divider drag/keyboard/reset/persistence, maximize/restore, playback, dialogs and the first offline PWA restart. It uses a temporary local server and a separate browser profile. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can select an existing Chromium executable.
 
 ## License
 

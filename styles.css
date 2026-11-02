@@ -4393,98 +4393,233 @@ body { overflow: visible; }
   #actionDialog.playback-confirm footer button {min-width:125px;}
 }
 
-/* Responsive console: reserve browsing space before sizing the performance area.
-   Scale only hardware controls; track information and library text stay readable. */
-:root { --dj-min-width:0px; --dj-min-height:0px; }
-.app-shell {min-width:0;min-height:0;height:100dvh;grid-template-rows:58px minmax(0,1fr);}
-.workspace {grid-template-rows:clamp(80px,11dvh,124px) minmax(0,1fr) clamp(156px,24dvh,320px);}
-.decks-section {min-width:0;}
+/* Adaptive workspace. Text and hit targets retain their native size; only the
+   platter follows the space left by its deck's display and transport rows. */
+:root {
+  --dj-min-width:0px; --dj-min-height:0px;
+  --topbar-height:52px; --waveform-height:80px; --library-height:232px;
+  --display-height:120px; --control-pad:10px; --control-gap:10px;
+  --cue-height:32px; --transport-height:40px; --side-width:58px;
+}
+html,body {min-width:0;min-height:0;}
+.app-shell {min-width:0;min-height:0;height:100dvh;grid-template-rows:var(--topbar-height) minmax(0,1fr);}
+.app-shell.toolbar-autohide {grid-template-rows:6px minmax(0,1fr);}
+.workspace {
+  grid-row:2;min-width:0;min-height:0;overflow:hidden;
+  grid-template-rows:var(--waveform-height) minmax(0,1fr) 10px var(--library-height);
+}
+.waveform-stage {margin:4px 10px 0;}
+.decks-section {
+  min-width:0;min-height:0;padding:8px 10px 0;gap:10px;
+  grid-template-columns:minmax(0,1fr) clamp(184px,15vw,224px) minmax(0,1fr);
+}
 .deck-panel,.mixer-panel,.library-section,.track-browser {min-width:0;}
-
-@media (max-width:1579px), (max-height:1000px) {
-  :root {--console-scale:.85;--dj-platter-size:260px;}
-  .decks-section {grid-template-columns:minmax(0,1fr) 204px minmax(0,1fr);gap:8px;padding:8px;}
-  .deck-panel {grid-template-rows:136px minmax(0,1fr);}
-  .deck-panel .deck-display {height:128px;min-height:0;margin:6px;grid-template-rows:62px 40px 26px;}
-  .deck-panel .deck-display .deck-header {height:62px;min-height:0;grid-template-columns:30px 42px minmax(0,1fr) 28px 60px;gap:6px;padding:4px 8px;}
-  .deck-panel .deck-display .deck-number {width:28px;height:28px;font-size:16px;}
-  .deck-panel .deck-display .deck-cover {width:40px;height:40px;min-width:0;min-height:0;}
-  .deck-panel .deck-display .deck-header .track-info-box {height:54px;min-height:0;gap:4px;}
-  .deck-panel .deck-display .track-info-box strong {font-size:13px;}
-  .deck-panel .deck-display .track-info-box span {font-size:11px;}
-  .deck-panel .deck-display .overview-strip {height:40px;min-height:0;}
-  .deck-panel .deck-display .display-timeline {height:26px;gap:6px;padding-inline:8px;}
-  .deck-panel .deck-main {zoom:var(--console-scale);grid-template-columns:60px minmax(0,320px) 60px;}
-  .deck-panel .deck-main .transport-cluster,
-  .deck-panel .deck-main > .eq-panel,
-  .deck-panel .deck-main > .tempo-panel {row-gap:10px;}
-  .mixer-panel {zoom:var(--console-scale);}
-  .mixer-panel .mixer-channel {grid-template-rows:80px 34px minmax(0,1fr);gap:8px;}
-  .mixer-panel .trim-control {height:76px;}
-  .mixer-panel .trim-control .eq-control {height:72px;}
-  .mixer-panel .mixer-channels > .level-meter {margin-top:142px;}
-  .topbar {gap:14px;padding-inline:12px;}
-  .topbar .brand-icon {width:34px;height:34px;}
-  .topbar .brand-wordmark {width:190px;height:auto;}
-  .library-section {grid-template-columns:180px minmax(0,1fr);}
-  .library-section .track-browser {grid-template-rows:42px minmax(0,1fr) 26px;}
-  .library-section .search-box {width:clamp(150px,24vw,340px);min-width:0;}
-  .library-section .browser-toolbar {gap:8px;padding-inline:10px;}
+.deck-panel {grid-template-rows:var(--display-height) minmax(0,1fr);border-radius:9px;}
+.deck-panel,.deck-panel.selected-deck,.deck-panel.deck-b.selected-deck {
+  box-shadow:inset 0 1px 0 #ffffff06;
+  border-color:#203344;
 }
-
-@media (max-height:800px) {
-  :root {--console-scale:.75;--dj-platter-size:248px;}
-  .app-shell {grid-template-rows:50px minmax(0,1fr);}
-  .workspace {grid-template-rows:72px minmax(0,1fr) 156px;}
-  .deck-panel {grid-template-rows:122px minmax(0,1fr);}
-  .deck-panel .deck-display {height:116px;grid-template-rows:56px 34px 26px;}
-  .deck-panel .deck-display .deck-header {height:56px;}
-  .deck-panel .deck-display .deck-header .track-info-box {height:48px;}
-  .deck-panel .deck-display .overview-strip {height:34px;}
-  .decks-section {grid-template-columns:minmax(0,1fr) 180px minmax(0,1fr);gap:6px;padding:6px;}
+.deck-panel.selected-deck {border-color:#31576b;}
+.deck-panel.deck-b.selected-deck {border-color:#68445e;}
+.deck-panel .deck-display {
+  min-height:0;height:calc(var(--display-height) - 8px);margin:6px 8px 2px;
+  grid-template-rows:54px minmax(0,1fr) 26px;
 }
-@media (max-height:680px) {
-  :root {--console-scale:.66;--dj-platter-size:232px;}
-  .workspace {grid-template-rows:60px minmax(0,1fr) 140px;}
-  .deck-panel {grid-template-rows:114px minmax(0,1fr);}
-  .deck-panel .deck-display {height:108px;grid-template-rows:52px 30px 26px;}
-  .deck-panel .deck-display .deck-header {height:52px;}
-  .deck-panel .deck-display .overview-strip {height:30px;}
+.deck-panel .deck-display .deck-header {
+  min-height:0;height:54px;padding:5px 10px;gap:10px;
+  grid-template-columns:30px 40px minmax(0,1fr) minmax(40px,max-content) 72px;
+}
+.deck-panel .deck-display .deck-number {width:28px;height:28px;font-size:16px;align-self:center;}
+.deck-panel .deck-display .deck-cover {width:40px;height:40px;min-width:0;min-height:0;align-self:center;}
+.deck-panel .deck-display .deck-header .track-info-box {height:44px;min-height:0;justify-content:center;padding:0;gap:4px;align-self:center;}
+.deck-panel .deck-display .track-info-box strong {font-size:14px;line-height:1.25;}
+.deck-panel .deck-display .track-info-box span {font-size:12px;line-height:1.2;}
+.deck-panel .deck-display .deck-key {min-width:40px;margin:0 4px 0 0;align-self:center;justify-self:center;text-align:center;}
+.deck-panel .deck-display .deck-key small {font-size:9px;}
+.deck-panel .deck-display .deck-key strong {font-size:13px;white-space:nowrap;}
+.deck-panel .deck-display .master-button {width:72px;min-width:0;height:32px;margin:0;align-self:center;font-size:10px;}
+.deck-panel .deck-display .overview-strip {height:100%;min-height:0;}
+.deck-panel .deck-display .display-timeline {height:26px;padding:0 10px 4px;gap:10px;}
+.deck-panel .deck-display .display-elapsed-button,.deck-panel .deck-display .display-remaining {font-size:12px;}
+.deck-panel .deck-main {
+  --dj-platter-size:200px;
+  zoom:1;min-width:0;min-height:0;padding:var(--control-pad);
+  grid-template-columns:var(--side-width) minmax(0,1fr) var(--side-width);
+  column-gap:var(--control-gap);justify-content:stretch;align-items:start;
+}
+.deck-panel .deck-main > .transport-panel {
+  max-width:none;min-width:0;width:100%;padding:0;margin:0;align-self:start;
+  justify-self:stretch;grid-template-rows:minmax(0,1fr);
+}
+.deck-panel .deck-main .transport-cluster {
+  width:100%;max-width:none;min-width:0;margin:0;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:var(--cue-height) var(--dj-platter-size) var(--transport-height);
+  gap:var(--control-gap);align-self:start;align-content:start;
+}
+.deck-panel .deck-main .transport-cluster .hotcue-strip {gap:8px;}
+.deck-panel .deck-main .transport-cluster .hotcue-button {height:var(--cue-height);min-height:var(--cue-height);max-height:var(--cue-height);font-size:13px;}
+.deck-panel .deck-main .transport-cluster :is(.cue-button,.play-button,.sync-button) {height:var(--transport-height);min-height:var(--transport-height);max-height:var(--transport-height);font-size:12px;}
+.deck-panel .deck-main > .eq-panel,.deck-panel .deck-main > .tempo-panel {
+  align-self:start;grid-template-rows:var(--cue-height) var(--dj-platter-size) var(--transport-height);
+  row-gap:var(--control-gap);padding:0;
+}
+.deck-panel .eq-panel .section-label,.deck-panel .tempo-panel .section-label {font-size:10px;letter-spacing:.04em;}
+.deck-panel .eq-panel .eq-bank,.deck-panel .tempo-panel .tempo-slot {
+  width:var(--side-width);min-width:0;max-width:none;
+  height:var(--dj-platter-size);min-height:0;max-height:none;
+}
+.deck-panel .eq-panel .eq-bank {padding:4px 2px;}
+.deck-panel .eq-panel .eq-control {gap:3px;}
+.deck-panel .eq-panel .eq-caption {font-size:10px;}
+.deck-panel .eq-panel .eq-knob-unit {width:44px;height:40px;}
+.deck-panel .eq-panel .eq-knob-face {width:34px;height:34px;}
+.deck-panel .tempo-slot input.vertical-range {height:calc(var(--dj-platter-size) - 44px);min-height:0;max-height:none;}
+.deck-panel .tempo-panel .reset-tempo {width:var(--side-width);height:var(--transport-height);min-height:var(--transport-height);font-size:10px;}
+.deck-panel .transport-cluster .jog-label strong {font-size:clamp(20px,1.7vw,30px);}
+.deck-panel .transport-cluster .jog-label > span[id^="pitch"] {font-size:12px;}
+
+/* Shared mixer rows keep headphone faders and the output meter aligned. */
+.mixer-panel {zoom:1;min-height:0;grid-template-rows:32px minmax(0,1fr) 50px 72px;}
+.mixer-panel .mixer-heading {height:auto;min-height:0;font-size:10px;}
+.mixer-panel .mixer-channels {min-height:0;padding:8px 8px 4px;gap:6px;grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr);}
+.mixer-panel .mixer-channel {min-height:0;grid-template-rows:66px 32px minmax(0,1fr);gap:8px;}
+.mixer-panel .trim-control {height:66px;border-radius:8px;}
+.mixer-panel .trim-control .eq-control {height:64px;gap:3px;}
+.mixer-panel .trim-control .eq-knob-unit {width:44px;height:40px;}
+.mixer-panel .trim-control .eq-caption {font-size:10px;}
+.mixer-panel .mixer-channel .cue-monitor {width:100%;height:32px;min-height:32px;font-size:11px;}
+.mixer-panel .cue-level-control {align-self:stretch;min-height:0;height:100%;gap:6px;padding-bottom:4px;}
+.mixer-panel .cue-level-control > span {height:12px;font-size:9px;}
+.mixer-panel .cue-level-control .channel-fader {flex:1;min-height:0;height:100%;max-height:none;}
+.mixer-panel .mixer-channels > .level-meter {align-self:stretch;min-height:0;max-height:none;height:auto;width:26px;min-width:0;margin:132px 0 4px;padding:4px;gap:3px;}
+.mixer-panel .mixer-channels > .level-meter i {flex:1;min-height:2px;height:auto;width:18px;max-height:24px;}
+.mixer-panel .master-volume {padding:4px 10px;grid-template-rows:14px 26px;gap:2px;}
+.mixer-panel .master-volume > label,.mixer-panel .crossfader-area > label {font-size:10px;}
+.mixer-panel .crossfader-area {padding:4px 10px;grid-template-rows:12px 48px;row-gap:3px;}
+.mixer-panel #crossfader {height:48px;}
+.mixer-panel .crossfader-area::after {bottom:3px;height:48px;}
+.crossfader-scale-a {bottom:47px;}
+.crossfader-scale-b {bottom:7px;}
+
+/* The separator works with pointer, touch and keyboard; its value is percent. */
+.library-resizer {position:relative;min-height:0;margin:0 10px;cursor:row-resize;touch-action:none;outline:none;}
+.library-resizer::after {content:"";position:absolute;top:4px;left:calc(50% - 26px);width:52px;height:3px;border-radius:3px;background:#415564;}
+.library-resizer:hover::after,.library-resizer:focus-visible::after {background:#62d9ff;box-shadow:0 0 0 2px #12354a;}
+.workspace.resizing {user-select:none;cursor:row-resize;}
+.workspace.resizing canvas {pointer-events:none;}
+.library-section {margin:0 10px 8px;grid-template-columns:174px minmax(0,1fr);}
+.library-section .browser-sidebar {padding:8px;gap:2px;}
+.library-section .sidebar-title {font-size:11px;margin-bottom:6px;}
+.library-section .source-item,.library-section .playlist-select {height:32px;font-size:12px;}
+.library-section .playlist-heading {margin-top:10px;}
+.library-section .track-browser {grid-template-rows:42px minmax(0,1fr) 24px;}
+.library-section .browser-toolbar {gap:10px;padding-inline:10px;}
+.library-section .browser-actions {min-width:0;gap:8px;}
+.library-section .search-box {width:clamp(160px,25vw,380px);min-width:0;height:32px;}
+.library-section .library-maximize {height:32px;padding:0 10px;}
+.library-section .track-table thead th {height:30px;padding:0 10px;font-size:10px;}
+.library-section .track-table td {height:32px;padding:0 10px;}
+.library-section .track-table .track-title-text {font-size:12px;}
+.library-section .track-table .track-title-cell img {width:24px;height:24px;}
+.library-section .load-buttons button {height:26px;min-height:26px;}
+.library-section .track-table th.load-column {width:116px;}
+.library-section .track-table th:nth-child(6) {width:64px;}
+.library-section .browser-footer {font-size:10px;gap:8px;padding-inline:10px;}
+.workspace.library-maximized > .library-section {grid-row:2 / 5;margin-top:8px;}
+.workspace.library-maximized > .library-resizer {display:none;}
+
+/* The toolbar overlays the waveform strip, so revealing it never moves a deck. */
+.topbar {position:relative;gap:12px;padding:0 12px;min-height:0;}
+.topbar .brand-icon {width:34px;height:34px;}
+.topbar .brand-wordmark {width:180px;height:auto;}
+.topbar .topbar-right {gap:6px;}
+.topbar .topbar-right .top-action {height:34px;min-height:34px;padding:0 10px;font-size:10px;}
+.topbar .topbar-right :is(#helpButton,#fullscreenButton,#topbarPinButton) {width:34px;min-width:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
+.topbar .topbar-right #topbarPinButton[aria-pressed="true"] {border-color:#3b718a;color:#80e1ff;background:#132d3b;}
+.topbar .topbar-right #topbarPinButton[aria-pressed="false"] .pin-icon {transform:rotate(35deg);}
+.toolbar-autohide .topbar {position:fixed;inset:0 0 auto;height:var(--topbar-height);z-index:30;transform:translateY(-100%);transition:transform .18s ease;}
+.toolbar-autohide.toolbar-open .topbar,.toolbar-autohide .topbar:focus-within {transform:translateY(0);}
+.topbar-reveal {display:none;position:fixed;z-index:29;top:0;left:0;width:100%;height:6px;border:0;border-radius:0;padding:0;cursor:pointer;background:#0a1821;color:#8bdfff;}
+.topbar-reveal::after {content:"";position:absolute;width:40px;height:2px;left:calc(50% - 20px);top:2px;border-radius:2px;background:#4f91ab;}
+.toolbar-autohide .topbar-reveal {display:block;}
+.topbar-reveal:focus-visible {height:18px;outline:2px solid #77dfff;outline-offset:-2px;}
+
+@media (min-height:1000px) and (min-width:1500px) {
+  :root {--waveform-height:104px;--display-height:148px;--control-pad:16px;--control-gap:14px;--cue-height:38px;--transport-height:46px;--side-width:66px;}
+  .deck-panel .deck-display {grid-template-rows:64px minmax(0,1fr) 28px;}
+  .deck-panel .deck-display .deck-header {height:64px;grid-template-columns:34px 48px minmax(0,1fr) minmax(44px,max-content) 80px;gap:12px;}
+  .deck-panel .deck-display .deck-cover {width:48px;height:48px;}
+  .deck-panel .deck-display .master-button {width:80px;height:36px;font-size:11px;}
+  .deck-panel .deck-display .track-info-box strong {font-size:16px;}
+  .deck-panel .eq-panel .eq-knob-unit {width:52px;height:48px;}
+  .deck-panel .eq-panel .eq-knob-face {width:40px;height:40px;}
+  .deck-panel .eq-panel .eq-caption {font-size:11px;}
 }
 @media (max-width:1150px) {
-  :root {--console-scale:.70;--dj-platter-size:232px;}
-  .decks-section {grid-template-columns:minmax(0,1fr) 166px minmax(0,1fr);}
-  .topbar .brand-wordmark {width:150px;}
-  .topbar .topbar-right {gap:5px;}
-  .topbar .topbar-right .top-action {padding-inline:8px;font-size:10px;}
-  .topbar #clock,.topbar .top-divider,.audio-cue-badge {display:none;}
-  .library-section {grid-template-columns:150px minmax(0,1fr);}
-  .library-section .browser-sidebar {padding:8px;}
-  .deck-panel .deck-display .deck-header {grid-template-columns:28px minmax(0,1fr) 28px 54px;}
+  :root {--side-width:50px;--control-gap:8px;--control-pad:8px;}
+  .decks-section {grid-template-columns:minmax(0,1fr) 174px minmax(0,1fr);gap:8px;}
+  .deck-panel .deck-display .deck-header {grid-template-columns:28px minmax(0,1fr) minmax(36px,max-content) 66px;gap:8px;}
   .deck-panel .deck-display .deck-cover {display:none;}
+  .deck-panel .deck-display .master-button {width:66px;font-size:9px;}
+  .topbar .brand-wordmark {width:140px;}
+  .topbar #clock,.topbar .top-divider {display:none;}
+  .topbar .storage-action span {display:none;}
+  .library-section {grid-template-columns:148px minmax(0,1fr);}
+  .library-section .browser-title strong {font-size:12px;}
 }
-
-/* Small windows reflow instead of clipping controls. Short windows can scroll. */
-@media (max-width:900px), (max-height:619px) {
+@media (max-height:700px) {
+  :root {--waveform-height:64px;--display-height:104px;--cue-height:30px;--transport-height:34px;--control-pad:8px;--control-gap:8px;}
+  .deck-panel .deck-display {grid-template-rows:48px minmax(0,1fr) 24px;}
+  .deck-panel .deck-display .deck-header {height:48px;}
+  .deck-panel .deck-display .display-timeline {height:24px;}
+  .mixer-panel {grid-template-rows:28px minmax(0,1fr) 46px 66px;}
+  .mixer-panel .mixer-channel {grid-template-rows:56px 28px minmax(0,1fr);gap:6px;}
+  .mixer-panel .trim-control {height:56px;}
+  .mixer-panel .trim-control .eq-control {height:54px;gap:1px;}
+  .mixer-panel .trim-control .eq-knob-unit {height:34px;}
+  .mixer-panel .mixer-channel .cue-monitor {height:28px;min-height:28px;}
+  .mixer-panel .mixer-channels > .level-meter {margin-top:114px;}
+  .deck-panel .eq-panel .eq-knob-unit {height:34px;}
+  .deck-panel .eq-panel .eq-knob-face {width:30px;height:30px;}
+  .library-section .track-browser {grid-template-rows:36px minmax(0,1fr) 20px;}
+  .library-section .track-table thead th {height:26px;}
+  .library-section .track-table td {height:30px;}
+}
+@media (max-width:900px),(max-height:599px) {
   .app-shell {height:auto;min-height:100dvh;}
-  .workspace {overflow:visible;grid-template-rows:72px 460px minmax(240px,40dvh);}
-  .topbar {min-height:58px;display:flex;flex-wrap:wrap;padding:8px;gap:8px;}
-  .app-shell {grid-template-rows:auto minmax(0,1fr);}
-  .topbar .topbar-right {flex-wrap:wrap;justify-content:flex-start;}
+  .workspace {overflow:visible;grid-template-rows:var(--waveform-height) 410px 10px 250px;}
+  .topbar {gap:8px;padding-inline:8px;}
+  .topbar .brand-wordmark {width:120px;}
+  .topbar .topbar-right {gap:4px;}
+  .topbar .topbar-right .top-action {padding-inline:6px;font-size:9px;}
+  .audio-cue-badge {display:none;}
+  .library-resizer {pointer-events:none;}
+  .library-resizer::after {display:none;}
 }
 @media (max-width:760px) {
-  :root {--console-scale:.85;--dj-platter-size:248px;}
-  .workspace {grid-template-rows:80px auto minmax(300px,50dvh);}
-  .decks-section {grid-template-columns:minmax(0,1fr);grid-auto-rows:auto;}
-  .deck-panel {height:470px;}
-  .mixer-panel {height:530px;grid-row:3;}
+  :root {--display-height:112px;--side-width:50px;--topbar-height:94px;}
+  .workspace {grid-template-rows:var(--waveform-height) auto 10px 340px;}
+  .decks-section {grid-template-columns:minmax(0,1fr);gap:10px;}
+  .deck-panel {height:450px;}
   .deck-panel.deck-b {grid-row:2;}
-  .library-section {grid-template-columns:120px minmax(0,1fr);}
-  .library-section .browser-toolbar {flex-wrap:wrap;height:auto;padding:8px;}
-  .library-section .track-browser {grid-template-rows:auto minmax(0,1fr) 26px;}
-  .library-section .search-box {width:100%;}
+  .mixer-panel {grid-row:3;min-height:390px;height:390px;}
+  .topbar {display:flex;flex-wrap:wrap;align-content:center;gap:6px;padding:8px;}
+  .topbar .topbar-right {flex-wrap:wrap;justify-content:flex-start;}
+  .library-section {grid-template-columns:112px minmax(0,1fr);}
+  .library-section .browser-sidebar {padding:6px;}
   .library-section .browser-title {display:none;}
-  .track-table-wrap {overflow:auto;}
-  .library-section .track-table {min-width:620px;}
-  .workspace.library-maximized > .library-section {grid-row:2 / 4;min-height:70dvh;}
+  .library-section .browser-actions {width:100%;}
+  .library-section .search-box {width:auto;flex:1;}
+  .library-section .library-maximize span {display:none;}
+  .library-section .track-table {min-width:640px;}
+  .library-section .browser-footer #selectionHint {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .workspace.library-maximized > .library-section {min-height:70dvh;}
+}
+@media (prefers-reduced-motion:reduce) {.toolbar-autohide .topbar {transition:none;}}
+@media (pointer:coarse) {
+  .topbar-reveal {height:12px;}
+  .app-shell.toolbar-autohide {grid-template-rows:12px minmax(0,1fr);}
+  .library-section .load-buttons button {height:34px;min-height:34px;}
+  .library-section .source-item,.library-section .playlist-select {height:38px;}
 }
