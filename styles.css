@@ -4392,3 +4392,99 @@ body { overflow: visible; }
   #actionDialog.playback-confirm footer {padding:20px;flex-wrap:wrap;}
   #actionDialog.playback-confirm footer button {min-width:125px;}
 }
+
+/* Responsive console: reserve browsing space before sizing the performance area.
+   Scale only hardware controls; track information and library text stay readable. */
+:root { --dj-min-width:0px; --dj-min-height:0px; }
+.app-shell {min-width:0;min-height:0;height:100dvh;grid-template-rows:58px minmax(0,1fr);}
+.workspace {grid-template-rows:clamp(80px,11dvh,124px) minmax(0,1fr) clamp(156px,24dvh,320px);}
+.decks-section {min-width:0;}
+.deck-panel,.mixer-panel,.library-section,.track-browser {min-width:0;}
+
+@media (max-width:1579px), (max-height:1000px) {
+  :root {--console-scale:.85;--dj-platter-size:260px;}
+  .decks-section {grid-template-columns:minmax(0,1fr) 204px minmax(0,1fr);gap:8px;padding:8px;}
+  .deck-panel {grid-template-rows:136px minmax(0,1fr);}
+  .deck-panel .deck-display {height:128px;min-height:0;margin:6px;grid-template-rows:62px 40px 26px;}
+  .deck-panel .deck-display .deck-header {height:62px;min-height:0;grid-template-columns:30px 42px minmax(0,1fr) 28px 60px;gap:6px;padding:4px 8px;}
+  .deck-panel .deck-display .deck-number {width:28px;height:28px;font-size:16px;}
+  .deck-panel .deck-display .deck-cover {width:40px;height:40px;min-width:0;min-height:0;}
+  .deck-panel .deck-display .deck-header .track-info-box {height:54px;min-height:0;gap:4px;}
+  .deck-panel .deck-display .track-info-box strong {font-size:13px;}
+  .deck-panel .deck-display .track-info-box span {font-size:11px;}
+  .deck-panel .deck-display .overview-strip {height:40px;min-height:0;}
+  .deck-panel .deck-display .display-timeline {height:26px;gap:6px;padding-inline:8px;}
+  .deck-panel .deck-main {zoom:var(--console-scale);grid-template-columns:60px minmax(0,320px) 60px;}
+  .deck-panel .deck-main .transport-cluster,
+  .deck-panel .deck-main > .eq-panel,
+  .deck-panel .deck-main > .tempo-panel {row-gap:10px;}
+  .mixer-panel {zoom:var(--console-scale);}
+  .mixer-panel .mixer-channel {grid-template-rows:80px 34px minmax(0,1fr);gap:8px;}
+  .mixer-panel .trim-control {height:76px;}
+  .mixer-panel .trim-control .eq-control {height:72px;}
+  .mixer-panel .mixer-channels > .level-meter {margin-top:142px;}
+  .topbar {gap:14px;padding-inline:12px;}
+  .topbar .brand-icon {width:34px;height:34px;}
+  .topbar .brand-wordmark {width:190px;height:auto;}
+  .library-section {grid-template-columns:180px minmax(0,1fr);}
+  .library-section .track-browser {grid-template-rows:42px minmax(0,1fr) 26px;}
+  .library-section .search-box {width:clamp(150px,24vw,340px);min-width:0;}
+  .library-section .browser-toolbar {gap:8px;padding-inline:10px;}
+}
+
+@media (max-height:800px) {
+  :root {--console-scale:.75;--dj-platter-size:248px;}
+  .app-shell {grid-template-rows:50px minmax(0,1fr);}
+  .workspace {grid-template-rows:72px minmax(0,1fr) 156px;}
+  .deck-panel {grid-template-rows:122px minmax(0,1fr);}
+  .deck-panel .deck-display {height:116px;grid-template-rows:56px 34px 26px;}
+  .deck-panel .deck-display .deck-header {height:56px;}
+  .deck-panel .deck-display .deck-header .track-info-box {height:48px;}
+  .deck-panel .deck-display .overview-strip {height:34px;}
+  .decks-section {grid-template-columns:minmax(0,1fr) 180px minmax(0,1fr);gap:6px;padding:6px;}
+}
+@media (max-height:680px) {
+  :root {--console-scale:.66;--dj-platter-size:232px;}
+  .workspace {grid-template-rows:60px minmax(0,1fr) 140px;}
+  .deck-panel {grid-template-rows:114px minmax(0,1fr);}
+  .deck-panel .deck-display {height:108px;grid-template-rows:52px 30px 26px;}
+  .deck-panel .deck-display .deck-header {height:52px;}
+  .deck-panel .deck-display .overview-strip {height:30px;}
+}
+@media (max-width:1150px) {
+  :root {--console-scale:.70;--dj-platter-size:232px;}
+  .decks-section {grid-template-columns:minmax(0,1fr) 166px minmax(0,1fr);}
+  .topbar .brand-wordmark {width:150px;}
+  .topbar .topbar-right {gap:5px;}
+  .topbar .topbar-right .top-action {padding-inline:8px;font-size:10px;}
+  .topbar #clock,.topbar .top-divider,.audio-cue-badge {display:none;}
+  .library-section {grid-template-columns:150px minmax(0,1fr);}
+  .library-section .browser-sidebar {padding:8px;}
+  .deck-panel .deck-display .deck-header {grid-template-columns:28px minmax(0,1fr) 28px 54px;}
+  .deck-panel .deck-display .deck-cover {display:none;}
+}
+
+/* Small windows reflow instead of clipping controls. Short windows can scroll. */
+@media (max-width:900px), (max-height:619px) {
+  .app-shell {height:auto;min-height:100dvh;}
+  .workspace {overflow:visible;grid-template-rows:72px 460px minmax(240px,40dvh);}
+  .topbar {min-height:58px;display:flex;flex-wrap:wrap;padding:8px;gap:8px;}
+  .app-shell {grid-template-rows:auto minmax(0,1fr);}
+  .topbar .topbar-right {flex-wrap:wrap;justify-content:flex-start;}
+}
+@media (max-width:760px) {
+  :root {--console-scale:.85;--dj-platter-size:248px;}
+  .workspace {grid-template-rows:80px auto minmax(300px,50dvh);}
+  .decks-section {grid-template-columns:minmax(0,1fr);grid-auto-rows:auto;}
+  .deck-panel {height:470px;}
+  .mixer-panel {height:530px;grid-row:3;}
+  .deck-panel.deck-b {grid-row:2;}
+  .library-section {grid-template-columns:120px minmax(0,1fr);}
+  .library-section .browser-toolbar {flex-wrap:wrap;height:auto;padding:8px;}
+  .library-section .track-browser {grid-template-rows:auto minmax(0,1fr) 26px;}
+  .library-section .search-box {width:100%;}
+  .library-section .browser-title {display:none;}
+  .track-table-wrap {overflow:auto;}
+  .library-section .track-table {min-width:620px;}
+  .workspace.library-maximized > .library-section {grid-row:2 / 4;min-height:70dvh;}
+}
