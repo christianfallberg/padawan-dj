@@ -4397,13 +4397,13 @@ body { overflow: visible; }
    platter follows the space left by its deck's display and transport rows. */
 :root {
   --dj-min-width:0px; --dj-min-height:0px;
-  --topbar-height:52px; --waveform-height:80px; --library-height:232px;
+  --topbar-height:52px; --toolbar-reveal-height:6px; --waveform-height:80px; --library-height:232px;
   --display-height:120px; --control-pad:10px; --control-gap:10px;
   --cue-height:32px; --transport-height:40px; --side-width:58px;
 }
 html,body {min-width:0;min-height:0;}
 .app-shell {min-width:0;min-height:0;height:100dvh;grid-template-rows:var(--topbar-height) minmax(0,1fr);}
-.app-shell.toolbar-autohide {grid-template-rows:6px minmax(0,1fr);}
+.app-shell.toolbar-autohide {grid-template-rows:var(--toolbar-reveal-height) minmax(0,1fr);}
 .workspace {
   grid-row:2;min-width:0;min-height:0;overflow:hidden;
   grid-template-rows:var(--waveform-height) minmax(0,1fr) 10px var(--library-height);
@@ -4586,6 +4586,10 @@ html,body {min-width:0;min-height:0;}
   .library-section .track-table thead th {height:26px;}
   .library-section .track-table td {height:30px;}
 }
+.app-shell.workspace-scroll {height:auto;min-height:100dvh;}
+.workspace-scroll .workspace {overflow:visible;grid-template-rows:var(--waveform-height) 410px 10px 250px;}
+.workspace-scroll .library-resizer {pointer-events:none;}
+.workspace-scroll .library-resizer::after {display:none;}
 @media (max-width:900px),(max-height:599px) {
   .app-shell {height:auto;min-height:100dvh;}
   .workspace {overflow:visible;grid-template-rows:var(--waveform-height) 410px 10px 250px;}
@@ -4599,12 +4603,14 @@ html,body {min-width:0;min-height:0;}
 }
 @media (max-width:760px) {
   :root {--display-height:112px;--side-width:50px;--topbar-height:94px;}
-  .workspace {grid-template-rows:var(--waveform-height) auto 10px 340px;}
+  .app-shell.toolbar-pinned {grid-template-rows:auto minmax(0,1fr);}
+  .workspace,.workspace-scroll .workspace {grid-template-rows:var(--waveform-height) auto 10px 340px;}
   .decks-section {grid-template-columns:minmax(0,1fr);gap:10px;}
   .deck-panel {height:450px;}
   .deck-panel.deck-b {grid-row:2;}
   .mixer-panel {grid-row:3;min-height:390px;height:390px;}
   .topbar {display:flex;flex-wrap:wrap;align-content:center;gap:6px;padding:8px;}
+  .topbar,.toolbar-autohide .topbar {height:auto;min-height:var(--topbar-height);}
   .topbar .topbar-right {flex-wrap:wrap;justify-content:flex-start;}
   .library-section {grid-template-columns:112px minmax(0,1fr);}
   .library-section .browser-sidebar {padding:6px;}
@@ -4618,8 +4624,10 @@ html,body {min-width:0;min-height:0;}
 }
 @media (prefers-reduced-motion:reduce) {.toolbar-autohide .topbar {transition:none;}}
 @media (pointer:coarse) {
-  .topbar-reveal {height:12px;}
-  .app-shell.toolbar-autohide {grid-template-rows:12px minmax(0,1fr);}
+  :root {--toolbar-reveal-height:44px;}
+  .topbar-reveal,.topbar-reveal:focus-visible {height:44px;}
+  .topbar-reveal::before {content:"TOOLBAR";font-size:10px;letter-spacing:.08em;}
+  .topbar-reveal::after {top:auto;bottom:5px;}
   .library-section .load-buttons button {height:34px;min-height:34px;}
   .library-section .source-item,.library-section .playlist-select {height:38px;}
 }

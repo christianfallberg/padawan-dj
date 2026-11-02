@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -2094,16 +2094,22 @@ function setupWorkspaceLayout() {
   function layout() {
     layoutFrame = null;
     const maximized = workspace.classList.contains('library-maximized');
-    const compact = compactWindow.matches;
+    const rootStyle = getComputedStyle(workspace);
+    const number = name => parseFloat(rootStyle.getPropertyValue(name)) || 0;
+    const minimumDeck = number('--display-height') + 2 * number('--control-pad')
+      + number('--cue-height') + number('--transport-height') + 2 * number('--control-gap') + 160;
+    const toolbarHeight = pinned ? toolbar.offsetHeight : number('--toolbar-reveal-height');
+    // Fall back to scrolling when the toolbar leaves too little room for both
+    // usable decks and the minimum library, including panel borders and gaps.
+    const needsScroll = window.innerHeight - toolbarHeight
+      < number('--waveform-height') + minimumDeck + 10 + 10 + 160;
+    shell.classList.toggle('workspace-scroll', needsScroll);
+    const compact = compactWindow.matches || needsScroll;
     splitter.tabIndex = compact || maximized ? -1 : 0;
     splitter.setAttribute('aria-disabled', String(compact));
     if (!compact && !maximized) {
-      const rootStyle = getComputedStyle(workspace);
-      const number = name => parseFloat(rootStyle.getPropertyValue(name)) || 0;
-      const minimumDeck = number('--display-height') + 2 * number('--control-pad')
-        + number('--cue-height') + number('--transport-height') + 2 * number('--control-gap') + 160;
-      const available = workspace.clientHeight - $('.waveform-stage').offsetHeight - 10;
-      const budget = available - minimumDeck - 8;
+      const available = workspace.clientHeight - number('--waveform-height') - 10;
+      const budget = available - minimumDeck - 10;
       const desiredMinimum = window.innerHeight <= 700 ? 160 : window.innerHeight >= 740 ? 244 : 214;
       libraryBounds.min = Math.min(desiredMinimum, Math.max(160, budget));
       libraryBounds.max = Math.max(libraryBounds.min, budget);
@@ -2188,7 +2194,7 @@ function setupWorkspaceLayout() {
     save();
   };
   splitter.addEventListener('pointerdown', event => {
-    if (compactWindow.matches || event.button !== 0) return;
+    if (splitter.getAttribute('aria-disabled') === 'true' || event.button !== 0) return;
     event.preventDefault();
     splitter.focus();
     splitter.setPointerCapture(event.pointerId);
@@ -2208,7 +2214,7 @@ function setupWorkspaceLayout() {
     scheduleLayout();
   });
   splitter.addEventListener('keydown', event => {
-    if (compactWindow.matches) return;
+    if (splitter.getAttribute('aria-disabled') === 'true') return;
     const current = parseFloat(getComputedStyle(workspace).getPropertyValue('--library-height'));
     const step = event.shiftKey ? 40 : 16;
     const heights = { ArrowUp:current + step, ArrowDown:current - step, Home:libraryBounds.min, End:libraryBounds.max };
@@ -2221,6 +2227,7 @@ function setupWorkspaceLayout() {
   // Opening/closing the library or pinning the toolbar changes the height budget.
   const observer = new ResizeObserver(scheduleLayout);
   observer.observe(workspace);
+  observer.observe(toolbar);
   $$('.deck-main').forEach(main => observer.observe(main));
   updatePin();
   scheduleLayout();

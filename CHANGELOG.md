@@ -1,5 +1,12 @@
 # Release notes
 
+## 1.0.3 — 2026-11-02
+
+- Allow scrolling when a pinned toolbar leaves insufficient room for the decks and library.
+- Fit the mobile toolbar to its wrapped contents, including the Install App button.
+- Provide a labelled, 44px toolbar reveal target on touch devices.
+- Update the app, asset URLs and offline cache to 1.0.3.
+
 ## 1.0.2 — 2026-11-02
 
 ### Adaptive performance workspace

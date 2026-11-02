@@ -1,10 +1,10 @@
-# Padawan DJ — v1.0.2
+# Padawan DJ — v1.0.3
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
 ![Padawan DJ: two loaded decks with waveforms, jog wheels, mixer and music library](docs/screenshot.jpg)
 
-Try it live at **[dj.padawan.se](https://dj.padawan.se)** or on the GitHub Pages mirror at **[christianfallberg.github.io/padawan-dj](https://christianfallberg.github.io/padawan-dj/)**. Each address keeps its own local library, so music imported on one does not show up on the other.
+Try it on **[GitHub Pages](https://christianfallberg.github.io/padawan-dj/)**.
 
 Padawan DJ is just static files, so you can also host your own copy anywhere: fork this repo and enable GitHub Pages, or upload the files to any web host. See [Host it yourself](#host-it-yourself).
 
@@ -83,10 +83,12 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.0.2
+## Latest release: 1.0.3
 
 See [release notes](CHANGELOG.md) for the version history.
 
+- Short windows scroll when a pinned toolbar leaves too little room for the decks and library.
+- The mobile toolbar fits its wrapped buttons, including Install App; touch devices get a labelled 44px toolbar reveal target.
 - Adaptive deck controls with larger jog wheels where space allows, readable labels and clear KEY/MASTER spacing.
 - A denser music library with a draggable divider. Use Up/Down while the divider is focused, Home/End for its limits, or double-click to reset. The chosen height is remembered.
 - Auto-hide toolbar: hover the strip at the top, tap it, or press `Alt+T`. The pin keeps the toolbar visible. Hovering reveals an overlay without moving the decks.
@@ -137,10 +139,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.0.2 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.0.3 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.0.2';
+const CACHE_VERSION = 'padawan-dj-v1.0.3';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

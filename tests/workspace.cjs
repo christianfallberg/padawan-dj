@@ -375,7 +375,37 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
   console.log(
     "PASS toolbar hover/focus/pin/persistence, divider drag/keys/persistence/reset, library maximize/restore, imports, dual-deck playback and dialogs",
   );
-  // Touch-only users open the same toolbar through the reveal control.
+  // A pinned toolbar must never consume the space needed by deck controls.
+  await page.setViewportSize({ width: 901, height: 600 });
+  await page.keyboard.press("Alt+t");
+  if (await page.locator("#topbarPinButton").getAttribute("aria-pressed") !== "true")
+    await page.locator("#topbarPinButton").click();
+  await delay(200);
+  assert.equal(await page.locator("#libraryResizer").getAttribute("aria-disabled"), "true");
+  assert(await page.evaluate(() => [...document.querySelectorAll(".deck-panel")].every(panel => {
+    const bounds = panel.getBoundingClientRect();
+    return [...panel.querySelectorAll(".cue-button,.play-button,.sync-button,.reset-tempo")]
+      .every(button => button.getBoundingClientRect().bottom <= bounds.bottom);
+  })), "short pinned window keeps transport controls inside decks");
+
+  // Include the conditional install action when checking wrapped toolbar rows.
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.locator("#installButton").evaluate(e => { e.hidden = false; });
+  await delay(200);
+  assert(await page.evaluate(() => {
+    const toolbar = document.querySelector("#appToolbar").getBoundingClientRect();
+    const actions = document.querySelector(".topbar-right").getBoundingClientRect();
+    return actions.bottom <= toolbar.bottom
+      && document.querySelector(".workspace").getBoundingClientRect().top >= toolbar.bottom;
+  }), "wrapped toolbar contains all actions without overlapping waveforms");
+  await page.locator("#topbarPinButton").click();
+  await page.mouse.click(200, 400);
+  await delay(950);
+  assert(await page.locator("#appToolbar").evaluate(e => e.getBoundingClientRect().bottom <= 1),
+    "wrapped toolbar fully hides");
+  console.log("PASS short pinned window and mobile toolbar with install action");
+
+  // Touch-only users open the same toolbar through a full-size reveal control.
   const touch = await browser.newContext({
     viewport: { width: 1024, height: 768 },
     hasTouch: true,
@@ -385,6 +415,8 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
   await tp.goto(baseURL);
   await tp.touchscreen.tap(500, 450);
   await delay(300);
+  assert(await tp.locator("#topbarReveal").evaluate(e => e.getBoundingClientRect().height >= 44),
+    "touch toolbar reveal has a 44px target");
   await tp.locator("#topbarReveal").tap();
   await delay(250);
   assert(
