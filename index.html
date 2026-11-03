@@ -11,18 +11,18 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.0.4">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.0.4">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.0.4">
-  <link rel="stylesheet" href="styles.css?v=1.0.4">
+  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.1.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.1.0">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.1.0">
+  <link rel="stylesheet" href="styles.css?v=1.1.0">
 </head>
 <body>
   <div class="app-shell">
     <button id="topbarReveal" class="topbar-reveal" type="button" aria-label="Show application toolbar" aria-controls="appToolbar" aria-expanded="true" title="Show toolbar (Alt+T)"></button>
     <header id="appToolbar" class="topbar">
       <div class="topbar-left">
-        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.0.4" alt="" width="27" height="27">
-        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.0.4" alt="Padawan DJ" width="240" height="24">
+        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.1.0" alt="" width="27" height="27">
+        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.1.0" alt="Padawan DJ" width="240" height="24">
       </div>
       <nav class="topbar-center app-navigation" hidden aria-label="App navigation">
         <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l9-2v9M8 8l9-2"/><ellipse cx="5" cy="15" rx="3" ry="2"/><ellipse cx="14" cy="13" rx="3" ry="2"/></svg> LIBRARY</button>
@@ -43,6 +43,14 @@
       </div>
       <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple hidden>
     </header>
+
+    <dialog id="importDialog" aria-labelledby="importDialogTitle">
+      <header><h2 id="importDialogTitle">Add music</h2><button id="closeImportDialog" type="button" aria-label="Close add music"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+      <p>Choose a music folder on your computer or USB drive. Subfolders are included.</p>
+      <section aria-labelledby="directFolderTitle"><h3 id="directFolderTitle">Play directly from your drive</h3><p id="directFolderHelp">Keep the drive connected. Only artwork, track details and cues are saved in the app.</p><button id="linkFolderButton" type="button" aria-describedby="directFolderHelp">PLAY FROM FOLDER</button></section>
+      <section aria-labelledby="copyFolderTitle"><h3 id="copyFolderTitle">Keep a copy in the app</h3><p>Use browser storage to keep playing after you unplug the drive. Your original files stay untouched.</p><div class="import-copy-actions"><button id="copyFolderButton" type="button">COPY FOLDER</button><button id="copyFilesButton" type="button">CHOOSE FILES</button></div></section>
+    </dialog>
+    <input id="folderInput" type="file" webkitdirectory multiple hidden>
 
     <dialog id="audioOutputDialog" class="audio-output-dialog" aria-labelledby="audioOutputTitle">
       <header class="audio-dialog-header"><h2 id="audioOutputTitle">Audio output</h2><button id="closeAudioOutputX" type="button" aria-label="Close audio output"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
@@ -370,16 +378,16 @@
     <form method="dialog">
       <header>
         <div class="help-dialog-heading">
-          <img src="icons/padawan-emblem.png?v=1.0.4" width="32" height="32" alt="">
+          <img src="icons/padawan-emblem.png?v=1.1.0" width="32" height="32" alt="">
           <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
         </div>
         <button type="submit" aria-label="Close help"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       </header>
         <div class="about-brand">
-          <img src="icons/padawan-emblem.png?v=1.0.4" width="82" height="82" alt="Padawan DJ logo">
+          <img src="icons/padawan-emblem.png?v=1.1.0" width="82" height="82" alt="Padawan DJ logo">
           <div>
 
-            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.0.4" alt="Padawan DJ" width="390" height="38"></h2>
+            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.1.0" alt="Padawan DJ" width="390" height="38"></h2>
             <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
             <p>Two decks. One flow.</p>
           </div>
@@ -460,13 +468,13 @@
         <div class="storage-meter" aria-label="Storage usage"><span id="storageMeterFill"></span></div>
         <div class="storage-status-row"><span>Persistent storage</span><strong id="persistentStatus" class="storage-badge">CHECKING</strong></div>
         <div class="storage-status-row"><span>Offline app shell</span><strong id="offlineStatus" class="storage-badge">CHECKING</strong></div>
-        <p class="storage-note">Your tracks, artwork, playlists and Hot Cues stay inside this browser profile for this exact domain. Audio files are never uploaded by this app.</p>
+        <p class="storage-note">Imported copies, artwork, playlists and Hot Cues stay in this browser profile for this domain. External tracks stay on their drive and need it connected. Audio files are never uploaded by this app.</p>
         <div class="storage-actions">
           <button id="requestPersistenceButton" class="storage-primary" type="button">REQUEST PERSISTENT STORAGE</button>
           <button id="exportLibraryButton" type="button">EXPORT LIBRARY DATA</button>
         </div>
         <section class="storage-maintenance" aria-labelledby="storageMaintenanceTitle">
-          <div><h3 id="storageMaintenanceTitle">Clear local library</h3><p>Remove imported tracks, playlist assignments and Hot Cues from this browser. This cannot be undone.</p></div>
+          <div><h3 id="storageMaintenanceTitle">Clear local library</h3><p>Remove imported copies, external track links, playlist assignments and Hot Cues. Files on your drive are never deleted.</p></div>
           <button id="clearLibraryDialogButton" class="storage-danger" type="button">CLEAR LOCAL LIBRARY</button>
         </section>
       </div>
@@ -498,6 +506,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=1.0.4"></script>
+  <script src="app.js?v=1.1.0"></script>
 </body>
 </html>

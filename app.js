@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.1.0';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -165,7 +165,7 @@ function formatBytes(bytes) {
 }
 
 function localLibraryBytes() {
-  return state.tracks.reduce((total, track) => total + (track.blob?.size || 0) + (track.coverBlob?.size || 0), 0);
+  return state.tracks.reduce((total, track) => total + (track.fileHandle ? 0 : (track.blob?.size || 0)) + (track.coverBlob?.size || 0), 0);
 }
 
 function parseFilename(filename) {
@@ -389,12 +389,21 @@ function dbPut(track) {
     hotCues: normaliseHotCues(track.hotCues),
     album: track.album || '',
     coverBlob: track.coverBlob || null,
-    blob: track.blob,
+    blob: track.fileHandle ? null : track.blob,
+    fileHandle: track.fileHandle || null,
+    sourceRoot: track.sourceRoot || null,
+    sourceName: track.sourceName || '',
+    sourceId: track.sourceId || null,
+    relativePath: track.relativePath || '',
+    fileSize: track.fileSize || track.blob?.size || 0,
+    lastModified: track.lastModified || 0,
   };
   return new Promise((resolve, reject) => {
-    const request = state.db.transaction('tracks', 'readwrite').objectStore('tracks').put(stored);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    const transaction = state.db.transaction('tracks', 'readwrite');
+    transaction.objectStore('tracks').put(stored);
+    transaction.oncomplete = () => resolve();
+    transaction.onabort = () => reject(transaction.error || new Error('Library storage failed'));
+    transaction.onerror = () => reject(transaction.error);
   });
 }
 
@@ -621,6 +630,26 @@ class Deck {
   }
 
   async load(track) {
+    // Request access while the deck-load click still has user activation.
+    if (track.fileHandle) {
+      try {
+        const handle = track.sourceRoot || track.fileHandle;
+        if (await handle.queryPermission({ mode: 'read' }) !== 'granted'
+            && await handle.requestPermission({ mode: 'read' }) !== 'granted') {
+          throw new Error('Read access was not granted');
+        }
+        const file = await track.fileHandle.getFile();
+        if (file.size !== track.fileSize || file.lastModified !== track.lastModified) {
+          track.buffer = null;
+          track.peaks = null;
+        }
+        track.blob = file;
+      } catch (error) {
+        const unavailable = new Error('Connect the drive and choose ADD TRACKS → Play from folder to reconnect. Allow read access when asked.');
+        unavailable.externalFile = true;
+        throw unavailable;
+      }
+    }
     await ensureAudioReady();
     await ensureTrackDecoded(track);
     // Check after decoding: the existing track may have started while preparing.
@@ -983,54 +1012,146 @@ function setMasterDeck(id) {
 }
 state.masterDeck = 'A';
 
+function isAudioFile(file) {
+  const path = file.webkitRelativePath || file.name;
+  return !path.split('/').some((part) => part.startsWith('.'))
+    && (file.type?.startsWith('audio/') || /\.(mp3|wav|m4a|aac|ogg|flac|aif|aiff|opus)$/i.test(file.name));
+}
+
+function setImportBusy(busy) {
+  state.importing = busy;
+  ui.importButton.disabled = busy;
+  ui.clearLibraryDialogButton.disabled = busy;
+  if (!busy) ui.importButton.innerHTML = `${UI_ICONS.plus} ADD TRACKS`;
+}
+
+async function* folderEntries(directory, prefix = '') {
+  for await (const entry of directory.values()) {
+    if (entry.name.startsWith('.')) continue;
+    const relativePath = prefix + entry.name;
+    if (entry.kind === 'directory') yield* folderEntries(entry, relativePath + '/');
+    else if (isAudioFile(entry)) yield { fileHandle: entry, relativePath };
+  }
+}
+
+async function chooseMusicFolder(linked) {
+  if (state.importing) return;
+  $('#importDialog').close();
+  if (!window.showDirectoryPicker) {
+    if (!linked) $('#folderInput').click();
+    return;
+  }
+  setImportBusy(true);
+  try {
+    const root = await window.showDirectoryPicker({ id: 'music-library', mode: 'read' });
+    ui.libraryStatus.textContent = 'SCANNING FOLDER';
+    showToast(`Scanning ${root.name}…`, 5000);
+    const entries = [];
+    for await (const entry of folderEntries(root)) entries.push(entry);
+    await importEntries(entries, { root, linked });
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      console.error(error);
+      showToast('Could not read this folder. Connect the drive and try again.', 5000);
+    }
+  } finally {
+    setImportBusy(false);
+    updateLibraryStats();
+  }
+}
+
 async function addFiles(fileList) {
   if (state.importing) return;
-  const files = [...fileList].filter((file) => file.type.startsWith('audio/') || /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(file.name));
-  if (!files.length) return showToast('No supported audio files found');
-  state.importing = true;
-  ui.importButton.disabled = true;
-  await ensureAudioReady();
+  const entries = [...fileList].filter(isAudioFile).map(file => ({ file, relativePath: file.webkitRelativePath || '' }));
+  setImportBusy(true);
+  try {
+    await importEntries(entries);
+  } finally {
+    setImportBusy(false);
+    updateLibraryStats();
+  }
+}
 
-  for (let index = 0; index < files.length; index += 1) {
-    const file = files[index];
-    ui.libraryStatus.textContent = `ANALYSING ${index + 1}/${files.length}`;
+async function importEntries(entries, { root = null, linked = false } = {}) {
+  if (!entries.length) return showToast('No supported audio files found');
+  let added = 0, skipped = 0, failed = 0;
+  // Resolve folder identity once, so equally named drives never share tracks.
+  let sourceId = null;
+  if (linked) {
+    const sources = new Map(state.tracks.filter(track => track.sourceId && track.sourceRoot)
+      .map(track => [track.sourceId, track.sourceRoot]));
+    for (const [id, handle] of sources) {
+      try { if (await root.isSameEntry(handle)) { sourceId = id; break; } }
+      catch { /* A removed source may no longer be resolvable. */ }
+    }
+    sourceId ||= crypto.randomUUID();
+  }
+  const sameRootTracks = new Map(state.tracks.filter(track => linked && track.sourceId === sourceId)
+    .map(track => [track.relativePath, track]));
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    ui.libraryStatus.textContent = `ANALYSING ${index + 1}/${entries.length}`;
+    ui.importButton.textContent = `ADDING ${index + 1}/${entries.length}`;
     try {
+      const file = entry.file || await entry.fileHandle.getFile();
+      const existing = linked
+        ? sameRootTracks.get(entry.relativePath)
+        : state.tracks.find(track => !track.fileHandle && track.filename === file.name
+          && (track.fileSize || track.blob?.size) === file.size
+          && (track.lastModified || track.blob?.lastModified) === file.lastModified
+          && (track.relativePath || '') === entry.relativePath);
+      if (existing && (existing.fileSize || existing.blob?.size) === file.size
+          && (existing.lastModified || existing.blob?.lastModified) === file.lastModified) {
+        if (linked) {
+          await dbPut({ ...existing, fileHandle: entry.fileHandle, sourceRoot: root });
+          existing.fileHandle = entry.fileHandle;
+          existing.sourceRoot = root;
+        }
+        skipped += 1;
+        continue;
+      }
       const arrayBuffer = await file.arrayBuffer();
       const metadata = readId3Metadata(arrayBuffer);
       const buffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
       const parsed = parseFilename(file.name);
-      const bpm = estimateBpm(buffer);
       const track = {
-        id: crypto.randomUUID(),
+        id: existing?.id || crypto.randomUUID(),
         title: metadata.title || parsed.title,
         artist: metadata.artist || parsed.artist,
         album: metadata.album || '',
-        bpm,
-        key: metadata.key || '--',
+        bpm: existing?.bpm || estimateBpm(buffer),
+        key: existing?.key || metadata.key || '--',
         duration: buffer.duration,
-        addedAt: Date.now() + index,
+        addedAt: existing?.addedAt || Date.now() + index,
         filename: file.name,
-        gridOffset: 0,
-        hotCues: {},
+        gridOffset: existing?.gridOffset || 0,
+        hotCues: existing?.hotCues || {},
         coverBlob: metadata.coverBlob || null,
-        blob: file,
-        buffer,
-        peaks: createPeaks(buffer),
+        // Materialize bytes: a File may still depend on a removable backing file.
+        blob: linked ? null : new Blob([arrayBuffer], { type: file.type }),
+        fileHandle: linked ? entry.fileHandle : null,
+        sourceRoot: linked ? root : null,
+        sourceName: root?.name || entry.relativePath.split('/').slice(0, -1).join('/'),
+        sourceId,
+        relativePath: entry.relativePath,
+        fileSize: file.size,
+        lastModified: file.lastModified,
+        // Decode on deck load instead of retaining an entire folder in RAM.
+        buffer: null,
+        peaks: null,
       };
-      state.tracks.push(track);
       await dbPut(track);
+      if (existing) state.tracks[state.tracks.indexOf(existing)] = track;
+      else state.tracks.push(track);
+      added += 1;
       renderTable();
     } catch (error) {
       console.error(error);
-      showToast(`Could not import ${file.name}`);
+      failed += 1;
     }
   }
-
-  state.importing = false;
-  ui.importButton.disabled = false;
-  updateLibraryStats();
   await updateStorageUi();
-  showToast(`${files.length} track${files.length === 1 ? '' : 's'} imported`);
+  showToast(`${added} ${linked ? 'linked' : 'imported'} · ${skipped} already in library${failed ? ` · ${failed} failed (unreadable, unsupported or storage full)` : ''}`, 6500);
 }
 
 const pendingDeckLoads = new Set();
@@ -1048,7 +1169,7 @@ async function loadTrackToDeck(trackId, deckId) {
     showToast(`${track.title} loaded into Deck ${deckId === 'A' ? '1' : '2'}`);
   } catch (error) {
     console.error(error);
-    showToast('This audio file could not be decoded');
+    showToast(error.externalFile ? error.message : 'This audio file could not be decoded', 6000);
   } finally {
     pendingDeckLoads.delete(deckId);
   }
@@ -1170,7 +1291,7 @@ function renderTable() {
     return `
       <tr data-id="${track.id}" class="${classes}" draggable="true">
         <td><div class="load-buttons"><button data-load="A" title="Load Deck 1" aria-label="Load ${escapeHtml(track.title)} on Deck 1">1</button><button data-load="B" title="Load Deck 2" aria-label="Load ${escapeHtml(track.title)} on Deck 2">2</button><button class="track-remove" data-remove-track type="button" title="Remove from library" aria-label="Remove ${escapeHtml(track.title)} from library"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4.5h9M6 4.5v-2h4v2m1.5 0-.5 9h-6l-.5-9M6.5 7v4m3-4v4"/></svg></button></div></td>
-        <td title="${escapeHtml(track.title)}"><div class="track-title-cell">${deckBadges}<img src="${escapeHtml(coverUrl)}" alt=""><span class="track-title-text">${escapeHtml(track.title)}</span></div></td>
+        <td title="${escapeHtml(track.title)}"><div class="track-title-cell">${deckBadges}<img src="${escapeHtml(coverUrl)}" alt=""><span class="track-title-text">${escapeHtml(track.title)}</span>${track.fileHandle ? `<span class="track-source" title="${escapeHtml(track.sourceName + '/' + track.relativePath)}">EXTERNAL</span>` : ''}</div></td>
         <td title="${escapeHtml(track.artist)}">${escapeHtml(track.artist)}</td>
         <td class="numeric editable" data-field="bpm" title="Double-click to edit BPM">${Number(track.bpm).toFixed(1)}</td>
         <td class="editable" data-field="key" title="Double-click to edit key">${escapeHtml(track.key || '--')}</td>
@@ -1926,7 +2047,10 @@ function exportLibraryData() {
     filename: track.filename,
     gridOffset: track.gridOffset || 0,
     hotCues: normaliseHotCues(track.hotCues),
-    audioBytes: track.blob?.size || 0,
+    audioBytes: track.fileSize || track.blob?.size || 0,
+    storageMode: track.fileHandle ? 'external' : 'local',
+    sourceName: track.sourceName || '',
+    relativePath: track.relativePath || '',
     artworkBytes: track.coverBlob?.size || 0,
   }));
   const payload = {
@@ -1952,8 +2076,9 @@ function exportLibraryData() {
 }
 
 async function clearLocalLibrary() {
+  if (state.importing) return showToast('Wait for the current import to finish');
   if (!state.tracks.length) return showToast('The local library is already empty');
-  const confirmed = await requestDialog({ title: 'Clear local library?', message: 'This removes every imported track, playlist assignment and Hot Cue from this browser. This cannot be undone.', code: 'DESTRUCTIVE ACTION', confirmText: 'CLEAR LIBRARY', danger: true });
+  const confirmed = await requestDialog({ title: 'Clear local library?', message: 'This removes imported copies, external track links, playlist assignments and Hot Cues from this browser. Files on your drive are never deleted. This cannot be undone.', code: 'DESTRUCTIVE ACTION', confirmText: 'CLEAR LIBRARY', danger: true });
   if (!confirmed) return;
   decks.A.pause(); decks.B.pause();
   decks.A.track = null; decks.B.track = null;
@@ -2260,7 +2385,25 @@ function setLibraryMaximized(maximized) {
 
 function bindEvents() {
   $$('[data-select-deck]').forEach(button => button.addEventListener('click', () => setSelectedDeck(button.dataset.selectDeck)));
-  ui.importButton.addEventListener('click', () => ui.fileInput.click());
+  ui.importButton.addEventListener('click', () => {
+    const supported = typeof window.showDirectoryPicker === 'function';
+    $('#linkFolderButton').disabled = !supported;
+    $('#directFolderHelp').textContent = supported
+      ? 'Keep the drive connected. Only artwork, track details and cues are saved in the app. Select the same folder again to scan for new tracks.'
+      : 'Direct folder access needs Chrome or Edge on desktop. You can still copy a folder into this browser.';
+    $('#importDialog').showModal();
+  });
+  $('#closeImportDialog').addEventListener('click', () => $('#importDialog').close());
+  $('#copyFilesButton').addEventListener('click', () => {
+    $('#importDialog').close();
+    ui.fileInput.click();
+  });
+  $('#copyFolderButton').addEventListener('click', () => chooseMusicFolder(false));
+  $('#linkFolderButton').addEventListener('click', () => chooseMusicFolder(true));
+  $('#folderInput').addEventListener('change', (event) => {
+    addFiles(event.target.files).catch(console.error);
+    event.target.value = '';
+  });
   const resetImportDropState = () => {
     ui.importButton.classList.remove('drop-target');
     ui.importButton.innerHTML = `${UI_ICONS.plus} ADD TRACKS`;
@@ -2400,7 +2543,7 @@ function bindEvents() {
   $('#closeAudioOutputX').addEventListener('click', () => $('#audioOutputDialog').close());
   // Only dismiss when the gesture starts and ends outside the dialog itself.
   // Clicking padding or dragging a slider beyond an edge must leave it open.
-  [ui.helpDialog, ui.storageDialog, $('#audioOutputDialog')].forEach((dialog) => {
+  [ui.helpDialog, ui.storageDialog, $('#audioOutputDialog'), $('#importDialog')].forEach((dialog) => {
     let startedOutside = false;
     const isOutside = (event) => {
       const rect = dialog.getBoundingClientRect();

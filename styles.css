@@ -4633,3 +4633,19 @@ html,body {min-width:0;min-height:0;}
   .library-section .load-buttons button {height:34px;min-height:34px;}
   .library-section .source-item,.library-section .playlist-select {height:38px;}
 }
+
+/* Music source choice uses the existing dark dialog material. */
+#importDialog {box-sizing:border-box;width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;padding:24px;border:1px solid #344858;border-radius:12px;background:#0c131c;color:#c5d2de;box-shadow:0 24px 80px #0009;}
+#importDialog header {display:flex;align-items:center;justify-content:space-between;gap:16px;}
+#importDialog h2 {margin:0;font-size:22px;font-weight:600;}
+#importDialog h3 {margin:0 0 8px;font-size:17px;font-weight:600;color:#e0e9f0;}
+#importDialog p {margin:12px 0 20px;font-size:16px;line-height:1.5;}
+#importDialog section {padding-top:20px;margin-top:20px;border-top:1px solid #344858;}
+#importDialog section p {margin:0 0 16px;}
+#importDialog button {min-height:44px;padding:10px 16px;border:1px solid #536c80;border-radius:5px;background:#153143;color:#c5edff;font-size:12px;font-weight:600;}
+#importDialog button:hover {background:#203e53;}
+#importDialog button:focus-visible {outline:2px solid #80e1ff;outline-offset:3px;}
+#importDialog button:disabled {opacity:.5;cursor:not-allowed;}
+#importDialog #closeImportDialog {display:grid;place-items:center;min-width:44px;padding:10px;background:transparent;}
+.import-copy-actions {display:flex;flex-wrap:wrap;gap:12px;}
+.track-source {flex:none;color:#a5c7da;font-size:9px;letter-spacing:.025em;}

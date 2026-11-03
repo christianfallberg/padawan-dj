@@ -1,5 +1,14 @@
 # Release notes
 
+## 1.1.0 — 2026-11-03
+
+- Add a choice of direct folder playback or local folder copying, including USB drives and subfolders.
+- Persist external file references, show EXTERNAL tracks, and request read access again when needed.
+- Skip hidden files and duplicates, preserve cues on rescans, and report import failures accurately.
+- Exclude external audio from local storage totals and avoid retaining decoded imports in memory.
+- Preserve individual file import and drag-and-drop copying.
+- Update app, asset URLs and offline cache to 1.1.0.
+
 ## 1.0.4 — 2026-11-02
 
 - Enlarge the desktop toolbar reveal strip to 20px with a wider, brighter grip and hover feedback.

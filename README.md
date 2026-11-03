@@ -1,4 +1,4 @@
-# Padawan DJ — v1.0.4
+# Padawan DJ — v1.1.0
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -58,7 +58,7 @@ Keep using the same port: the browser stores the library per origin, so `localho
 
 The interface can be hosted online while the music library remains local.
 
-- Audio files, embedded artwork and track metadata are stored in IndexedDB.
+- Imported audio copies, embedded artwork, track metadata and external file references are stored in IndexedDB.
 - Playlists and history are stored in localStorage.
 - Music is not uploaded to the hosting server.
 - Storage belongs to the exact origin: protocol + domain + port.
@@ -75,6 +75,18 @@ The library is also separate per browser and browser profile. Clearing site data
 
 Open **LOCAL STORAGE** in the top bar to see storage usage and request persistent storage. Persistent storage reduces the chance that the browser evicts app data automatically, although manually clearing site data still removes it.
 
+## Music folders and USB drives
+
+Open **ADD TRACKS** and choose how to add your music:
+
+- **PLAY FROM FOLDER** links a folder, including its subfolders, on your computer or USB drive. Tracks marked **EXTERNAL** need the drive connected. Only file references, metadata, artwork and cues are stored in the browser; audio is read from the drive when loading a deck.
+- **COPY FOLDER** imports audio into browser storage, so it remains available after disconnecting the drive.
+- **CHOOSE FILES** imports individual files as before. Dropped files are also copied.
+
+Direct folder access requires a browser with `showDirectoryPicker` (desktop Chrome or Edge), on HTTPS or localhost. Other browsers can copy folders instead. After reopening the app, loading an external track may ask for read permission again. Reconnect the drive and select the same folder with **PLAY FROM FOLDER** to rescan. Unchanged tracks are skipped, preserving cues and playlist assignments. Hidden files and macOS resource-fork files are ignored. Unsupported or unreadable audio files are counted as failures without stopping the rest of the import.
+
+Removing tracks or clearing the library only removes app data, never files on the drive. External audio is excluded from the local library size. The app never writes to your selected music folder.
+
 ## Headphone monitoring
 
 Open **AUDIO** in the top bar to detect and select a separate headphone output. Master audio uses the system default output; select a different device for headphones, then enable headphone monitoring. Device detection may request temporary microphone permission to reveal output names; the app immediately releases the microphone and does not record it.
@@ -83,17 +95,14 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.0.4
+## Latest release: 1.1.0
 
 See [release notes](CHANGELOG.md) for the version history.
 
-- The desktop toolbar handle has a larger 20px hit area, a brighter grip and hover feedback.
-- Short windows scroll when a pinned toolbar leaves too little room for the decks and library.
-- The mobile toolbar fits its wrapped buttons, including Install App; touch devices get a labelled 44px toolbar reveal target.
-- Adaptive deck controls with larger jog wheels where space allows, readable labels and clear KEY/MASTER spacing.
-- A denser music library with a draggable divider. Use Up/Down while the divider is focused, Home/End for its limits, or double-click to reset. The chosen height is remembered.
-- Auto-hide toolbar: hover the strip at the top, tap it, or press `Alt+T`. The pin keeps the toolbar visible. Hovering reveals an overlay without moving the decks.
-- Compact mixer layout and quieter deck-selection borders.
+- Choose direct folder playback or local copying for computer and USB music libraries.
+- Include subfolders, skip hidden files and avoid duplicate imports.
+- Remember external file references and preserve track cues across rescans.
+- Report failed imports accurately and release decoded import audio from memory.
 - Updated app version, asset URLs and offline cache.
 
 The layout adapts to the browser viewport, including Windows display scaling. Narrow or very short windows allow scrolling. Large displays keep expanded controls, and the library can still be maximized with `L`.
@@ -102,7 +111,7 @@ The layout adapts to the browser viewport, including Windows display scaling. Na
 
 The **INSTALL APP** button appears in supported browsers after the service worker and manifest are ready. Installation requires HTTPS, except that browsers treat `localhost` as a secure development origin.
 
-After the first successful load, the interface can start offline. Imported music remains available offline because it is stored locally in IndexedDB.
+After the first successful load, the interface can start offline. Imported music remains available offline because it is stored locally in IndexedDB. Linked external music also needs its drive connected and read access granted.
 
 ## Host it yourself
 
@@ -140,10 +149,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.0.4 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.1.0 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.0.4';
+const CACHE_VERSION = 'padawan-dj-v1.1.0';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
@@ -181,3 +190,11 @@ The check imports generated test audio, loads both decks and verifies 18 viewpor
 ## License
 
 Padawan DJ is released under the [MIT License](LICENSE).
+
+The folder-library integration check runs with the same Playwright setup:
+
+```bash
+node tests/music-library.cjs
+```
+
+It tests nested folders, saved file handles, duplicates, cues, playback after reload, missing files, denied access, independent local copies and storage failures. Its native folder picker is simulated using browser test files and real serializable file handles. Set `MUSIC_TEST_USB=/Volumes/DJ-2027` to read two MP3s from that drive as test audio; the test never modifies the drive. Native folder selection and permission prompts still need a manual browser check.
