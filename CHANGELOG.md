@@ -1,5 +1,12 @@
 # Release notes
 
+## 1.1.1 — 2026-11-03
+
+- Read ID3v2.2 artwork (PIC), title, artist, album and key, including MP3 files tagged by Apple Music.
+- Recover missing artwork for existing local and linked tracks when loaded into a deck or imported/rescanned again, preserving cues and track identity.
+- Respect tag boundaries and skip ID3v2.3/v2.4 extended headers.
+- Update app, asset URLs and offline cache to 1.1.1.
+
 ## 1.1.0 — 2026-11-03
 
 - Add a choice of direct folder playback or local folder copying, including USB drives and subfolders.

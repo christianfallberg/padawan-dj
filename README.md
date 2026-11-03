@@ -1,4 +1,4 @@
-# Padawan DJ — v1.1.0
+# Padawan DJ — v1.1.1
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -95,14 +95,13 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.1.0
+## Latest release: 1.1.1
 
 See [release notes](CHANGELOG.md) for the version history.
 
-- Choose direct folder playback or local copying for computer and USB music libraries.
-- Include subfolders, skip hidden files and avoid duplicate imports.
-- Remember external file references and preserve track cues across rescans.
-- Report failed imports accurately and release decoded import audio from memory.
+- Read embedded artwork and metadata from ID3v2.2 MP3s, including Apple Music tags.
+- Recover missing covers in existing libraries: load a track into a deck, import it again, or choose the same folder again under **ADD TRACKS → Play from folder**.
+- Preserve track IDs, hot cues and BPM settings during artwork recovery.
 - Updated app version, asset URLs and offline cache.
 
 The layout adapts to the browser viewport, including Windows display scaling. Narrow or very short windows allow scrolling. Large displays keep expanded controls, and the library can still be maximized with `L`.
@@ -149,10 +148,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.1.0 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.1.1 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.1.0';
+const CACHE_VERSION = 'padawan-dj-v1.1.1';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

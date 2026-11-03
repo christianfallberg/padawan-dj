@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -215,17 +215,32 @@ function readId3Metadata(arrayBuffer) {
   const metadata = {};
   if (bytes.length < 10 || String.fromCharCode(...bytes.slice(0, 3)) !== 'ID3') return metadata;
   const version = bytes[3];
+  if (![2, 3, 4].includes(version)) return metadata;
+  // ID3v2.2 compression is not supported.
+  if (version === 2 && (bytes[5] & 0x40)) return metadata;
   const tagEnd = Math.min(bytes.length, 10 + synchsafeInteger(bytes, 6));
   let offset = 10;
 
-  while (offset + 10 <= tagEnd) {
-    const frameId = String.fromCharCode(...bytes.slice(offset, offset + 4));
-    if (!/^[A-Z0-9]{4}$/.test(frameId)) break;
-    const frameSize = version === 4
+  if (version >= 3 && (bytes[5] & 0x40)) {
+    if (offset + 4 > tagEnd) return metadata;
+    const extraSize = version === 4 ? synchsafeInteger(bytes, offset)
+      : new DataView(arrayBuffer).getUint32(offset) + 4;
+    if (extraSize < 4 || offset + extraSize > tagEnd) return metadata;
+    offset += extraSize;
+  }
+  const headerSize = version === 2 ? 6 : 10;
+  const aliases = { TT2: 'TIT2', TP1: 'TPE1', TAL: 'TALB', TKE: 'TKEY', PIC: 'APIC' };
+  while (offset + headerSize <= tagEnd) {
+    const rawId = String.fromCharCode(...bytes.slice(offset, offset + (version === 2 ? 3 : 4)));
+    if (!(version === 2 ? /^[A-Z0-9]{3}$/ : /^[A-Z0-9]{4}$/).test(rawId)) break;
+    const frameId = aliases[rawId] || rawId;
+    const frameSize = version === 2
+      ? (bytes[offset + 3] << 16) + (bytes[offset + 4] << 8) + bytes[offset + 5]
+      : version === 4
       ? synchsafeInteger(bytes, offset + 4)
       : ((bytes[offset + 4] << 24) >>> 0) + (bytes[offset + 5] << 16) + (bytes[offset + 6] << 8) + bytes[offset + 7];
-    if (!frameSize || offset + 10 + frameSize > bytes.length) break;
-    const payload = bytes.slice(offset + 10, offset + 10 + frameSize);
+    if (!frameSize || offset + headerSize + frameSize > tagEnd) break;
+    const payload = bytes.slice(offset + headerSize, offset + headerSize + frameSize);
 
     if (frameId === 'TIT2') metadata.title = decodeId3Text(payload);
     else if (frameId === 'TPE1') metadata.artist = decodeId3Text(payload);
@@ -233,19 +248,36 @@ function readId3Metadata(arrayBuffer) {
     else if (frameId === 'TKEY') metadata.key = decodeId3Text(payload);
     else if (frameId === 'APIC' && payload.length > 8 && !metadata.coverBlob) {
       const encoding = payload[0];
-      const mimeEnd = payload.indexOf(0, 1);
+      const mimeEnd = version === 2 ? 4 : payload.indexOf(0, 1);
       if (mimeEnd > 1) {
-        const mime = new TextDecoder('iso-8859-1').decode(payload.slice(1, mimeEnd)) || 'image/jpeg';
-        const descriptionStart = mimeEnd + 2;
+        const format = new TextDecoder('iso-8859-1').decode(payload.slice(1, mimeEnd));
+        const mime = version === 2 ? ({ PNG: 'image/png', JPG: 'image/jpeg' }[format]) : format;
+        if (!mime || !mime.startsWith('image/')) { offset += headerSize + frameSize; continue; }
+        const descriptionStart = version === 2 ? 5 : mimeEnd + 2;
         const descriptionEnd = findId3Terminator(payload, descriptionStart, encoding);
         const imageStart = Math.min(payload.length, descriptionEnd + (encoding === 0 || encoding === 3 ? 1 : 2));
         const imageBytes = payload.slice(imageStart);
         if (imageBytes.length > 32) metadata.coverBlob = new Blob([imageBytes], { type: mime });
       }
     }
-    offset += 10 + frameSize;
+    offset += headerSize + frameSize;
   }
   return metadata;
+}
+
+async function refreshMissingArtwork(track, arrayBuffer) {
+  if (track.coverBlob) return;
+  const metadata = readId3Metadata(arrayBuffer);
+  if (!metadata.coverBlob) return;
+  const updated = { ...track, coverBlob: metadata.coverBlob };
+  await dbPut(updated);
+  if (track.coverUrl?.startsWith('blob:')) URL.revokeObjectURL(track.coverUrl);
+  track.coverBlob = metadata.coverBlob;
+  track.coverUrl = null;
+  renderTable();
+  for (const deck of Object.values(decks)) {
+    if (deck.track === track) deck.updateCoverUi();
+  }
 }
 
 function coverInitials(track) {
@@ -985,6 +1017,8 @@ async function ensureAudioReady() {
 async function ensureTrackDecoded(track) {
   if (track.buffer && track.peaks) return;
   const arrayBuffer = await track.blob.arrayBuffer();
+  try { await refreshMissingArtwork(track, arrayBuffer); }
+  catch (error) { console.warn('Artwork could not be saved:', error); }
   track.buffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
   track.duration = track.buffer.duration;
   track.peaks = createPeaks(track.buffer);
@@ -1107,6 +1141,7 @@ async function importEntries(entries, { root = null, linked = false } = {}) {
           existing.fileHandle = entry.fileHandle;
           existing.sourceRoot = root;
         }
+        if (!existing.coverBlob) await refreshMissingArtwork(existing, await file.arrayBuffer());
         skipped += 1;
         continue;
       }
