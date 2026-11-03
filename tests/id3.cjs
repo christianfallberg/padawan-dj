@@ -39,6 +39,13 @@ const read = bytes => context.readId3Metadata(Uint8Array.from(bytes).buffer);
   assert.equal(read(Buffer.from([73,68,51,3,0,64,0,0,0,1,0])).coverBlob,undefined);
   // Do not read a frame whose payload runs past the declared tag boundary.
   const short=Buffer.from(sample); sync(6).copy(short,6); assert.equal(read(short).coverBlob,undefined);
+  // Reading only the tag must yield the same artwork as reading the whole file.
+  const withAudio=new Blob([sample,Buffer.alloc(50000,0xff)]);
+  const tagOnly=await context.readId3TagBuffer(withAudio);
+  assert.equal(tagOnly.byteLength,sample.length);
+  assert.deepEqual(Buffer.from(await context.readId3Metadata(tagOnly).coverBlob.arrayBuffer()),png);
+  assert.equal(await context.readId3TagBuffer(new Blob([Buffer.alloc(100,0xff)])),null);
+  assert.equal(await context.readId3TagBuffer(new Blob([Buffer.from('ID3')])),null);
   const track={id:'existing',hotCues:{A:1.25},bpm:123,coverBlob:null,coverUrl:'old fallback',fileHandle:{kind:'file'}};
   context.decks.A={track,updateCoverUi:()=>updates++};
   await context.refreshMissingArtwork(track,Uint8Array.from(sample).buffer);

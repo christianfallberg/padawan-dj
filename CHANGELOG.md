@@ -1,5 +1,11 @@
 # Release notes
 
+## 1.1.2 — 2026-11-03
+
+- Read only the ID3 tag, not the whole file, when recovering missing artwork during folder rescans.
+- Count tracks as skipped, not failed, when their recovered artwork cannot be saved during a rescan.
+- Update app, asset URLs and offline cache to 1.1.2.
+
 ## 1.1.1 — 2026-11-03
 
 - Read ID3v2.2 artwork (PIC), title, artist, album and key, including MP3 files tagged by Apple Music.

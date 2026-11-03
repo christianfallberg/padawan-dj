@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -278,6 +278,13 @@ async function refreshMissingArtwork(track, arrayBuffer) {
   for (const deck of Object.values(decks)) {
     if (deck.track === track) deck.updateCoverUi();
   }
+}
+
+// Read only the ID3v2 tag at the start of a file, not the audio data after it.
+async function readId3TagBuffer(blob) {
+  const header = new Uint8Array(await blob.slice(0, 10).arrayBuffer());
+  if (header.length < 10 || String.fromCharCode(...header.slice(0, 3)) !== 'ID3') return null;
+  return blob.slice(0, 10 + synchsafeInteger(header, 6)).arrayBuffer();
 }
 
 function coverInitials(track) {
@@ -1141,7 +1148,12 @@ async function importEntries(entries, { root = null, linked = false } = {}) {
           existing.fileHandle = entry.fileHandle;
           existing.sourceRoot = root;
         }
-        if (!existing.coverBlob) await refreshMissingArtwork(existing, await file.arrayBuffer());
+        if (!existing.coverBlob) {
+          try {
+            const tagBuffer = await readId3TagBuffer(file);
+            if (tagBuffer) await refreshMissingArtwork(existing, tagBuffer);
+          } catch (error) { console.warn('Artwork could not be saved:', error); }
+        }
         skipped += 1;
         continue;
       }
