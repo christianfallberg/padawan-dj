@@ -1,4 +1,4 @@
-# Padawan DJ — v1.1.3
+# Padawan DJ — v1.1.4
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -95,14 +95,14 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.1.3
+## Latest release: 1.1.4
 
 See [release notes](CHANGELOG.md) for the version history.
 
-- Long sessions use far less memory: decoded audio is released when a track leaves the decks.
-- Setting a CUE point no longer moves the beatgrid, so Sync stays accurate.
-- Keyboard shortcuts no longer fire with Cmd, Ctrl or Alt, and Enter on a focused button no longer also loads a track.
-- Security hardening for embedded artwork and the offline cache.
+- The app starts even when saved playlists or history are corrupt or browser storage is blocked.
+- Clearing the library fully unloads both decks.
+- Waveform Hot Cue markers are numbered 1–4, matching the pads.
+- Steadier Sync, arrow-key seeking and changed USB files; storage errors no longer show the wrong message.
 
 The layout adapts to the browser viewport, including Windows display scaling. Narrow or very short windows allow scrolling. Large displays keep expanded controls, and the library can still be maximized with `L`.
 
@@ -148,10 +148,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.1.3 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.1.4 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.1.3';
+const CACHE_VERSION = 'padawan-dj-v1.1.4';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
@@ -205,4 +205,4 @@ node tests/deck-behavior.cjs
 node tests/offline-shell.cjs
 ```
 
-`deck-behavior.cjs` checks that decoded audio is released when a track leaves the decks, that the CUE point is stored separately from the beatgrid, that shortcuts with Cmd/Ctrl/Alt and Enter on focused buttons are ignored, and that only raster artwork types are accepted. `offline-shell.cjs` checks that a server error page never replaces the cached app for offline startup.
+`deck-behavior.cjs` checks that decoded audio is released when a track leaves the decks, that the CUE point is stored separately from the beatgrid, that shortcuts with Cmd/Ctrl/Alt and Enter on focused buttons are ignored, that only raster artwork types are accepted, and that the app starts with corrupt or blocked localStorage. It also covers Hot Cue labels, Sync and arrow seeking before a track's length is known, changed external files and clearing the library. `offline-shell.cjs` checks that a server error page never replaces the cached app for offline startup.

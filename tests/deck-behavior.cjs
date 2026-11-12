@@ -1,5 +1,6 @@
 // Deck behavior checks: decoded-audio release and shared decoding, CUE point kept apart from the
-// beatgrid, keyboard shortcuts with modifiers or on focused buttons, and the embedded-artwork type allowlist.
+// beatgrid, keyboard shortcuts, the embedded-artwork type allowlist, startup with corrupt or blocked
+// localStorage, Hot Cue labels, Sync and arrow seeking before metadata, changed external files and clearing the library.
 const { chromium } = require("playwright");
 const assert = require("assert/strict"), fs = require("fs"), http = require("http"), path = require("path");
 const root = path.resolve(__dirname, "..");
@@ -85,7 +86,104 @@ function wav(freq) {
     return { svg: readId3Metadata(tag("image/svg+xml")).coverBlob?.type ?? null, jpg: readId3Metadata(tag("image/jpg")).coverBlob?.type, stored: getTrackCoverUrl(svgTrack).slice(0, 14) };
   });
   assert.deepEqual(r, { svg: null, jpg: "image/jpeg", stored: "data:image/sv" + "g" });
+  // Waveform Hot Cue markers are numbered like the pads.
+  r = await page.evaluate(() => {
+    const t = decks.A.track; t.hotCues = { D: decks.A.audio.currentTime };
+    const labels = [], orig = CanvasRenderingContext2D.prototype.fillText;
+    CanvasRenderingContext2D.prototype.fillText = function (text, ...rest) { if (this.fillStyle === "#071018") labels.push(text); return orig.call(this, text, ...rest); };
+    drawWaveform(decks.A);
+    CanvasRenderingContext2D.prototype.fillText = orig;
+    t.hotCues = {};
+    return labels;
+  });
+  assert.deepEqual(r, ["4"], "Hot Cue 4 marker labelled 4");
+
+  // Arrow seeking and Sync use the stored length while the element's duration is unknown.
+  r = await page.evaluate(() => {
+    decks.A.pause(); decks.A.audio.currentTime = 1; setSelectedDeck("A");
+    Object.defineProperty(decks.A.audio, "duration", { get: () => NaN, configurable: true });
+    document.activeElement.blur();
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { code: "ArrowRight", key: "ArrowRight", bubbles: true }));
+    const afterArrow = decks.A.audio.currentTime;
+    setMasterDeck("B");
+    let syncError = null;
+    try { decks.A.syncTo(decks.B); } catch (error) { syncError = error.message; }
+    delete decks.A.audio.duration;
+    return { afterArrow: Math.round(afterArrow), syncError, rate: decks.A.audio.playbackRate > 0 };
+  });
+  assert.deepEqual(r, { afterArrow: 6, syncError: null, rate: true }, "arrow and sync before duration is known");
+  r = await page.evaluate(() => {
+    decks.A.setTempo(0);
+    const bpm = decks.B.track.bpm; decks.B.track.bpm = 0;
+    decks.A.syncTo(decks.B); const zeroBpm = { tempo: decks.A.tempoPercent, toast: ui.toast.textContent };
+    decks.B.track.bpm = bpm;
+    decks.B.syncTo(decks.B); const self = ui.toast.textContent;
+    setMasterDeck("A");
+    return { zeroBpm, self };
+  });
+  assert.deepEqual(r, { zeroBpm: { tempo: 0, toast: "Set a BPM on both tracks before syncing" }, self: "Deck 2 is the master deck" });
+
+  // A failed history save does not report the track as undecodable.
+  r = await page.evaluate(async ([, , c]) => {
+    decks.A.pause();
+    const orig = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => { throw new DOMException("full", "QuotaExceededError"); };
+    await loadTrackToDeck(c, "A");
+    Storage.prototype.setItem = orig;
+    return { loaded: decks.A.track.id === c, toast: ui.toast.textContent };
+  }, ids);
+  assert.ok(r.loaded && /loaded into Deck 1/.test(r.toast), `history save failure toast: ${r.toast}`);
+
+  // A changed external file: length saved, size/date kept for rescans, other deck's waveform kept.
+  r = await page.evaluate(async () => {
+    const dir = await navigator.storage.getDirectory();
+    const handle = await dir.getFileHandle("changed.wav", { create: true });
+    const writer = await handle.createWritable(); await writer.write(state.tracks[0].blob); await writer.close();
+    const file = await handle.getFile();
+    const track = { ...state.tracks[0], id: crypto.randomUUID(), title: "Changed", blob: null, buffer: null, peaks: null, decoding: null,
+      fileHandle: handle, sourceRoot: null, fileSize: file.size - 1, lastModified: 1, duration: 0, cuePoint: null, hotCues: {} };
+    await dbPut(track); state.tracks.push(track);
+    decks.B.pause();
+    await loadTrackToDeck(track.id, "B");
+    const peaksOnB = decks.B.track.peaks;
+    let decodes = 0; const orig = audioContext.decodeAudioData.bind(audioContext);
+    audioContext.decodeAudioData = (...a) => { decodes++; return orig(...a); };
+    decks.A.pause();
+    await loadTrackToDeck(track.id, "A");
+    audioContext.decodeAudioData = orig;
+    await new Promise(r => setTimeout(r, 200));
+    const stored = (await dbGetAll()).find(x => x.id === track.id);
+    return { duration: Math.round(stored.duration), staleSize: stored.fileSize === file.size - 1, decodes, peaksKept: decks.B.track.peaks === peaksOnB && !!peaksOnB };
+  });
+  assert.deepEqual(r, { duration: 6, staleSize: true, decodes: 0, peaksKept: true }, "changed external file");
+
+  // Clearing the library fully unloads both decks.
+  await page.evaluate(() => { clearLocalLibrary(); });
+  await page.click("#actionDialogConfirm");
+  await page.waitForFunction(() => state.tracks.length === 0);
+  r = await page.evaluate(() => ["A", "B"].map(id => ({ track: decks[id].track, src: decks[id].audio.getAttribute("src"), url: decks[id].objectUrl })));
+  assert.deepEqual(r, [{ track: null, src: null, url: null }, { track: null, src: null, url: null }], "decks unloaded");
   assert.deepEqual(errors, []);
-  console.log("PASS deck behavior: decoded-audio release, shared decoding, separate CUE point, modifier shortcuts, Enter on buttons, artwork type allowlist");
+
+  // Startup survives corrupt, malformed or blocked localStorage.
+  const base = `http://127.0.0.1:${server.address().port}/`;
+  for (const [name, setup, expected] of [
+    ["corrupt JSON", () => { localStorage.setItem("dualDeckHistory", "{"); localStorage.setItem("dualDeckPlaylists", "["); }, ["Warm Up", "Peak Time", "Closing"]],
+    ["malformed playlists", () => { localStorage.setItem("dualDeckHistory", '{"a":1}'); localStorage.setItem("dualDeckPlaylists", '[{"id":"x","name":"Mine","trackIds":"bad"},{"bad":1},null]'); }, ["Mine"]],
+    ["blocked storage", () => { Object.defineProperty(window, "localStorage", { get() { throw new DOMException("blocked", "SecurityError"); } }); }, ["Warm Up", "Peak Time", "Closing"]],
+  ]) {
+    const context = await browser.newContext();
+    await context.addInitScript(setup);
+    const startPage = await context.newPage();
+    const startErrors = []; startPage.on("pageerror", e => startErrors.push(e.message));
+    await startPage.goto(base);
+    await startPage.waitForFunction(() => state.db && document.querySelector("#libraryStatus").textContent.endsWith("TRACKS"));
+    const result = await startPage.evaluate(() => ({ playlists: state.playlists.map(p => p.name), history: state.history, rows: $$(".playlist-row").length }));
+    assert.deepEqual(result, { playlists: expected, history: [], rows: expected.length }, name);
+    assert.deepEqual(startErrors, [], name);
+    await context.close();
+  }
+
+  console.log("PASS deck behavior: decoded-audio release, shared decoding, separate CUE point, shortcuts, artwork allowlist, Hot Cue labels, Sync/arrows before metadata, storage failures, changed external files, clear library");
   await browser.close(); server.close();
 })().catch(e => { console.error(e); process.exit(1); });

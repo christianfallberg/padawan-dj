@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.1.3';
+const APP_VERSION = '1.1.4';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -23,19 +23,54 @@ const HOT_CUE_NUMBERS = { A: 1, B: 2, C: 3, D: 4 }; // Keep original A-D storage
 // Raster formats only: an SVG blob URL opened in a tab could run script in this origin.
 const COVER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
+// localStorage can be blocked, full or hold corrupt data; none of that may stop the app.
+function readStoredJson(key) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null'); }
+  catch (error) { console.warn(`Ignoring unreadable ${key}`, error); return null; }
+}
+
+function writeStoredJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    console.warn(`Could not save ${key}`, error);
+    return false;
+  }
+}
+
+function loadStoredHistory() {
+  const saved = readStoredJson('dualDeckHistory');
+  return Array.isArray(saved) ? saved.filter((id) => typeof id === 'string') : [];
+}
+
+function loadStoredPlaylists() {
+  const saved = readStoredJson('dualDeckPlaylists');
+  if (!Array.isArray(saved)) {
+    return [
+      { id: 'warm-up', name: 'Warm Up', trackIds: [] },
+      { id: 'peak-time', name: 'Peak Time', trackIds: [] },
+      { id: 'closing', name: 'Closing', trackIds: [] },
+    ];
+  }
+  return saved
+    .filter((playlist) => playlist && typeof playlist.id === 'string' && typeof playlist.name === 'string')
+    .map((playlist) => ({
+      id: playlist.id,
+      name: playlist.name,
+      trackIds: Array.isArray(playlist.trackIds) ? playlist.trackIds.filter((id) => typeof id === 'string') : [],
+    }));
+}
+
 const state = {
   tracks: [],
-  history: JSON.parse(localStorage.getItem('dualDeckHistory') || '[]'),
+  history: loadStoredHistory(),
   selectedDeck: 'A',
   selectedTrackId: null,
   source: 'collection',
   search: '',
   sort: { field: 'addedAt', direction: 'desc' },
-  playlists: JSON.parse(localStorage.getItem('dualDeckPlaylists') || 'null') || [
-    { id: 'warm-up', name: 'Warm Up', trackIds: [] },
-    { id: 'peak-time', name: 'Peak Time', trackIds: [] },
-    { id: 'closing', name: 'Closing', trackIds: [] },
-  ],
+  playlists: loadStoredPlaylists(),
   db: null,
   importing: false,
   waveformWindowSeconds: DEFAULT_WAVEFORM_WINDOW_SECONDS,
@@ -674,6 +709,7 @@ class Deck {
   }
 
   async load(track) {
+    let externalFileChanged = false;
     // Request access while the deck-load click still has user activation.
     if (track.fileHandle) {
       try {
@@ -683,10 +719,14 @@ class Deck {
           throw new Error('Read access was not granted');
         }
         const file = await track.fileHandle.getFile();
-        if (file.size !== track.fileSize || file.lastModified !== track.lastModified) {
+        // Only drop decoded data when it came from a different version of the file.
+        const decoded = track.decodedFrom;
+        if (decoded && (file.size !== decoded.size || file.lastModified !== decoded.lastModified)) {
           track.buffer = null;
           track.peaks = null;
         }
+        // Size and date stay as imported, so a rescan still refreshes the file's tags.
+        externalFileChanged = file.size !== track.fileSize || file.lastModified !== track.lastModified;
         track.blob = file;
       } catch (error) {
         const unavailable = new Error('Connect the drive and choose ADD TRACKS → Play from folder to reconnect. Allow read access when asked.');
@@ -696,6 +736,8 @@ class Deck {
     }
     await ensureAudioReady();
     await ensureTrackDecoded(track);
+    // Save the changed file's real length so the library shows it after a reload.
+    if (externalFileChanged) dbPut(track).catch(console.error);
     // Check after decoding: the existing track may have started while preparing.
     if (this.track && !this.audio.paused && !this.audio.ended) {
       if (ui.actionDialog.open) {
@@ -939,6 +981,9 @@ class Deck {
 
   syncTo(masterDeck) {
     if (!this.track || !masterDeck.track) return showToast('Load tracks into both decks before syncing');
+    if (masterDeck === this) return showToast(`Deck ${this.id === 'A' ? '1' : '2'} is the master deck`);
+    const validBpm = (bpm) => Number.isFinite(bpm) && bpm > 0;
+    if (!validBpm(this.track.bpm) || !validBpm(masterDeck.track.bpm)) return showToast('Set a BPM on both tracks before syncing');
     const masterCurrentBpm = masterDeck.track.bpm * masterDeck.audio.playbackRate;
     const targetRate = clamp(masterCurrentBpm / this.track.bpm, 0.5, 2);
     this.setTempo((targetRate - 1) * 100);
@@ -950,7 +995,8 @@ class Deck {
     const masterPhase = ((masterPhaseRaw % 1) + 1) % 1;
     const targetBeat = Math.round((this.audio.currentTime - (this.track.gridOffset || 0)) / targetPeriod);
     const aligned = (this.track.gridOffset || 0) + (targetBeat + masterPhase) * targetPeriod;
-    if (Number.isFinite(aligned)) this.audio.currentTime = clamp(aligned, 0, Math.max(0, this.audio.duration - 0.05));
+    // seekTo clamps to the track and falls back to the stored duration before metadata loads.
+    if (Number.isFinite(aligned)) this.seekTo(aligned);
     showToast(`Deck ${this.id} synced to ${masterCurrentBpm.toFixed(2)} BPM`);
   }
 
@@ -1054,6 +1100,7 @@ async function decodeTrack(track) {
   try { await refreshMissingArtwork(track, arrayBuffer); }
   catch (error) { console.warn('Artwork could not be saved:', error); }
   track.buffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+  track.decodedFrom = { size: track.blob.size, lastModified: track.blob.lastModified };
   track.duration = track.buffer.duration;
   track.peaks = createPeaks(track.buffer);
 }
@@ -1240,7 +1287,7 @@ async function loadTrackToDeck(trackId, deckId) {
   try {
     if (!await decks[deckId].load(track)) return;
     state.history = [track.id, ...state.history.filter((id) => id !== track.id)].slice(0, 100);
-    localStorage.setItem('dualDeckHistory', JSON.stringify(state.history));
+    writeStoredJson('dualDeckHistory', state.history);
     showToast(`${track.title} loaded into Deck ${deckId === 'A' ? '1' : '2'}`);
   } catch (error) {
     console.error(error);
@@ -1280,7 +1327,7 @@ function getVisibleTracks() {
 }
 
 function savePlaylists() {
-  localStorage.setItem('dualDeckPlaylists', JSON.stringify(state.playlists));
+  if (!writeStoredJson('dualDeckPlaylists', state.playlists)) showToast('Playlists could not be saved in this browser', 3200);
 }
 
 function renderPlaylistList() {
@@ -1399,7 +1446,7 @@ async function removeTrack(trackId) {
   state.history = state.history.filter((id) => id !== trackId);
   state.playlists.forEach((playlist) => { playlist.trackIds = playlist.trackIds.filter((id) => id !== trackId); });
   if (state.selectedTrackId === trackId) state.selectedTrackId = null;
-  localStorage.setItem('dualDeckHistory', JSON.stringify(state.history));
+  writeStoredJson('dualDeckHistory', state.history);
   savePlaylists();
   await dbDelete(trackId);
   renderPlaylistList();
@@ -1548,7 +1595,7 @@ function drawWaveform(deck) {
     ctx.fillStyle = '#071018';
     ctx.font = `bold ${6 * ratio}px ui-sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(letter, x, 5.6 * ratio);
+    ctx.fillText(String(HOT_CUE_NUMBERS[letter]), x, 5.6 * ratio);
   }
   ctx.globalAlpha = 1;
   ctx.textAlign = 'left';
@@ -2156,9 +2203,8 @@ async function clearLocalLibrary() {
   if (!state.tracks.length) return showToast('The local library is already empty');
   const confirmed = await requestDialog({ title: 'Clear local library?', message: 'This removes imported copies, external track links, playlist assignments and Hot Cues from this browser. Files on your drive are never deleted. This cannot be undone.', code: 'DESTRUCTIVE ACTION', confirmText: 'CLEAR LIBRARY', danger: true });
   if (!confirmed) return;
-  decks.A.pause(); decks.B.pause();
-  decks.A.track = null; decks.B.track = null;
-  decks.A.updateTrackUi(); decks.B.updateTrackUi();
+  // Unload fully: stop audio, release object URLs and redraw empty waveforms.
+  decks.A.unload(); decks.B.unload();
   state.tracks.forEach((track) => {
     if (track.coverUrl?.startsWith('blob:')) URL.revokeObjectURL(track.coverUrl);
   });
@@ -2168,7 +2214,7 @@ async function clearLocalLibrary() {
   state.playlists.forEach((playlist) => { playlist.trackIds = []; });
   savePlaylists();
   renderPlaylistList();
-  localStorage.removeItem('dualDeckHistory');
+  try { localStorage.removeItem('dualDeckHistory'); } catch (error) { console.warn(error); }
   await dbClear();
   renderTable();
   await updateStorageUi();
@@ -2801,8 +2847,8 @@ function bindEvents() {
     if (event.key.toLowerCase() === 's') return deck.syncTo(decks[state.masterDeck]);
     if (event.key.toLowerCase() === 'l') return setLibraryMaximized(!$('.workspace').classList.contains('library-maximized'));
     if (event.code === 'Escape' && $('.workspace').classList.contains('library-maximized')) return setLibraryMaximized(false);
-    if (event.code === 'ArrowLeft' && deck.track) { event.preventDefault(); deck.audio.currentTime = Math.max(0, deck.audio.currentTime - 5); }
-    if (event.code === 'ArrowRight' && deck.track) { event.preventDefault(); deck.audio.currentTime = Math.min(deck.audio.duration || 0, deck.audio.currentTime + 5); }
+    if (event.code === 'ArrowLeft' && deck.track) { event.preventDefault(); deck.seekBy(-5); }
+    if (event.code === 'ArrowRight' && deck.track) { event.preventDefault(); deck.seekBy(5); }
     // Enter on a focused control activates that control; it must not also load a track.
     const onControl = event.target !== document.body && event.target.closest('button, a, [tabindex], [role="slider"], [contenteditable]');
     if (event.code === 'Enter' && state.selectedTrackId && !onControl) return loadTrackToDeck(state.selectedTrackId, state.selectedDeck).catch(console.error);

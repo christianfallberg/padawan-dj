@@ -1,5 +1,16 @@
 # Release notes
 
+## 1.1.4 — 2026-11-12
+
+- Start normally when saved playlists or history are corrupt or browser storage is blocked; invalid entries are ignored.
+- Show a message when playlists cannot be saved, and no longer report a successfully loaded track as undecodable when its history entry cannot be saved.
+- Fully unload both decks when clearing the library, releasing their audio.
+- Arrow-key seeking can no longer jump to the start before a track's length is known.
+- Number Hot Cue markers 1–4 on the main waveform, matching the pads and the overview.
+- Sync no longer fails before a track's length is known, needs a valid BPM on both tracks, and explains when the deck is already the master.
+- Save the real length of a USB/folder file that changed since import, and no longer blank the waveform on one deck when the other deck loads the same file.
+- Update app, asset URLs and offline cache to 1.1.4.
+
 ## 1.1.3 — 2026-11-12
 
 - Release a track's decoded audio when it leaves the decks, so long sessions no longer build up memory. Loading one track on both decks shares a single decode.
