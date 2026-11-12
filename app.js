@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.1.3';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -20,6 +20,8 @@ const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal drag
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
 const HOT_CUE_COLORS = { A: '#ff5278', B: '#459eff', C: '#24dca6', D: '#b17aff' };
 const HOT_CUE_NUMBERS = { A: 1, B: 2, C: 3, D: 4 }; // Keep original A-D storage keys.
+// Raster formats only: an SVG blob URL opened in a tab could run script in this origin.
+const COVER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 const state = {
   tracks: [],
@@ -251,8 +253,9 @@ function readId3Metadata(arrayBuffer) {
       const mimeEnd = version === 2 ? 4 : payload.indexOf(0, 1);
       if (mimeEnd > 1) {
         const format = new TextDecoder('iso-8859-1').decode(payload.slice(1, mimeEnd));
-        const mime = version === 2 ? ({ PNG: 'image/png', JPG: 'image/jpeg' }[format]) : format;
-        if (!mime || !mime.startsWith('image/')) { offset += headerSize + frameSize; continue; }
+        const rawMime = version === 2 ? ({ PNG: 'image/png', JPG: 'image/jpeg' }[format.toUpperCase()]) : format.trim().toLowerCase();
+        const mime = rawMime === 'image/jpg' ? 'image/jpeg' : rawMime;
+        if (!COVER_MIME_TYPES.has(mime)) { offset += headerSize + frameSize; continue; }
         const descriptionStart = version === 2 ? 5 : mimeEnd + 2;
         const descriptionEnd = findId3Terminator(payload, descriptionStart, encoding);
         const imageStart = Math.min(payload.length, descriptionEnd + (encoding === 0 || encoding === 3 ? 1 : 2));
@@ -305,7 +308,8 @@ function fallbackCoverDataUrl(track) {
 function getTrackCoverUrl(track) {
   if (!track) return '';
   if (track.coverUrl) return track.coverUrl;
-  track.coverUrl = track.coverBlob ? URL.createObjectURL(track.coverBlob) : fallbackCoverDataUrl(track);
+  // Also guards artwork stored by earlier versions, which accepted any image type.
+  track.coverUrl = COVER_MIME_TYPES.has(track.coverBlob?.type) ? URL.createObjectURL(track.coverBlob) : fallbackCoverDataUrl(track);
   return track.coverUrl;
 }
 
@@ -425,6 +429,7 @@ function dbPut(track) {
     addedAt: track.addedAt,
     filename: track.filename,
     gridOffset: track.gridOffset || 0,
+    cuePoint: Number.isFinite(track.cuePoint) ? track.cuePoint : null,
     hotCues: normaliseHotCues(track.hotCues),
     album: track.album || '',
     coverBlob: track.coverBlob || null,
@@ -709,9 +714,14 @@ class Deck {
     this.pause();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.objectUrl = URL.createObjectURL(track.blob);
+    const previous = this.track;
     this.track = track;
+    if (previous !== track) releaseDecodedAudio(previous);
+    // The other deck may have released this buffer while the replace dialog was open.
+    if (!track.buffer) ensureTrackDecoded(track).catch(console.error);
     this.track.hotCues = normaliseHotCues(this.track.hotCues);
-    this.cueTime = track.gridOffset || 0;
+    // Before 1.1.3 the cue point was stored in gridOffset, so fall back to it.
+    this.cueTime = Number.isFinite(track.cuePoint) ? track.cuePoint : track.gridOffset || 0;
     this.tempoPercent = 0;
     this.audio.src = this.objectUrl;
     this.audio.currentTime = 0;
@@ -746,7 +756,9 @@ class Deck {
     this.audio.load();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.objectUrl = null;
+    const previous = this.track;
     this.track = null;
+    releaseDecodedAudio(previous);
     this.cueTime = 0;
     this.updateTrackUi();
     drawOverview(this);
@@ -761,7 +773,8 @@ class Deck {
       showToast(`Deck ${this.id}: returned to cue`);
     } else if (Math.abs(this.audio.currentTime - this.cueTime) > 0.15) {
       this.cueTime = this.audio.currentTime;
-      this.track.gridOffset = this.cueTime;
+      // Keep the cue separate from the beatgrid, which Sync relies on.
+      this.track.cuePoint = this.cueTime;
       dbPut(this.track).catch(console.error);
       showToast(`Deck ${this.id}: cue set at ${formatTime(this.cueTime, true)}`);
     } else {
@@ -921,7 +934,6 @@ class Deck {
   setGridOffset(offset) {
     if (!this.track) return;
     this.track.gridOffset = Math.max(0, offset);
-    this.cueTime = this.track.gridOffset;
     dbPut(this.track).catch(console.error);
   }
 
@@ -1021,8 +1033,23 @@ async function ensureAudioReady() {
   if (audioContext.state !== 'running') await audioContext.resume();
 }
 
+// A decoded track is ~10 MB per stereo minute. Keep it only while a deck holds it
+// (scratching needs it); the small peaks array is kept so waveforms redraw instantly.
+function releaseDecodedAudio(track) {
+  if (!track || Object.values(decks).some((deck) => deck.track === track)) return;
+  track.buffer = null;
+}
+
 async function ensureTrackDecoded(track) {
   if (track.buffer && track.peaks) return;
+  // Loading the same track on both decks shares one decode.
+  if (!track.decoding) {
+    track.decoding = decodeTrack(track).finally(() => { track.decoding = null; });
+  }
+  await track.decoding;
+}
+
+async function decodeTrack(track) {
   const arrayBuffer = await track.blob.arrayBuffer();
   try { await refreshMissingArtwork(track, arrayBuffer); }
   catch (error) { console.warn('Artwork could not be saved:', error); }
@@ -1172,6 +1199,7 @@ async function importEntries(entries, { root = null, linked = false } = {}) {
         addedAt: existing?.addedAt || Date.now() + index,
         filename: file.name,
         gridOffset: existing?.gridOffset || 0,
+        cuePoint: existing?.cuePoint ?? null,
         hotCues: existing?.hotCues || {},
         coverBlob: metadata.coverBlob || null,
         // Materialize bytes: a File may still depend on a removable backing file.
@@ -2093,6 +2121,7 @@ function exportLibraryData() {
     addedAt: track.addedAt,
     filename: track.filename,
     gridOffset: track.gridOffset || 0,
+    cuePoint: Number.isFinite(track.cuePoint) ? track.cuePoint : null,
     hotCues: normaliseHotCues(track.hotCues),
     audioBytes: track.fileSize || track.blob?.size || 0,
     storageMode: track.fileHandle ? 'external' : 'local',
@@ -2762,6 +2791,8 @@ function bindEvents() {
   document.addEventListener('keydown', (event) => {
     if (event.target.closest('.sort-button, [data-select-deck]') && ['Enter', 'Space'].includes(event.code)) return;
     if (event.defaultPrevented || event.target.matches('input, textarea, select') || document.querySelector('dialog[open]')) return;
+    // Leave browser and system shortcuts (Cmd+C, Cmd+L, Ctrl+S…) alone.
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
     const deck = decks[state.selectedDeck];
     if (event.code === 'Digit1') return setSelectedDeck('A');
     if (event.code === 'Digit2') return setSelectedDeck('B');
@@ -2772,7 +2803,9 @@ function bindEvents() {
     if (event.code === 'Escape' && $('.workspace').classList.contains('library-maximized')) return setLibraryMaximized(false);
     if (event.code === 'ArrowLeft' && deck.track) { event.preventDefault(); deck.audio.currentTime = Math.max(0, deck.audio.currentTime - 5); }
     if (event.code === 'ArrowRight' && deck.track) { event.preventDefault(); deck.audio.currentTime = Math.min(deck.audio.duration || 0, deck.audio.currentTime + 5); }
-    if (event.code === 'Enter' && state.selectedTrackId) return loadTrackToDeck(state.selectedTrackId, state.selectedDeck).catch(console.error);
+    // Enter on a focused control activates that control; it must not also load a track.
+    const onControl = event.target !== document.body && event.target.closest('button, a, [tabindex], [role="slider"], [contenteditable]');
+    if (event.code === 'Enter' && state.selectedTrackId && !onControl) return loadTrackToDeck(state.selectedTrackId, state.selectedDeck).catch(console.error);
   });
 
   document.addEventListener('dragover', (event) => {

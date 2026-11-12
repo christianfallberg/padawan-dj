@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'padawan-dj-v1.1.2';
+const CACHE_VERSION = 'padawan-dj-v1.1.3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -42,8 +42,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put('./index.html', copy));
+          // Never let an error or captive-portal page replace the offline app shell.
+          if (response.ok && response.type === 'basic' && !response.redirected) {
+            const copy = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put('./index.html', copy));
+          }
           return response;
         })
         .catch(() => caches.match('./index.html'))

@@ -1,5 +1,15 @@
 # Release notes
 
+## 1.1.3 — 2026-11-12
+
+- Release a track's decoded audio when it leaves the decks, so long sessions no longer build up memory. Loading one track on both decks shares a single decode.
+- Store the CUE point separately from the beatgrid offset, so setting a cue no longer shifts Sync or the beat lines. Existing tracks keep their current cue.
+- Ignore keyboard shortcuts combined with Cmd, Ctrl or Alt (for example Cmd+C no longer sets a cue).
+- Enter on a focused button only activates that button and no longer also loads the selected track.
+- Accept only JPEG, PNG, WebP and GIF embedded artwork; other types, including SVG, use the generated cover.
+- Cache the offline app shell only from successful page loads, never from error or captive-portal pages.
+- Update app, asset URLs and offline cache to 1.1.3.
+
 ## 1.1.2 — 2026-11-03
 
 - Read only the ID3 tag, not the whole file, when recovering missing artwork during folder rescans.
