@@ -1,5 +1,10 @@
 # Release notes
 
+## 1.2.1 — 2026-11-12
+
+- Drop a leading or trailing dash separator when naming a track from its filename, so ` - Title.mp3` becomes “Title” instead of “- Title” and `Artist - .mp3` becomes “Artist”. Applies to newly imported tracks.
+- Update app, asset URLs and offline cache to 1.2.1.
+
 ## 1.2.0 — 2026-11-12
 
 - Add ½× and 2× buttons to the BPM editor (double-click a track's BPM) for tracks detected at half or double tempo. BPM can now be set to two decimals.

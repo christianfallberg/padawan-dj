@@ -39,6 +39,16 @@ assert.deepEqual(plain(context.parseFilename('Artist Name - Track Title.mp3')), 
 assert.deepEqual(plain(context.parseFilename('Artist – Title – Extended Mix.flac')), { artist: 'Artist', title: 'Title – Extended Mix' });
 assert.deepEqual(plain(context.parseFilename('my_track_name.wav')), { artist: 'Unknown Artist', title: 'my track name' });
 assert.deepEqual(plain(context.parseFilename('.mp3')), { artist: 'Unknown Artist', title: 'Untitled Track' });
+// Separators with nothing on one side are dropped; dashes inside words stay.
+assert.deepEqual(plain(context.parseFilename(' - Title.mp3')), { artist: 'Unknown Artist', title: 'Title' });
+assert.deepEqual(plain(context.parseFilename('- Title.mp3')), { artist: 'Unknown Artist', title: 'Title' });
+assert.deepEqual(plain(context.parseFilename('_-_Title.mp3')), { artist: 'Unknown Artist', title: 'Title' });
+assert.deepEqual(plain(context.parseFilename('– Title.flac')), { artist: 'Unknown Artist', title: 'Title' });
+assert.deepEqual(plain(context.parseFilename('Artist - .mp3')), { artist: 'Unknown Artist', title: 'Artist' });
+assert.deepEqual(plain(context.parseFilename(' - .mp3')), { artist: 'Unknown Artist', title: 'Untitled Track' });
+assert.deepEqual(plain(context.parseFilename('-dash-name-.mp3')), { artist: 'Unknown Artist', title: '-dash-name-' });
+assert.deepEqual(plain(context.parseFilename('Artist_-_Title.mp3')), { artist: 'Artist', title: 'Title' });
+assert.deepEqual(plain(context.parseFilename('Artist - Title - .mp3')), { artist: 'Artist', title: 'Title' });
 
 // BPM detection on a synthetic kick pattern
 function clickTrack(bpm, seconds = 60, sampleRate = 22050) {

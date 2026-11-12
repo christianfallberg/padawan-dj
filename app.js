@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -238,7 +238,9 @@ function localLibraryBytes() {
 }
 
 function parseFilename(filename) {
-  const clean = filename.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').trim();
+  // A separator with nothing on one side (" - Title", "Artist - ") is dropped, not kept in the title.
+  const clean = filename.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').trim()
+    .replace(/^[-–](?:\s+|$)/, '').replace(/\s+[-–]$/, '').trim();
   const separator = clean.includes(' - ') ? ' - ' : clean.includes(' – ') ? ' – ' : null;
   if (!separator) return { artist: 'Unknown Artist', title: clean || 'Untitled Track' };
   const [artist, ...titleParts] = clean.split(separator);
