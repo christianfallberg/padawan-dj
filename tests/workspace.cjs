@@ -78,6 +78,8 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
   page.setDefaultTimeout(8000);
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
+  // Any Content-Security-Policy violation across the whole UI run fails the check.
+  page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) errors.push(m.text()); });
   await page.goto(baseURL);
   await page.mouse.move(600, 450);
   await delay(900);

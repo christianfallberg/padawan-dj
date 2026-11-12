@@ -4649,3 +4649,11 @@ html,body {min-width:0;min-height:0;}
 #importDialog #closeImportDialog {display:grid;place-items:center;min-width:44px;padding:10px;background:transparent;}
 .import-copy-actions {display:flex;flex-wrap:wrap;gap:12px;}
 .track-source {flex:none;color:#a5c7da;font-size:9px;letter-spacing:.025em;}
+
+/* Quick-value buttons under a dialog input (BPM ½× / 2×). */
+.action-dialog .dialog-presets { display: flex; gap: 8px; margin-top: 10px; }
+.action-dialog .dialog-presets[hidden] { display: none; }
+.action-dialog .dialog-presets button { min-width: 56px; height: 30px; padding: 0 12px; border: 1px solid #3e4853; border-radius: 3px; background: #1a2129; color: #c9d4de; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; font-weight: 800; cursor: pointer; }
+.action-dialog .dialog-presets button:hover:not(:disabled) { border-color: #5b6a7b; background: #232c36; color: #fff; }
+.action-dialog .dialog-presets button:focus-visible { outline: 2px solid #297ebd; outline-offset: 2px; }
+.action-dialog .dialog-presets button:disabled { opacity: .4; cursor: default; }

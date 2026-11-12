@@ -57,6 +57,14 @@ const read = bytes => context.readId3Metadata(Uint8Array.from(bytes).buffer);
   const failed={coverBlob:null,coverUrl:'fallback'};
   await assert.rejects(context.refreshMissingArtwork(failed,Uint8Array.from(sample).buffer),/full/);
   assert.equal(failed.coverBlob,null); assert.equal(failed.coverUrl,'fallback');
+  // Artwork type allowlist: raster images only, normalised MIME types.
+  const apic = (mime) => tag(3,[frame(3,'APIC',Buffer.concat([Buffer.from([0,...Buffer.from(mime),0,3,0]),png]))]);
+  assert.equal(read(apic('image/svg+xml')).coverBlob,undefined);
+  assert.equal(read(apic('text/html')).coverBlob,undefined);
+  assert.equal(read(apic('image/jpg')).coverBlob.type,'image/jpeg');
+  assert.equal(read(apic('IMAGE/PNG')).coverBlob.type,'image/png');
+  assert.equal(read(tag(2,[frame(2,'PIC',Buffer.concat([Buffer.from([0,...Buffer.from('jpg'),3,0]),png]))])).coverBlob.type,'image/jpeg');
+  assert.equal(read(tag(2,[frame(2,'PIC',Buffer.concat([Buffer.from([0,...Buffer.from('SVG'),3,0]),png]))])).coverBlob,undefined);
   for (const filename of process.argv.slice(2)) {
     const bytes=fs.readFileSync(filename),m=read(bytes);
     assert.equal(bytes[3],2); assert.ok(m.title); assert.ok(m.artist); assert.equal(m.coverBlob.type,'image/png');
@@ -67,5 +75,5 @@ const read = bytes => context.readId3Metadata(Uint8Array.from(bytes).buffer);
     assert.deepEqual(Buffer.from(await m.coverBlob.arrayBuffer()),image);
     console.log(`PASS real MP3: ${path.basename(filename)} (${m.coverBlob.size} artwork bytes)`);
   }
-  console.log('PASS ID3v2.2/2.3/2.4, extended headers, malformed boundaries, exact artwork bytes, cache recovery, preserved cues and storage failure');
+  console.log('PASS ID3v2.2/2.3/2.4, extended headers, malformed boundaries, exact artwork bytes, artwork type allowlist, cache recovery, preserved cues and storage failure');
 })().catch(e=>{console.error(e);process.exitCode=1;});

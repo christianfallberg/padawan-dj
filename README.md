@@ -1,4 +1,4 @@
-# Padawan DJ — v1.1.4
+# Padawan DJ — v1.2.0
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -95,14 +95,14 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.1.4
+## Latest release: 1.2.0
 
 See [release notes](CHANGELOG.md) for the version history.
 
-- The app starts even when saved playlists or history are corrupt or browser storage is blocked.
-- Clearing the library fully unloads both decks.
-- Waveform Hot Cue markers are numbered 1–4, matching the pads.
-- Steadier Sync, arrow-key seeking and changed USB files; storage errors no longer show the wrong message.
+- Double-clicking a library track works again in Chrome, for loading tracks and editing BPM or key.
+- More accurate BPM detection for new imports, and ½× / 2× buttons in the BPM editor (double-click a track's BPM).
+- Lower CPU and battery use: waveforms and deck displays only redraw when something changes.
+- A Content-Security-Policy limits the page to its own scripts and styles.
 
 The layout adapts to the browser viewport, including Windows display scaling. Narrow or very short windows allow scrolling. Large displays keep expanded controls, and the library can still be maximized with `L`.
 
@@ -141,6 +141,7 @@ Optional server settings:
 
 - Serve `.webmanifest` as `application/manifest+json` if your server doesn't already.
 - Avoid long cache lifetimes on `service-worker.js` so browsers notice updates quickly. Other assets are versioned with `?v=` query strings and can be cached.
+- `index.html` already sets a Content-Security-Policy in a `<meta>` tag. To also stop other sites from framing the app, send `Content-Security-Policy: frame-ancestors 'none'` as an HTTP header; that directive only works as a header.
 
 Keep the final domain stable: each origin (protocol + domain + port) has its own local library, so moving the app to a new address starts users with an empty library.
 
@@ -148,10 +149,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.1.4 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.2.0 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.1.4';
+const CACHE_VERSION = 'padawan-dj-v1.2.0';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.
@@ -198,11 +199,20 @@ node tests/music-library.cjs
 
 It tests nested folders, saved file handles, duplicates, cues, playback after reload, missing files, denied access, independent local copies and storage failures. Its native folder picker is simulated using browser test files and real serializable file handles. Set `MUSIC_TEST_USB=/Volumes/DJ-2027` to read two MP3s from that drive as test audio; the test never modifies the drive. Native folder selection and permission prompts still need a manual browser check.
 
-Two further checks use the same setup:
+The pure functions also have Node checks that need no browser or Playwright:
+
+```bash
+node tests/id3.cjs
+node tests/analysis.cjs
+```
+
+`id3.cjs` covers ID3 tag and artwork parsing, including the artwork type allowlist; `analysis.cjs` covers filename parsing, BPM detection, Hot Cue normalisation and validation of saved playlists and history.
+
+Two further browser checks use the Playwright setup:
 
 ```bash
 node tests/deck-behavior.cjs
 node tests/offline-shell.cjs
 ```
 
-`deck-behavior.cjs` checks that decoded audio is released when a track leaves the decks, that the CUE point is stored separately from the beatgrid, that shortcuts with Cmd/Ctrl/Alt and Enter on focused buttons are ignored, that only raster artwork types are accepted, and that the app starts with corrupt or blocked localStorage. It also covers Hot Cue labels, Sync and arrow seeking before a track's length is known, changed external files and clearing the library. `offline-shell.cjs` checks that a server error page never replaces the cached app for offline startup.
+`deck-behavior.cjs` checks that decoded audio is released when a track leaves the decks, that the CUE point is stored separately from the beatgrid, that shortcuts with Cmd/Ctrl/Alt and Enter on focused buttons are ignored, that only raster artwork types are accepted, and that the app starts with corrupt or blocked localStorage. It also covers Hot Cue labels, Sync and arrow seeking before a track's length is known, changed external files clearing the library, double-click loading, the BPM ½×/2× editor, idle redraw skipping and the Content-Security-Policy. `offline-shell.cjs` checks that a server error page never replaces the cached app for offline startup.

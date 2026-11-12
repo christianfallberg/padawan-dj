@@ -1,6 +1,7 @@
 // Deck behavior checks: decoded-audio release and shared decoding, CUE point kept apart from the
 // beatgrid, keyboard shortcuts, the embedded-artwork type allowlist, startup with corrupt or blocked
-// localStorage, Hot Cue labels, Sync and arrow seeking before metadata, changed external files and clearing the library.
+// localStorage, Hot Cue labels, Sync and arrow seeking before metadata, changed external files, clearing the library,
+// the BPM ½×/2× editor, idle redraw skipping and the Content-Security-Policy.
 const { chromium } = require("playwright");
 const assert = require("assert/strict"), fs = require("fs"), http = require("http"), path = require("path");
 const root = path.resolve(__dirname, "..");
@@ -24,6 +25,10 @@ function wav(freq) {
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH, args: ["--autoplay-policy=no-user-gesture-required"] });
   const page = await browser.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));
+  await page.addInitScript(() => {
+    window.__cspViolations = [];
+    document.addEventListener("securitypolicyviolation", e => window.__cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`));
+  });
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.waitForFunction(() => state.db);
   await page.setInputFiles("#fileInput", ["one", "two", "three"].map((n, i) => ({ name: `Artist - ${n}.wav`, mimeType: "audio/wav", buffer: wav(220 + i * 110) })));
@@ -86,6 +91,48 @@ function wav(freq) {
     return { svg: readId3Metadata(tag("image/svg+xml")).coverBlob?.type ?? null, jpg: readId3Metadata(tag("image/jpg")).coverBlob?.type, stored: getTrackCoverUrl(svgTrack).slice(0, 14) };
   });
   assert.deepEqual(r, { svg: null, jpg: "image/jpeg", stored: "data:image/sv" + "g" });
+  // Double-clicking a track loads it on the selected deck (the row must survive the first click).
+  await page.evaluate(() => { decks.A.pause(); decks.B.pause(); setSelectedDeck("B"); state.source = "collection"; renderTable(); });
+  await page.dblclick(`tr[data-id="${ids[0]}"] .track-title-text`);
+  await page.waitForFunction(([a]) => decks.B.track?.id === a, ids);
+  assert.equal(await page.evaluate(([a]) => $(`tr[data-id="${a}"]`).classList.contains("selected"), ids), true, "row highlighted");
+
+  // BPM editor: ½× and 2× presets, disabled outside 40–260, two-decimal values accepted.
+  await page.evaluate(([a]) => { const t = state.tracks.find(x => x.id === a); t.bpm = 135.5; state.source = "collection"; renderTable(); }, ids);
+  await page.dblclick(`tr[data-id="${ids[0]}"] td[data-field="bpm"]`);
+  await page.waitForSelector("#actionDialogPresets:not([hidden]) button");
+  r = await page.evaluate(() => [...$$("#actionDialogPresets button")].map(b => ({ label: b.textContent, disabled: b.disabled })));
+  assert.deepEqual(r, [{ label: "½×", disabled: false }, { label: "2×", disabled: true }], "2× of 135.5 exceeds 260");
+  await page.click("#actionDialogPresets button[aria-label='Halve BPM']");
+  assert.equal(await page.inputValue("#actionDialogInput"), "67.75");
+  r = await page.evaluate(() => [...$$("#actionDialogPresets button")].map(b => b.disabled));
+  assert.deepEqual(r, [true, false], "½× of 67.75 is below 40; 2× allowed");
+  await page.click("#actionDialogConfirm");
+  await page.waitForFunction(() => !$("#actionDialog").open);
+  r = await page.evaluate(async ([a]) => { await new Promise(r => setTimeout(r, 200)); return [state.tracks.find(x => x.id === a).bpm, (await dbGetAll()).find(x => x.id === a).bpm]; }, ids);
+  assert.deepEqual(r, [67.75, 67.75]);
+  // Dialogs without presets keep the group hidden.
+  await page.evaluate(() => { requestDialog({ title: "t", message: "m", label: "NAME" }); });
+  assert.equal(await page.evaluate(() => $("#actionDialogPresets").hidden), true);
+  await page.click("#actionDialogCancel");
+
+  // Idle decks are not redrawn every frame; a playing deck is.
+  r = await page.evaluate(async () => {
+    decks.A.pause(); decks.B.pause();
+    await new Promise(r => setTimeout(r, 300));
+    const orig = window.drawWaveform; let idle = 0;
+    window.drawWaveform = (deck) => { idle++; return orig(deck); };
+    await new Promise(r => setTimeout(r, 600));
+    let playing = 0;
+    window.drawWaveform = (deck) => { playing++; return orig(deck); };
+    await decks.A.audio.play();
+    await new Promise(r => setTimeout(r, 600));
+    decks.A.pause();
+    window.drawWaveform = orig;
+    return { idle, playing: playing > 5 };
+  });
+  assert.deepEqual(r, { idle: 0, playing: true }, "redraw only while something changes");
+
   // Waveform Hot Cue markers are numbered like the pads.
   r = await page.evaluate(() => {
     const t = decks.A.track; t.hotCues = { D: decks.A.audio.currentTime };
@@ -165,6 +212,15 @@ function wav(freq) {
   assert.deepEqual(r, [{ track: null, src: null, url: null }, { track: null, src: null, url: null }], "decks unloaded");
   assert.deepEqual(errors, []);
 
+  // The CSP is enforced (a third-party image is refused) and nothing the app did above violated it.
+  r = await page.evaluate(async () => {
+    const before = [...window.__cspViolations];
+    const img = new Image(); img.src = "https://example.com/blocked.png"; document.body.append(img);
+    await new Promise(r => setTimeout(r, 300)); img.remove();
+    return { before, blocked: window.__cspViolations.slice(before.length).some(v => v.startsWith("img-src")) };
+  });
+  assert.deepEqual(r, { before: [], blocked: true }, "CSP enforced without violations");
+
   // Startup survives corrupt, malformed or blocked localStorage.
   const base = `http://127.0.0.1:${server.address().port}/`;
   for (const [name, setup, expected] of [
@@ -184,6 +240,6 @@ function wav(freq) {
     await context.close();
   }
 
-  console.log("PASS deck behavior: decoded-audio release, shared decoding, separate CUE point, shortcuts, artwork allowlist, Hot Cue labels, Sync/arrows before metadata, storage failures, changed external files, clear library");
+  console.log("PASS deck behavior: decoded-audio release, shared decoding, separate CUE point, shortcuts, artwork allowlist, BPM ½×/2×, idle redraw skipping, Hot Cue labels, Sync/arrows before metadata, storage failures, changed external files, clear library, CSP");
   await browser.close(); server.close();
 })().catch(e => { console.error(e); process.exit(1); });

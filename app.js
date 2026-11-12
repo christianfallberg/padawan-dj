@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.1.4';
+const APP_VERSION = '1.2.0';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -20,8 +20,6 @@ const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal drag
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
 const HOT_CUE_COLORS = { A: '#ff5278', B: '#459eff', C: '#24dca6', D: '#b17aff' };
 const HOT_CUE_NUMBERS = { A: 1, B: 2, C: 3, D: 4 }; // Keep original A-D storage keys.
-// Raster formats only: an SVG blob URL opened in a tab could run script in this origin.
-const COVER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 // localStorage can be blocked, full or hold corrupt data; none of that may stop the app.
 function readStoredJson(key) {
@@ -125,9 +123,10 @@ function showToast(message, duration = 2200) {
   showToast.timer = setTimeout(() => ui.toast.classList.remove('show'), duration);
 }
 
-function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', value = '', type = 'text', min, max, step, confirmText = 'CONFIRM', danger = false, focusCancel = false, playback = null }) {
+function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', value = '', type = 'text', min, max, step, confirmText = 'CONFIRM', danger = false, focusCancel = false, playback = null, presets = [] }) {
   return new Promise((resolve) => {
     const hasInput = Boolean(label);
+    renderDialogPresets(hasInput ? presets : []);
     ui.actionDialog.classList.toggle('playback-confirm', Boolean(playback));
     $('#playbackTrackDetails').hidden = !playback;
     $('#playbackCurrentTrack').textContent = playback?.current || '';
@@ -173,6 +172,39 @@ function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', val
     if (hasInput) requestAnimationFrame(() => { ui.actionDialogInput.focus(); ui.actionDialogInput.select(); });
     else requestAnimationFrame(() => (focusCancel ? ui.actionDialogCancel : ui.actionDialogConfirm).focus());
   });
+}
+
+// Quick-set buttons under the dialog input, e.g. halve/double BPM. A preset whose
+// result falls outside the input's min/max is disabled.
+function renderDialogPresets(presets) {
+  const container = $('#actionDialogPresets');
+  const input = ui.actionDialogInput;
+  container.replaceChildren();
+  container.hidden = !presets.length;
+  const buttons = presets.map((preset) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = preset.label;
+    if (preset.ariaLabel) button.setAttribute('aria-label', preset.ariaLabel);
+    button.addEventListener('click', () => {
+      input.value = String(preset.apply(Number(input.value)));
+      refresh();
+      input.focus();
+    });
+    container.append(button);
+    return { button, preset };
+  });
+  const refresh = () => {
+    const current = Number(input.value);
+    for (const { button, preset } of buttons) {
+      const next = preset.apply(current);
+      button.disabled = !Number.isFinite(current) || !Number.isFinite(next)
+        || (input.min !== '' && next < Number(input.min)) || (input.max !== '' && next > Number(input.max));
+    }
+  };
+  input.oninput = buttons.length ? refresh : null;
+  // Run after requestDialog has applied the new value and limits.
+  requestAnimationFrame(refresh);
 }
 
 function formatTime(seconds, tenths = false) {
@@ -246,6 +278,9 @@ function findId3Terminator(bytes, start, encoding) {
   }
   return bytes.length;
 }
+
+// Raster formats only: an SVG blob URL opened in a tab could run script in this origin.
+const COVER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 function readId3Metadata(arrayBuffer) {
   const bytes = new Uint8Array(arrayBuffer);
@@ -384,11 +419,10 @@ function estimateBpm(buffer) {
   const sampleRate = buffer.sampleRate;
   const channel = buffer.getChannelData(0);
   const secondsToAnalyze = Math.min(90, buffer.duration);
-  const envelopeRate = 100;
-  const frameSize = Math.max(1, Math.floor(sampleRate / envelopeRate));
+  const frameSize = Math.max(1, Math.floor(sampleRate / 100));
+  const frameRate = sampleRate / frameSize; // The real envelope rate, not a rounded 100 Hz.
   const frameCount = Math.floor((secondsToAnalyze * sampleRate) / frameSize);
   if (frameCount < 400) return 128;
-
   const energy = new Float32Array(frameCount);
   for (let frame = 0; frame < frameCount; frame += 1) {
     const start = frame * frameSize;
@@ -397,7 +431,6 @@ function estimateBpm(buffer) {
     for (let i = start; i < end; i += 4) sum += Math.abs(channel[i]);
     energy[frame] = sum / Math.max(1, Math.ceil((end - start) / 4));
   }
-
   const onset = new Float32Array(frameCount);
   let mean = 0;
   for (let i = 2; i < frameCount; i += 1) {
@@ -407,25 +440,35 @@ function estimateBpm(buffer) {
   }
   mean /= frameCount;
   for (let i = 0; i < frameCount; i += 1) onset[i] = Math.max(0, onset[i] - mean * 0.6);
-
-  let bestBpm = 128;
-  let bestScore = -Infinity;
-  for (let bpm = 72; bpm <= 180; bpm += 0.5) {
-    const lag = Math.round((envelopeRate * 60) / bpm);
+  const autocorrelation = (lag, step = 1) => {
     let score = 0;
-    for (let i = lag; i < frameCount; i += 1) {
-      score += onset[i] * onset[i - lag];
-    }
-    const halfLag = lag * 2;
-    if (halfLag < frameCount) {
-      for (let i = halfLag; i < frameCount; i += 2) score += onset[i] * onset[i - halfLag] * 0.18;
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      bestBpm = bpm;
-    }
+    for (let i = lag; i < frameCount; i += step) score += onset[i] * onset[i - lag];
+    return score;
+  };
+  // Same scoring as before: one beat, plus a light bonus for two beats.
+  const scoreAt = (lag) => autocorrelation(lag) + (lag * 2 < frameCount ? autocorrelation(lag * 2, 2) * 0.18 : 0);
+  const minLag = Math.floor((frameRate * 60) / 180);
+  const maxLag = Math.ceil((frameRate * 60) / 72);
+  let bestLag = minLag, bestScore = -Infinity;
+  for (let lag = minLag; lag <= maxLag; lag += 1) {
+    const score = scoreAt(lag);
+    if (score > bestScore) { bestScore = score; bestLag = lag; }
   }
-
+  // One beat is only a few dozen frames, so refine on a 4-beat span where a frame is 4x finer.
+  const refine = (center) => {
+    let best = center, bestValue = -Infinity;
+    for (let lag = center - 3; lag <= center + 3; lag += 1) {
+      if (lag < 1 || lag >= frameCount) continue;
+      const value = autocorrelation(lag);
+      if (value > bestValue) { bestValue = value; best = lag; }
+    }
+    const a = autocorrelation(best - 1), b = bestValue, c = autocorrelation(best + 1);
+    const denominator = a - 2 * b + c;
+    return best + (denominator < 0 ? clamp(0.5 * (a - c) / denominator, -0.5, 0.5) : 0);
+  };
+  const beats = bestLag * 4 < frameCount / 2 ? 4 : 1;
+  const beatLag = refine(bestLag * beats) / beats;
+  let bestBpm = (frameRate * 60) / beatLag;
   while (bestBpm < 88) bestBpm *= 2;
   while (bestBpm > 176) bestBpm /= 2;
   return Math.round(bestBpm * 10) / 10;
@@ -962,9 +1005,7 @@ class Deck {
   }
 
   updateJogVisual() {
-    const jog = $(`#jog${this.id}`);
-    const ring = jog?.querySelector('.jog-ring');
-    const label = jog?.querySelector('.jog-label');
+    const { jog, jogRing: ring, jogLabel: label } = deckRuntimeElements(this.id);
     if (!jog || !ring || !label) return;
     const current = this.audio.currentTime || 0;
     this.jogAngle = ((current / JOG_SCRATCH_SECONDS_PER_REVOLUTION) * 360) % 360;
@@ -1625,42 +1666,87 @@ function drawOverview(deck) {
   }
 }
 
+// Elements updated every animation frame, looked up once per deck.
+const runtimeElements = {};
+function deckRuntimeElements(id) {
+  return runtimeElements[id] ||= {
+    elapsed: $(`#elapsed${id}`),
+    remaining: $(`#remaining${id}`),
+    progress: $(`#overviewProgress${id}`),
+    playhead: $(`#overviewPlayhead${id}`),
+    seek: $(`#overviewSeek${id}`),
+    waveform: $(`#waveform${id}`),
+    jog: $(`#jog${id}`),
+    jogRing: $(`#jog${id} .jog-ring`),
+    jogLabel: $(`#jog${id} .jog-label`),
+  };
+}
+
 function updateRuntimeUi(deck) {
+  const elements = deckRuntimeElements(deck.id);
   const duration = Number.isFinite(deck.audio.duration) ? deck.audio.duration : deck.track?.duration || 0;
   const current = deck.audio.currentTime || 0;
   const progress = duration ? clamp(current / duration, 0, 1) : 0;
-  $(`#elapsed${deck.id}`).textContent = formatTime(current);
-  $(`#remaining${deck.id}`).textContent = `−${formatTime(Math.max(0, duration - current))}`;
-  $(`#overviewProgress${deck.id}`).style.width = `${progress * 100}%`;
-  $(`#overviewPlayhead${deck.id}`).style.left = `${progress * 100}%`;
-  const seekControl = $(`#overviewSeek${deck.id}`);
+  elements.elapsed.textContent = formatTime(current);
+  elements.remaining.textContent = `−${formatTime(Math.max(0, duration - current))}`;
+  elements.progress.style.width = `${progress * 100}%`;
+  elements.playhead.style.left = `${progress * 100}%`;
+  const seekControl = elements.seek;
   seekControl.value = String(Math.round(progress * 1000));
   seekControl.disabled = !deck.track;
   seekControl.setAttribute('aria-valuetext', `${formatTime(current)} elapsed, ${formatTime(Math.max(0, duration - current))} remaining`);
   deck.updateJogVisual();
 }
 
+const meterData = new Uint8Array(masterAnalyser.frequencyBinCount);
+let litMeterBars = -1;
 function updateMeter() {
-  const data = new Uint8Array(masterAnalyser.frequencyBinCount);
-  masterAnalyser.getByteFrequencyData(data);
+  masterAnalyser.getByteFrequencyData(meterData);
   let average = 0;
-  for (let i = 0; i < data.length; i += 1) average += data[i];
-  average /= data.length || 1;
+  for (let i = 0; i < meterData.length; i += 1) average += meterData[i];
+  average /= meterData.length || 1;
   const active = Math.round((average / 255) * ui.levelBars.length * 1.8);
+  if (active === litMeterBars) return;
+  litMeterBars = active;
   ui.levelBars.forEach((bar, index) => {
     bar.classList.toggle('is-lit', index < active);
   });
 }
 
+// Everything that changes what a deck's runtime UI or waveform shows. The loop
+// skips work while these stay the same, e.g. when both decks are paused or empty.
+function runtimeKey(deck) {
+  return `${deck.track?.id}|${deck.audio.currentTime}|${deck.audio.duration}|${deck.track?.duration}`;
+}
+
+function waveformKey(deck) {
+  const track = deck.track;
+  const canvas = deckRuntimeElements(deck.id).waveform;
+  const cues = track ? Object.entries(normaliseHotCues(track.hotCues)).join() : '';
+  return [track?.id, Boolean(track?.peaks), deck.audio.currentTime, state.waveformWindowSeconds,
+    canvas.clientWidth, canvas.clientHeight, window.devicePixelRatio, track?.bpm, track?.gridOffset, cues].join('|');
+}
+
+const lastRuntimeKeys = {};
+const lastWaveformKeys = {};
 let lastWaveDraw = 0;
 function animationLoop(timestamp) {
-  updateRuntimeUi(decks.A);
-  updateRuntimeUi(decks.B);
-  if (timestamp - lastWaveDraw > 30) {
-    drawWaveform(decks.A);
-    drawWaveform(decks.B);
-    lastWaveDraw = timestamp;
+  const drawWaves = timestamp - lastWaveDraw > 30;
+  for (const deck of Object.values(decks)) {
+    const runtime = runtimeKey(deck);
+    if (runtime !== lastRuntimeKeys[deck.id]) {
+      lastRuntimeKeys[deck.id] = runtime;
+      updateRuntimeUi(deck);
+    }
+    if (drawWaves) {
+      const waveform = waveformKey(deck);
+      if (waveform !== lastWaveformKeys[deck.id]) {
+        lastWaveformKeys[deck.id] = waveform;
+        drawWaveform(deck);
+      }
+    }
   }
+  if (drawWaves) lastWaveDraw = timestamp;
   updateMeter();
   requestAnimationFrame(animationLoop);
 }
@@ -2798,7 +2884,12 @@ function bindEvents() {
     state.selectedTrackId = row.dataset.id;
     const load = event.target.closest('button[data-load]');
     if (load) loadTrackToDeck(row.dataset.id, load.dataset.load).catch(console.error);
-    else renderTable();
+    else {
+      // Update the highlight in place: re-rendering would replace the row under the
+      // pointer, and Chrome then never fires dblclick (double-click to load or edit).
+      ui.trackTableBody.querySelectorAll('tr.selected').forEach((selected) => selected.classList.remove('selected'));
+      row.classList.add('selected');
+    }
   });
 
   ui.trackTableBody.addEventListener('dragstart', (event) => {
@@ -2817,7 +2908,12 @@ function bindEvents() {
     const track = state.tracks.find((item) => item.id === row.dataset.id);
     if (editable && track) {
       if (editable.dataset.field === 'bpm') {
-        const result = await requestDialog({ title: 'Edit track tempo', message: `Set the analysed tempo for “${track.title}”.`, code: 'TRACK METADATA', label: 'BPM · 40–260', value: track.bpm, type: 'number', min: 40, max: 260, step: 0.1, confirmText: 'SAVE BPM' });
+        const roundBpm = (value) => Math.round(value * 100) / 100;
+        const result = await requestDialog({ title: 'Edit track tempo', message: `Set the analysed tempo for “${track.title}”. Use ½× or 2× when it was detected at half or double speed.`, code: 'TRACK METADATA', label: 'BPM · 40–260', value: track.bpm, type: 'number', min: 40, max: 260, step: 0.01, confirmText: 'SAVE BPM',
+          presets: [
+            { label: '½×', ariaLabel: 'Halve BPM', apply: (bpm) => roundBpm(bpm / 2) },
+            { label: '2×', ariaLabel: 'Double BPM', apply: (bpm) => roundBpm(bpm * 2) },
+          ] });
         const value = Number(result);
         if (result === null) return;
         if (Number.isFinite(value) && value >= 40 && value <= 260) track.bpm = Math.round(value * 100) / 100;

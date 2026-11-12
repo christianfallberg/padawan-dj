@@ -1,5 +1,16 @@
 # Release notes
 
+## 1.2.0 — 2026-11-12
+
+- Add ½× and 2× buttons to the BPM editor (double-click a track's BPM) for tracks detected at half or double tempo. BPM can now be set to two decimals.
+- Fix double-click on a library track in Chrome, which did nothing: loading a track and editing its BPM or key by double-click work again. Selecting a row no longer rebuilds the whole table.
+- Redraw waveforms, deck times, the jog wheel and the level meter only when they change, and stop looking up page elements on every frame. Idle decks no longer use CPU for drawing.
+- Add a Content-Security-Policy that only allows the app's own scripts, styles and workers, plus local blob and data images/audio.
+- Detect BPM to within about 0.1 BPM instead of reading up to 2.5 BPM low: the tempo search now refines the beat length over four beats and uses the true analysis rate. Applies to newly imported tracks; saved BPMs are unchanged.
+- Add Node tests for filename parsing, BPM detection, Hot Cue normalisation, saved-data validation and the artwork type allowlist.
+- Fix the ID3 Node test, which could not run since 1.1.3 because the artwork allowlist sat outside the code it tests.
+- Update app, asset URLs and offline cache to 1.2.0.
+
 ## 1.1.4 — 2026-11-12
 
 - Start normally when saved playlists or history are corrupt or browser storage is blocked; invalid entries are ignored.
