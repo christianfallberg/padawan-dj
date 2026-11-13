@@ -416,8 +416,16 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
   });
   const tp = await touch.newPage();
   await tp.goto(baseURL);
+  // First run: the toolbar (ADD TRACKS) stays in view until the library has a track.
   await tp.touchscreen.tap(500, 450);
   await delay(300);
+  assert(await tp.locator("#importButton").evaluate(e => { const r = e.getBoundingClientRect(); return r.y >= 0 && r.height > 0; }),
+    "toolbar stays open while the library is empty");
+  assert(await tp.locator("[data-empty-add]").isVisible(), "empty library offers ADD MUSIC");
+  await tp.locator("#fileInput").setInputFiles([{ name: "Test Artist - First.wav", mimeType: "audio/wav", buffer: wav() }]);
+  await tp.waitForFunction(() => state.tracks.length === 1 && !state.importing);
+  await tp.touchscreen.tap(500, 450);
+  await delay(900);
   assert(await tp.locator("#topbarReveal").evaluate(e => e.getBoundingClientRect().height >= 44),
     "touch toolbar reveal has a 44px target");
   await tp.locator("#topbarReveal").tap();

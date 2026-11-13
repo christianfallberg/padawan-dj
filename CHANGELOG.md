@@ -1,5 +1,20 @@
 # Release notes
 
+## 1.3.0 — 2026-11-13
+
+- Make the mixer’s vertical faders channel volume (with a smooth fade curve). Per-deck headphone CUE levels move to the AUDIO dialog.
+- Show an empty-library panel with ADD MUSIC and a drop hint, and keep the toolbar visible until the first track is imported. Empty search, playlist and history views explain what to do.
+- Add a playlist button at the end of each track row (tick playlists, or create a new one with the track), remove tracks from a playlist without deleting them from the library, drag rows to reorder a playlist, and double-click or press F2 to rename one.
+- Remove unloaded tracks, playlist entries and Hot Cues straight away with an UNDO button (Ctrl/Cmd+Z also works). Removing a track that is on a deck still asks first.
+- Keyboard: ↑/↓ browse the library (also from the search field), Shift+←/→ load to Deck 1/2, Q W E R / U I O P trigger or (with Shift) delete Hot Cues, Z/X and N/M cue and play each deck, `/` jumps to search and Esc clears it.
+- Fix dragging playlist rows: row drags now allow both copy (onto a deck or playlist) and move.
+- Taller mixing waveforms on tall windows; the scrub hint only appears on hover; the platter centre shows the BPM over artwork without lettering; labels raised to at least 11px.
+- SYNC lights while both decks share a tempo and its tooltip shows the BPM difference. RESET is now TEMPO 0. The KEY column hides until a track has a key.
+- Move the remove button to the end of each row, away from the load buttons; give the storage chip an icon; show a music glyph on an empty deck instead of repeating its number; remove macOS and USB-C wording from headphone messages.
+- Add a bottom section switcher (Deck 1, Deck 2, Mixer, Library) on phone-sized screens.
+- Add the library-ux browser test.
+- Update app, asset URLs and offline cache to 1.3.0.
+
 ## 1.2.1 — 2026-11-12
 
 - Drop a leading or trailing dash separator when naming a track from its filename, so ` - Title.mp3` becomes “Title” instead of “- Title” and `Artist - .mp3` becomes “Artist”. Applies to newly imported tracks.

@@ -4657,3 +4657,111 @@ html,body {min-width:0;min-height:0;}
 .action-dialog .dialog-presets button:hover:not(:disabled) { border-color: #5b6a7b; background: #232c36; color: #fff; }
 .action-dialog .dialog-presets button:focus-visible { outline: 2px solid #297ebd; outline-offset: 2px; }
 .action-dialog .dialog-presets button:disabled { opacity: .4; cursor: default; }
+
+/* ---------------------------------------------------------------------------
+   1.3.0: mixer volume faders, first-run empty state, playlist tools, row
+   actions, undo toast, sync state, phone section switcher.
+   --------------------------------------------------------------------------- */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Taller mixing waveforms where the window has height to spare. */
+@media (min-height: 860px) and (min-width: 901px) { :root { --waveform-height: 98px; } }
+@media (min-height: 1000px) and (min-width: 901px) { :root { --waveform-height: 124px; } }
+@media (min-height: 1000px) and (min-width: 1500px) { :root { --waveform-height: 136px; } }
+
+/* The scrub hint no longer sits on top of the waveform; it appears on hover or focus. */
+.waveform-stage .waveform-row .waveform-interaction-hint { opacity: 0; }
+.waveform-stage .waveform-row:is(:hover, :focus-within, .scrubbing) .waveform-interaction-hint { opacity: 1; }
+@media (hover: none) { .waveform-stage .waveform-row .waveform-interaction-hint { display: none; } }
+
+/* Empty deck: a music glyph instead of repeating the deck number. */
+.deck-panel .deck-display .deck-cover > span .ui-icon { width: 18px; height: 18px; opacity: .55; }
+
+/* SYNC lights while both decks run at the same tempo. */
+.deck-panel .deck-main .transport-cluster .sync-button.is-matched { border-color: #2f9e7a; color: #8ff0cf; background: linear-gradient(180deg, #123a30, #0b241f); }
+.deck-panel .deck-main .transport-cluster .sync-button.is-matched::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 7px; border-radius: 50%; background: #3ee0ad; vertical-align: middle; }
+
+/* Audio dialog: per-deck headphone levels. */
+#audioOutputDialog .cue-deck-levels { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+#audioOutputDialog .cue-deck-levels input[type="range"] { width: 100%; }
+@media (max-width: 560px) { #audioOutputDialog .cue-deck-levels { grid-template-columns: 1fr; } }
+
+/* Toolbar storage chip. */
+.topbar .storage-action .ui-icon { width: 15px; height: 15px; }
+
+/* Library: load column, row actions at the row end. */
+.library-section .track-table th.load-column { width: 84px; }
+.library-section .track-table th.row-actions-column { width: 84px; }
+.library-section .track-table td.row-actions { padding-block: 0; }
+.library-section .track-table td.row-actions > div { display: flex; justify-content: flex-end; gap: 4px; }
+.library-section .track-table td.row-actions button { display: grid; place-items: center; width: 30px; height: 26px; padding: 0; border: 1px solid transparent; border-radius: 4px; background: transparent; color: #98a9bb; cursor: pointer; opacity: 0; transition: opacity .12s ease, background-color .12s ease, color .12s ease; }
+.library-section .track-table td.row-actions .ui-icon { width: 16px; height: 16px; }
+.library-section .track-table tr:is(:hover, :focus-within, .selected) td.row-actions button,
+.library-section .track-table td.row-actions button[aria-expanded="true"] { opacity: 1; }
+.library-section .track-table td.row-actions button:hover,
+.library-section .track-table td.row-actions button[aria-expanded="true"] { color: #dff4ff; background: #1b2f40; border-color: #35546b; }
+.library-section .track-table td.row-actions .track-remove:hover { color: #ff9baf; background: #351d28; border-color: #65404d; }
+.library-section .track-table td.row-actions button:focus-visible { opacity: 1; outline: 2px solid #77dfff; outline-offset: 1px; }
+@media (hover: none) { .library-section .track-table td.row-actions button { opacity: 1; } }
+
+/* Reordering rows inside a playlist. */
+.library-section .track-table tbody.reorderable tr[data-id] { cursor: grab; }
+.library-section .track-table tbody tr.drop-before td { box-shadow: inset 0 2px 0 #16c8ff; }
+.library-section .track-table tbody tr.drop-after td { box-shadow: inset 0 -2px 0 #16c8ff; }
+
+/* Empty states. */
+.library-section .track-table .empty-state td { height: auto; padding: 18px 16px; }
+.library-section .empty-panel { display: grid; justify-items: center; gap: 8px; max-width: 520px; margin: 0 auto; }
+.library-section .empty-panel strong { color: #f0f7fc; font-size: 15px; font-weight: 650; }
+.library-section .empty-panel p { margin: 0; color: var(--library-muted); font-size: 13px; line-height: 1.5; text-wrap: balance; }
+.library-section .empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; color: #8195a8; font-size: 12px; }
+.library-section .empty-actions button { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px; border: 1px solid #35546b; border-radius: 4px; background: #152736; color: #dff4ff; font-size: 11px; font-weight: 800; letter-spacing: .05em; cursor: pointer; }
+.library-section .empty-actions button:hover { background: #1c3548; border-color: #4a7592; }
+.library-section .empty-actions .empty-add { background: #153143; border-color: #2e607a; color: #9de4ff; }
+.library-section .empty-actions .ui-icon { width: 14px; height: 14px; }
+.library-section .empty-actions button:focus-visible { outline: 2px solid #77dfff; outline-offset: 2px; }
+
+/* Playlist menu at a track row. */
+.playlist-menu { position: fixed; z-index: 60; display: grid; min-width: 200px; max-width: 280px; max-height: min(320px, 70vh); overflow-y: auto; padding: 5px; border: 1px solid #2f4a5f; border-radius: 6px; background: #0e1822; box-shadow: 0 12px 28px rgba(0, 0, 0, .55); }
+.playlist-menu[hidden] { display: none; }
+.playlist-menu button { display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 4px; background: transparent; color: #d7e4ef; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.playlist-menu button:hover, .playlist-menu button:focus-visible { background: #1b2f40; color: #fff; outline: 0; }
+.playlist-menu .playlist-menu-check { display: grid; place-items: center; color: #5fd6ff; }
+.playlist-menu .playlist-menu-check .ui-icon { width: 15px; height: 15px; }
+.playlist-menu .playlist-menu-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.playlist-menu .playlist-menu-new { margin-top: 4px; border-top: 1px solid #23384a; border-radius: 0 0 4px 4px; color: #9fb4c6; }
+.playlist-menu .playlist-menu-new .playlist-menu-check { color: inherit; }
+
+/* Toast with an action (UNDO). */
+.toast { display: flex; align-items: center; gap: 12px; }
+.toast.has-action.show { pointer-events: auto; }
+.toast .toast-action { height: 24px; padding: 0 10px; border: 1px solid #3f6a85; border-radius: 3px; background: #153143; color: #9de4ff; font-size: 11px; font-weight: 800; letter-spacing: .06em; cursor: pointer; }
+.toast .toast-action:hover { background: #1d4560; }
+.toast .toast-action:focus-visible { outline: 2px solid #77dfff; outline-offset: 2px; }
+
+/* Phone layout: jump between the stacked sections. */
+.section-jump { display: none; }
+@media (max-width: 900px) {
+  .section-jump { position: fixed; z-index: 28; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid #2b4257; background: #2b4257; }
+  .section-jump button { height: 44px; border: 0; background: #0b141d; color: #cfe2f1; font-size: 11px; font-weight: 800; letter-spacing: .06em; cursor: pointer; }
+  .section-jump button:active { background: #16293a; }
+  .section-jump button:focus-visible { outline: 2px solid #77dfff; outline-offset: -3px; }
+  .app-shell { padding-bottom: calc(45px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(60px + env(safe-area-inset-bottom)); }
+  .deck-panel, .mixer-panel, .library-section { scroll-margin-top: 52px; }
+}
+
+/* KEY column only when some track has a key. */
+.library-section .track-table.no-keys :is(th[data-sort="key"], td[data-field="key"]) { display: none; }
+
+/* Minimum label size: control captions and table headings at 11px. */
+.deck-panel .section-label, .deck-panel .eq-caption, .mixer-panel .eq-caption,
+.mixer-panel .cue-level-control > span, .mixer-panel .mixer-heading,
+.mixer-panel .master-volume label, .mixer-panel .crossfader-area label,
+.deck-panel .deck-display .deck-key small,
+.library-section .track-table th, .library-section .track-table th .sort-button,
+.library-section .sidebar-title, .library-section .playlist-heading { font-size: 11px; }
+.deck-panel .deck-main .tempo-panel .reset-tempo, .deck-panel .master-button { font-size: 11px; }
+.waveform-stage .waveform-interaction-hint { font-size: 10px; letter-spacing: .04em; }
+.deck-panel .deck-main .tempo-panel .reset-tempo { white-space: nowrap; letter-spacing: 0; }
+@media (max-width: 900px) { .deck-panel .deck-main .tempo-panel .reset-tempo { font-size: 10px; padding-inline: 2px; } }

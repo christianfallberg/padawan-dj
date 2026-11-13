@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.3.0';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -10,7 +10,11 @@ const UI_ICONS = {
   "pause": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9 5v14M15 5v14\"/></svg>",
   "music": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9 17V5l11-2v12M9 8l11-2\"/><ellipse cx=\"6\" cy=\"18\" rx=\"3\" ry=\"2\"/><ellipse cx=\"17\" cy=\"16\" rx=\"3\" ry=\"2\"/></svg>",
   "close": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"m6 6 12 12M18 6 6 18\"/></svg>",
-  "plus": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"/></svg>"
+  "plus": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 5v14M5 12h14\"/></svg>",
+  "trash": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 7h14M9 7V4h6v3m2 0-1 13H8L7 7m3 4v6m4-6v6\"/></svg>",
+  "minus": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M8 12h8\"/></svg>",
+  "playlistAdd": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 7h11M4 12h8M4 17h6M17 12v7M13.5 15.5h7\"/></svg>",
+  "check": "<svg class=\"ui-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"m5 12 5 5 9-10\"/></svg>"
 };
 const TAU = Math.PI * 2;
 const JOG_SCRATCH_SECONDS_PER_REVOLUTION = 1.8;
@@ -20,6 +24,9 @@ const JOG_CENTER_RADIUS_RATIO = 0.20; // Centre is controlled by horizontal drag
 const DEFAULT_WAVEFORM_WINDOW_SECONDS = 32;
 const HOT_CUE_COLORS = { A: '#ff5278', B: '#459eff', C: '#24dca6', D: '#b17aff' };
 const HOT_CUE_NUMBERS = { A: 1, B: 2, C: 3, D: 4 }; // Keep original A-D storage keys.
+const CHANNEL_FADER_MAX_GAIN = 0.9; // Fader fully up; leaves headroom for two summed decks.
+// Squared taper: the bottom of the fader fades out gently instead of all at once.
+const channelFaderGain = (position) => CHANNEL_FADER_MAX_GAIN * clamp(Number(position) || 0, 0, 1) ** 2;
 
 // localStorage can be blocked, full or hold corrupt data; none of that may stop the app.
 function readStoredJson(key) {
@@ -116,11 +123,34 @@ const ui = {
   levelBars: $$('.level-meter i'),
 };
 
-function showToast(message, duration = 2200) {
-  ui.toast.textContent = message;
+let pendingUndo = null;
+
+// `action` adds a button to the toast, e.g. { label: 'UNDO', run }.
+function showToast(message, duration = 2200, action = null) {
+  ui.toast.replaceChildren(document.createTextNode(message));
+  pendingUndo = null;
+  if (action) {
+    const run = () => {
+      if (pendingUndo !== run) return;
+      pendingUndo = null;
+      ui.toast.classList.remove('show');
+      action.run();
+    };
+    pendingUndo = run;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'toast-action';
+    button.textContent = action.label;
+    button.addEventListener('click', run);
+    ui.toast.append(button);
+  }
+  ui.toast.classList.toggle('has-action', Boolean(action));
   ui.toast.classList.add('show');
   clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => ui.toast.classList.remove('show'), duration);
+  showToast.timer = setTimeout(() => {
+    ui.toast.classList.remove('show');
+    pendingUndo = null;
+  }, duration);
 }
 
 function requestDialog({ title, message, code = 'SYSTEM ACTION', label = '', value = '', type = 'text', min, max, step, confirmText = 'CONFIRM', danger = false, focusCancel = false, playback = null, presets = [] }) {
@@ -367,13 +397,14 @@ function coverInitials(track) {
   return source || 'DD';
 }
 
-function fallbackCoverDataUrl(track) {
+function fallbackCoverDataUrl(track, plain = false) {
   const seed = [...`${track?.title || ''}${track?.artist || ''}`].reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const hue = seed % 360;
-  const initials = coverInitials(track);
   const title = escapeHtml(track?.title || 'Padawan DJ');
   const artist = escapeHtml(track?.artist || 'Performance');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${hue} 82% 48%)"/><stop offset="1" stop-color="hsl(${(hue + 55) % 360} 78% 14%)"/></linearGradient></defs><rect width="320" height="320" fill="#090c11"/><circle cx="250" cy="70" r="175" fill="url(#g)" opacity=".92"/><path d="M-30 250L245-25M20 340L340 20" stroke="white" stroke-opacity=".18" stroke-width="18"/><text x="28" y="205" fill="white" font-family="Arial,sans-serif" font-size="96" font-weight="800">${initials}</text><text x="30" y="260" fill="white" font-family="Arial,sans-serif" font-size="18" font-weight="700">${title.slice(0, 24)}</text><text x="30" y="286" fill="white" fill-opacity=".7" font-family="Arial,sans-serif" font-size="14">${artist.slice(0, 28)}</text></svg>`;
+  // `plain` leaves out the lettering, for the platter where the BPM sits on top.
+  const lettering = plain ? '' : `<text x="28" y="205" fill="white" font-family="Arial,sans-serif" font-size="96" font-weight="800">${coverInitials(track)}</text><text x="30" y="260" fill="white" font-family="Arial,sans-serif" font-size="18" font-weight="700">${title.slice(0, 24)}</text><text x="30" y="286" fill="white" fill-opacity=".7" font-family="Arial,sans-serif" font-size="14">${artist.slice(0, 28)}</text>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${hue} 82% 48%)"/><stop offset="1" stop-color="hsl(${(hue + 55) % 360} 78% 14%)"/></linearGradient></defs><rect width="320" height="320" fill="#090c11"/><circle cx="250" cy="70" r="175" fill="url(#g)" opacity=".92"/><path d="M-30 250L245-25M20 340L340 20" stroke="white" stroke-opacity=".18" stroke-width="18"/>${lettering}</svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -609,7 +640,7 @@ async function listCueDevices() {
   const devices = allDevices.filter(
     (device) => device.kind === 'audiooutput' && device.deviceId && !['default', 'communications'].includes(device.deviceId)
   );
-  select.replaceChildren(new Option('Select USB headphones / audio interface', ''));
+  select.replaceChildren(new Option('Select headphones or audio interface', ''));
   for (const [index, device] of devices.entries()) {
     select.add(new Option(device.label || `Audio output ${index + 1} (permission needed)`, device.deviceId));
   }
@@ -632,8 +663,8 @@ async function discoverCueDevices() {
   }
   const devices = await listCueDevices();
   status.textContent = devices.length
-    ? `${devices.length} output device(s) detected. Select your USB-C headphones, then enable.`
-    : 'No separate output detected. Check the USB-C headphones in macOS Sound settings.';
+    ? `${devices.length} output device(s) detected. Select your headphones, then enable.`
+    : 'No separate output detected. Check that your headphones or audio interface show up in your system sound settings.';
 }
 
 // Errors must be visible in the panel, not just buried in the Console.
@@ -641,8 +672,8 @@ function describeCueError(error) {
   const label = error?.name || 'Error';
   const detail = error?.message || 'Unknown audio routing error';
   const advice = {
-    NotAllowedError: 'Allow audio device access in Chrome or macOS; then use DETECT OUTPUTS.',
-    NotFoundError: 'Selected device is missing. Reconnect the USB-C headphones and detect outputs again.',
+    NotAllowedError: 'Allow audio device access in your browser or system settings, then use DETECT OUTPUTS.',
+    NotFoundError: 'Selected device is missing. Reconnect your headphones and detect outputs again.',
     AbortError: 'The audio device could not be switched. Reconnect it and retry.',
     NotReadableError: 'The audio device is unavailable or in use by another application.',
     NotSupportedError: 'Try the latest Chrome or Edge on desktop.'
@@ -722,7 +753,7 @@ class Deck {
     this.high.type = 'highshelf';
     this.high.frequency.value = 3200;
     this.trimGain = audioContext.createGain();
-    this.channelGain = audioContext.createGain(); // Fixed master-channel gain, independent of CUE level.
+    this.channelGain = audioContext.createGain(); // Channel fader: this deck's level in the master mix only.
     this.cueLevelGain = audioContext.createGain(); // Deck-specific headphone volume.
     this.crossGain = audioContext.createGain();
 
@@ -742,7 +773,7 @@ class Deck {
     this.crossGain.connect(masterGain);
 
     this.trimGain.gain.value = 1;
-    this.channelGain.gain.value = 0.9;
+    this.channelGain.gain.value = CHANNEL_FADER_MAX_GAIN;
     this.cueLevelGain.gain.value = 0.9;
     this.crossGain.gain.value = Math.SQRT1_2;
 
@@ -995,15 +1026,25 @@ class Deck {
     if (!this.track) return;
     this.track.hotCues = normaliseHotCues(this.track.hotCues);
     if (!Number.isFinite(this.track.hotCues[letter])) return showToast(`Hot Cue ${HOT_CUE_NUMBERS[letter]} is empty`, 900);
-    delete this.track.hotCues[letter];
-    await dbPut(this.track);
-    Object.values(decks).forEach((targetDeck) => {
-      if (targetDeck.track?.id === this.track.id) {
-        targetDeck.updateHotCueUi();
-        drawOverview(targetDeck);
-      }
+    const track = this.track;
+    const time = track.hotCues[letter];
+    const apply = async (value) => {
+      track.hotCues = normaliseHotCues(track.hotCues);
+      if (value === null) delete track.hotCues[letter];
+      else track.hotCues[letter] = value;
+      await dbPut(track);
+      Object.values(decks).forEach((targetDeck) => {
+        if (targetDeck.track === track) {
+          targetDeck.updateHotCueUi();
+          drawOverview(targetDeck);
+        }
+      });
+    };
+    await apply(null);
+    showToast(`Deck ${this.id === 'A' ? 1 : 2}: Hot Cue ${HOT_CUE_NUMBERS[letter]} deleted`, 6000, {
+      label: 'UNDO',
+      run: () => apply(time).then(() => showToast(`Hot Cue ${HOT_CUE_NUMBERS[letter]} restored`)).catch(console.error),
     });
-    showToast(`Deck ${this.id}: Hot Cue ${HOT_CUE_NUMBERS[letter]} deleted`);
   }
 
   updateJogVisual() {
@@ -1072,10 +1113,11 @@ class Deck {
       deckCover.src = coverUrl;
       deckCover.alt = this.track ? `${this.track.title} cover` : '';
       deckCoverBox?.classList.toggle('has-cover', Boolean(this.track));
-      $(`#coverFallback${this.id}`).textContent = this.id === 'A' ? '1' : '2';
+      $(`#coverFallback${this.id}`).innerHTML = UI_ICONS.music;
     }
     if (jogCover) {
-      jogCover.src = coverUrl;
+      // Real artwork as it is; generated covers without their lettering under the BPM.
+      jogCover.src = !this.track ? '' : COVER_MIME_TYPES.has(this.track.coverBlob?.type) ? coverUrl : fallbackCoverDataUrl(this.track, true);
       jogCover.alt = this.track ? `${this.track.title} cover` : '';
       jogLabel?.classList.toggle('has-cover', Boolean(this.track));
       $(`#jogCoverFallback${this.id}`).textContent = initials;
@@ -1103,6 +1145,7 @@ class Deck {
     const bpm = this.track ? this.track.bpm * this.audio.playbackRate : null;
     $(`#bpm${this.id}`).textContent = Number.isFinite(bpm) ? bpm.toFixed(2) : '—';
     $(`#pitch${this.id}`).textContent = `${this.tempoPercent >= 0 ? '+' : ''}${this.tempoPercent.toFixed(1)}%`;
+    refreshSyncState();
   }
 
   updatePlayState() {
@@ -1117,6 +1160,23 @@ class Deck {
 }
 
 const decks = { A: new Deck('A'), B: new Deck('B') };
+
+// Light SYNC while both decks run at the same tempo, and say how far apart they are otherwise.
+function refreshSyncState() {
+  if (typeof decks === 'undefined') return;
+  const tempo = (deck) => (deck.track ? deck.track.bpm * deck.audio.playbackRate : NaN);
+  for (const deck of Object.values(decks)) {
+    const other = decks[deck.id === 'A' ? 'B' : 'A'];
+    const button = $(`#sync${deck.id}`);
+    const difference = tempo(deck) - tempo(other);
+    const matched = Number.isFinite(difference) && Math.abs(difference) < 0.05;
+    const otherName = `Deck ${other.id === 'A' ? 1 : 2}`;
+    button.classList.toggle('is-matched', matched);
+    button.title = !Number.isFinite(difference) ? 'Match tempo and beat to the master deck'
+      : matched ? `Tempo matches ${otherName}`
+      : `${Math.abs(difference).toFixed(2)} BPM ${difference > 0 ? 'faster' : 'slower'} than ${otherName} · click to match the master deck`;
+  }
+}
 
 async function ensureAudioReady() {
   if (audioContext.state !== 'running') await audioContext.resume();
@@ -1373,6 +1433,20 @@ function savePlaylists() {
   if (!writeStoredJson('dualDeckPlaylists', state.playlists)) showToast('Playlists could not be saved in this browser', 3200);
 }
 
+function currentPlaylist() {
+  return state.source.startsWith('playlist:') ? state.playlists.find((item) => `playlist:${item.id}` === state.source) : null;
+}
+
+async function renamePlaylist(playlist) {
+  const name = await requestDialog({ title: 'Rename playlist', message: 'Choose a new name for this playlist.', code: 'PLAYLIST CONTROL', label: 'PLAYLIST NAME', value: playlist.name, confirmText: 'RENAME' });
+  if (!name?.trim() || name.trim() === playlist.name) return;
+  playlist.name = name.trim();
+  savePlaylists();
+  if (state.source === `playlist:${playlist.id}`) ui.browserHeading.textContent = playlist.name;
+  renderPlaylistList();
+  showToast(`Playlist renamed to ${playlist.name}`);
+}
+
 function renderPlaylistList() {
   const container = $('#playlistList');
   container.innerHTML = '';
@@ -1383,14 +1457,22 @@ function renderPlaylistList() {
     button.type = 'button';
     button.className = 'playlist-select';
     button.dataset.playlist = playlist.id;
+    button.title = `${playlist.name} · double-click or F2 to rename`;
     button.innerHTML = `${UI_ICONS.music}${escapeHtml(playlist.name)} <small>${playlist.trackIds.length}</small>`;
     button.classList.toggle('active', state.source === `playlist:${playlist.id}`);
     button.addEventListener('click', () => {
       state.source = `playlist:${playlist.id}`;
       ui.browserHeading.textContent = playlist.name;
       $$('.source-item').forEach((item) => item.classList.remove('active'));
-      renderPlaylistList();
+      // Update in place: rebuilding the list would swallow the double-click that renames.
+      $$('.playlist-select').forEach((item) => item.classList.toggle('active', item === button));
       renderTable();
+    });
+    button.addEventListener('dblclick', () => renamePlaylist(playlist).catch(console.error));
+    button.addEventListener('keydown', (event) => {
+      if (event.key !== 'F2') return;
+      event.preventDefault();
+      renamePlaylist(playlist).catch(console.error);
     });
     button.addEventListener('dragover', (event) => {
       event.preventDefault();
@@ -1402,19 +1484,17 @@ function renderPlaylistList() {
       button.classList.remove('drop-target');
       const trackId = event.dataTransfer.getData('text/track-id');
       if (!trackId || playlist.trackIds.includes(trackId)) return;
-      playlist.trackIds.push(trackId);
-      savePlaylists();
-      renderPlaylistList();
+      setPlaylistMembership(playlist, trackId, true);
       showToast(`Track added to ${playlist.name}`);
     });
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
     removeButton.className = 'playlist-remove';
-    removeButton.setAttribute('aria-label', `Remove playlist ${playlist.name}`);
-    removeButton.title = `Remove ${playlist.name}`;
+    removeButton.setAttribute('aria-label', `Delete playlist ${playlist.name}`);
+    removeButton.title = `Delete playlist ${playlist.name}`;
     removeButton.innerHTML = UI_ICONS.close;
     removeButton.addEventListener('click', async () => {
-      const confirmed = await requestDialog({ title: 'Remove playlist?', message: `“${playlist.name}” will be removed. Its tracks will stay in your Collection.`, code: 'PLAYLIST CONTROL', confirmText: 'REMOVE PLAYLIST', danger: true });
+      const confirmed = await requestDialog({ title: 'Delete playlist?', message: `“${playlist.name}” will be deleted. Its tracks stay in your Collection.`, code: 'PLAYLIST CONTROL', confirmText: 'DELETE PLAYLIST', danger: true });
       if (!confirmed) return;
       state.playlists = state.playlists.filter((item) => item.id !== playlist.id);
       if (state.source === `playlist:${playlist.id}`) {
@@ -1425,11 +1505,135 @@ function renderPlaylistList() {
       savePlaylists();
       renderPlaylistList();
       renderTable();
-      showToast(`${playlist.name} removed`);
+      showToast(`${playlist.name} deleted`);
     });
     row.append(button, removeButton);
     container.appendChild(row);
   }
+}
+
+// Add or remove one track; `index` places a re-added track back where it was.
+function setPlaylistMembership(playlist, trackId, member, index = playlist.trackIds.length) {
+  playlist.trackIds = playlist.trackIds.filter((id) => id !== trackId);
+  if (member) playlist.trackIds.splice(clamp(index, 0, playlist.trackIds.length), 0, trackId);
+  savePlaylists();
+  renderPlaylistList();
+  if (state.source === `playlist:${playlist.id}`) renderTable();
+}
+
+function removeFromPlaylist(playlist, trackId) {
+  const index = playlist.trackIds.indexOf(trackId);
+  if (index < 0) return;
+  const title = state.tracks.find((track) => track.id === trackId)?.title || 'Track';
+  setPlaylistMembership(playlist, trackId, false);
+  showToast(`${title} removed from ${playlist.name}`, 6000, {
+    label: 'UNDO',
+    run: () => {
+      if (!state.playlists.includes(playlist)) return;
+      setPlaylistMembership(playlist, trackId, true, index);
+      showToast(`${title} is back in ${playlist.name}`);
+    },
+  });
+}
+
+// Small menu at a track row: tick the playlists the track belongs to.
+function closePlaylistMenu({ restoreFocus = false } = {}) {
+  const menu = $('#playlistMenu');
+  if (menu.hidden) return;
+  menu.hidden = true;
+  const anchor = document.querySelector('[data-playlist-menu][aria-expanded="true"]');
+  anchor?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) anchor?.focus();
+}
+
+function openPlaylistMenu(trackId, anchor) {
+  const menu = $('#playlistMenu');
+  const track = state.tracks.find((item) => item.id === trackId);
+  if (!track) return;
+  closePlaylistMenu();
+  const build = () => {
+    menu.replaceChildren();
+    for (const playlist of state.playlists) {
+      const member = playlist.trackIds.includes(trackId);
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.setAttribute('role', 'menuitemcheckbox');
+      item.setAttribute('aria-checked', String(member));
+      item.innerHTML = `<span class="playlist-menu-check">${member ? UI_ICONS.check : ''}</span><span class="playlist-menu-name">${escapeHtml(playlist.name)}</span>`;
+      item.addEventListener('click', () => {
+        setPlaylistMembership(playlist, trackId, !member);
+        showToast(member ? `${track.title} removed from ${playlist.name}` : `${track.title} added to ${playlist.name}`, 1600);
+        // A re-render may have replaced the row; stay open only while the anchor still exists.
+        if (!anchor.isConnected) return closePlaylistMenu();
+        const position = [...menu.children].indexOf(item);
+        build();
+        menu.children[position]?.focus();
+      });
+      menu.append(item);
+    }
+    const create = document.createElement('button');
+    create.type = 'button';
+    create.setAttribute('role', 'menuitem');
+    create.className = 'playlist-menu-new';
+    create.innerHTML = `<span class="playlist-menu-check">${UI_ICONS.plus}</span><span class="playlist-menu-name">New playlist…</span>`;
+    create.addEventListener('click', () => {
+      closePlaylistMenu();
+      createPlaylist(trackId).catch(console.error);
+    });
+    menu.append(create);
+  };
+  build();
+  menu.hidden = false;
+  anchor.setAttribute('aria-expanded', 'true');
+  const rect = anchor.getBoundingClientRect();
+  const width = menu.offsetWidth, height = menu.offsetHeight;
+  menu.style.left = `${clamp(rect.right - width, 8, window.innerWidth - width - 8)}px`;
+  menu.style.top = `${rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4}px`;
+  menu.firstElementChild?.focus();
+}
+
+async function createPlaylist(trackId = null) {
+  const name = await requestDialog({ title: 'Create playlist', message: trackId ? 'Name the new playlist. The track is added to it.' : 'Name a new set, then add tracks with a row’s playlist button or by dragging them onto it.', code: 'PLAYLIST CONTROL', label: 'PLAYLIST NAME', confirmText: 'CREATE PLAYLIST' });
+  if (!name?.trim()) return;
+  const playlist = { id: crypto.randomUUID(), name: name.trim(), trackIds: trackId ? [trackId] : [] };
+  state.playlists.push(playlist);
+  savePlaylists();
+  renderPlaylistList();
+  showToast(trackId ? `${playlist.name} created with 1 track` : `${playlist.name} created`);
+}
+
+// What the table shows when there is nothing to list, by reason.
+function emptyStateHtml() {
+  const cell = (content, className = '') => `<tr class="empty-state ${className}"><td colspan="8">${content}</td></tr>`;
+  if (!state.tracks.length) {
+    return cell(`<div class="empty-panel"><strong>Your library is empty</strong><p>Add music from a folder, a USB drive or single files. It stays on this device.</p><div class="empty-actions"><button type="button" class="empty-add" data-empty-add>${UI_ICONS.plus} ADD MUSIC</button><span>or drop audio files anywhere in this window</span></div></div>`, 'library-empty');
+  }
+  const query = state.search.trim();
+  if (query) return cell(`<div class="empty-panel"><p>No tracks match “${escapeHtml(query)}”.</p><div class="empty-actions"><button type="button" data-clear-search>CLEAR SEARCH</button></div></div>`);
+  if (currentPlaylist()) return cell('<div class="empty-panel"><p>This playlist is empty. Use the playlist button at the end of a track’s row, or drag tracks onto the playlist name.</p></div>');
+  if (state.source === 'history') return cell('<div class="empty-panel"><p>Tracks you load onto a deck appear here.</p></div>');
+  return cell('<div class="empty-panel"><p>No tracks to show.</p></div>');
+}
+
+function setSelectedTrack(trackId, { scroll = false } = {}) {
+  state.selectedTrackId = trackId;
+  // Update the highlight in place: re-rendering would replace the row under the
+  // pointer, and Chrome then never fires dblclick (double-click to load or edit).
+  for (const row of ui.trackTableBody.querySelectorAll('tr[data-id]')) {
+    const selected = row.dataset.id === trackId;
+    row.classList.toggle('selected', selected);
+    row.setAttribute('aria-selected', String(selected));
+    if (selected && scroll) row.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+// Arrow-key browsing: step through the rows currently shown.
+function moveTrackSelection(step) {
+  const tracks = getVisibleTracks();
+  if (!tracks.length) return;
+  const current = tracks.findIndex((track) => track.id === state.selectedTrackId);
+  const next = current < 0 ? (step > 0 ? 0 : tracks.length - 1) : clamp(current + step, 0, tracks.length - 1);
+  setSelectedTrack(tracks[next].id, { scroll: true });
 }
 
 function renderTable() {
@@ -1445,6 +1649,8 @@ function renderTable() {
     heading.querySelector('button').setAttribute('aria-label', `Sort ${label.toLowerCase()} ${next}`);
   });
   const tracks = getVisibleTracks();
+  const playlist = currentPlaylist();
+  closePlaylistMenu();
   const rows = tracks.map((track) => {
     const classes = [
       state.selectedTrackId === track.id ? 'selected' : '',
@@ -1453,49 +1659,88 @@ function renderTable() {
     ].filter(Boolean).join(' ');
     const deckBadges = `${decks.A.track?.id === track.id ? '<span class="deck-load-badge deck-1">1</span>' : ''}${decks.B.track?.id === track.id ? '<span class="deck-load-badge deck-2">2</span>' : ''}`;
     const coverUrl = getTrackCoverUrl(track);
+    const title = escapeHtml(track.title);
+    const removeButton = playlist
+      ? `<button class="track-remove" data-remove-from-playlist type="button" title="Remove from this playlist" aria-label="Remove ${title} from ${escapeHtml(playlist.name)}">${UI_ICONS.minus}</button>`
+      : `<button class="track-remove" data-remove-track type="button" title="Remove from library" aria-label="Remove ${title} from library">${UI_ICONS.trash}</button>`;
     return `
-      <tr data-id="${track.id}" class="${classes}" draggable="true">
-        <td><div class="load-buttons"><button data-load="A" title="Load Deck 1" aria-label="Load ${escapeHtml(track.title)} on Deck 1">1</button><button data-load="B" title="Load Deck 2" aria-label="Load ${escapeHtml(track.title)} on Deck 2">2</button><button class="track-remove" data-remove-track type="button" title="Remove from library" aria-label="Remove ${escapeHtml(track.title)} from library"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4.5h9M6 4.5v-2h4v2m1.5 0-.5 9h-6l-.5-9M6.5 7v4m3-4v4"/></svg></button></div></td>
+      <tr data-id="${track.id}" class="${classes}" draggable="true" aria-selected="${state.selectedTrackId === track.id}">
+        <td><div class="load-buttons"><button data-load="A" type="button" title="Load Deck 1" aria-label="Load ${title} on Deck 1">1</button><button data-load="B" type="button" title="Load Deck 2" aria-label="Load ${title} on Deck 2">2</button></div></td>
         <td title="${escapeHtml(track.title)}"><div class="track-title-cell">${deckBadges}<img src="${escapeHtml(coverUrl)}" alt=""><span class="track-title-text">${escapeHtml(track.title)}</span>${track.fileHandle ? `<span class="track-source" title="${escapeHtml(track.sourceName + '/' + track.relativePath)}">EXTERNAL</span>` : ''}</div></td>
         <td title="${escapeHtml(track.artist)}">${escapeHtml(track.artist)}</td>
         <td class="numeric editable" data-field="bpm" title="Double-click to edit BPM">${Number(track.bpm).toFixed(1)}</td>
         <td class="editable" data-field="key" title="Double-click to edit key">${escapeHtml(track.key || '--')}</td>
         <td class="numeric">${formatTime(track.duration)}</td>
         <td>${formatDate(track.addedAt)}</td>
+        <td class="row-actions"><div><button data-playlist-menu type="button" title="Add to playlist" aria-label="Playlists for ${title}" aria-haspopup="menu" aria-expanded="false">${UI_ICONS.playlistAdd}</button>${removeButton}</div></td>
       </tr>`;
   }).join('');
 
-  ui.trackTableBody.innerHTML = rows || '<tr class="empty-state"><td colspan="7">No tracks match this view.</td></tr>';
+  ui.trackTableBody.innerHTML = rows || emptyStateHtml();
+  // Hide the KEY column until at least one track has a key.
+  $('.track-table').classList.toggle('no-keys', state.tracks.length > 0 && !state.tracks.some((track) => track.key && track.key !== '--'));
+  // Rows of a playlist can be dragged into a new order (not while a search hides some).
+  ui.trackTableBody.classList.toggle('reorderable', Boolean(playlist) && !state.search.trim() && tracks.length > 1);
   updateLibraryStats(tracks);
 }
 
 async function removeTrack(trackId) {
   const track = state.tracks.find((item) => item.id === trackId);
   if (!track) return;
-  const confirmed = await requestDialog({
-    title: 'Remove track?',
-    message: `“${track.title}” will be removed from this browser, including its Hot Cues and playlist placements.`,
-    code: 'LIBRARY',
-    confirmText: 'REMOVE TRACK',
-    danger: true,
-  });
-  if (!confirmed) return;
+  const loadedDecks = Object.values(decks).filter((deck) => deck.track?.id === trackId);
+  // Removing a loaded track stops it, so that still asks first. Anything else can be undone.
+  if (loadedDecks.length) {
+    const confirmed = await requestDialog({
+      title: 'Remove loaded track?',
+      message: `“${track.title}” is on Deck ${loadedDecks.map((deck) => (deck.id === 'A' ? 1 : 2)).join(' and ')}. Removing it unloads the deck and stops playback.`,
+      code: 'LIBRARY',
+      confirmText: 'REMOVE TRACK',
+      danger: true,
+      focusCancel: true,
+    });
+    if (!confirmed) return;
+    loadedDecks.forEach((deck) => deck.unload());
+  }
 
-  Object.values(decks).forEach((deck) => {
-    if (deck.track?.id === trackId) deck.unload();
-  });
+  const snapshot = {
+    index: state.tracks.indexOf(track),
+    historyIndex: state.history.indexOf(trackId),
+    playlists: state.playlists.map((playlist) => [playlist, playlist.trackIds.indexOf(trackId)]).filter(([, index]) => index >= 0),
+    selected: state.selectedTrackId === trackId,
+  };
   if (track.coverUrl?.startsWith('blob:')) URL.revokeObjectURL(track.coverUrl);
+  track.coverUrl = null;
   state.tracks = state.tracks.filter((item) => item.id !== trackId);
   state.history = state.history.filter((id) => id !== trackId);
   state.playlists.forEach((playlist) => { playlist.trackIds = playlist.trackIds.filter((id) => id !== trackId); });
-  if (state.selectedTrackId === trackId) state.selectedTrackId = null;
+  if (snapshot.selected) state.selectedTrackId = null;
   writeStoredJson('dualDeckHistory', state.history);
   savePlaylists();
   await dbDelete(trackId);
   renderPlaylistList();
   renderTable();
   await updateStorageUi();
-  showToast(`${track.title} removed from Collection`);
+
+  const restore = async () => {
+    if (state.tracks.some((item) => item.id === trackId)) return;
+    await dbPut(track);
+    state.tracks.splice(clamp(snapshot.index, 0, state.tracks.length), 0, track);
+    if (snapshot.historyIndex >= 0) state.history.splice(clamp(snapshot.historyIndex, 0, state.history.length), 0, trackId);
+    for (const [playlist, index] of snapshot.playlists) {
+      if (state.playlists.includes(playlist) && !playlist.trackIds.includes(trackId)) playlist.trackIds.splice(clamp(index, 0, playlist.trackIds.length), 0, trackId);
+    }
+    if (snapshot.selected) state.selectedTrackId = trackId;
+    writeStoredJson('dualDeckHistory', state.history);
+    savePlaylists();
+    renderPlaylistList();
+    renderTable();
+    await updateStorageUi();
+    showToast(`${track.title} restored`);
+  };
+  showToast(`${track.title} removed from the library`, 7000, {
+    label: 'UNDO',
+    run: () => restore().catch((error) => { console.error(error); showToast('Could not restore the track', 4000); }),
+  });
 }
 
 function updateLibraryStats(visibleTracks = getVisibleTracks()) {
@@ -2183,6 +2428,7 @@ function bindDeckControls(deck) {
   $(`#tempo${deck.id}`).addEventListener('input', (event) => deck.setTempo(event.target.value));
   $(`#sync${deck.id}`).addEventListener('click', () => deck.syncTo(decks[state.masterDeck]));
   $(`#cueLevel${deck.id}`).addEventListener('input', (event) => deck.cueLevelGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
+  $(`#volume${deck.id}`).addEventListener('input', (event) => deck.channelGain.gain.setTargetAtTime(channelFaderGain(event.target.value), audioContext.currentTime, 0.01));
   $(`#trim${deck.id}`).addEventListener('input', (event) => deck.trimGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $(`#high${deck.id}`).addEventListener('input', (event) => deck.high.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $(`#mid${deck.id}`).addEventListener('input', (event) => deck.mid.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
@@ -2407,8 +2653,9 @@ function setupWorkspaceLayout() {
     shell.classList.add('toolbar-open');
     updateToolbarA11y();
   };
+  const firstRun = () => !state.tracks.length;
   const closeToolbar = () => {
-    if (pinned || toolbar.matches(':hover, :focus-within')) return;
+    if (pinned || firstRun() || toolbar.matches(':hover, :focus-within')) return;
     shell.classList.remove('toolbar-open');
     updateToolbarA11y();
   };
@@ -2499,7 +2746,7 @@ function setupWorkspaceLayout() {
     if (!pinned) scheduleHide();
   });
   document.addEventListener('pointerdown', event => {
-    if (!pinned && !toolbar.contains(event.target) && event.target !== reveal) {
+    if (!pinned && !firstRun() && !toolbar.contains(event.target) && event.target !== reveal) {
       if (toolbar.contains(document.activeElement)) document.activeElement.blur();
       shell.classList.remove('toolbar-open');
       updateToolbarA11y();
@@ -2565,6 +2812,7 @@ function setupWorkspaceLayout() {
   observer.observe(toolbar);
   $$('.deck-main').forEach(main => observer.observe(main));
   updatePin();
+  if (firstRun()) openToolbar();
   scheduleLayout();
 }
 
@@ -2582,8 +2830,8 @@ function setLibraryMaximized(maximized) {
   button.title = `${label} (L)`;
   button.querySelector('span').textContent = maximized ? 'RESTORE' : 'MAXIMIZE';
   $('#selectionHint').textContent = maximized
-    ? 'Double-click or use the 1 / 2 buttons to load. Press L or Esc to bring the decks back.'
-    : 'Double-click to load, or drag a track directly onto a jog wheel.';
+    ? 'Double-click or 1 / 2 to load · ↑ ↓ to browse · L or Esc brings the decks back'
+    : 'Double-click or drag onto a deck to load · ↑ ↓ to browse · Shift + ← / → loads Deck 1 / 2';
   if (!maximized) {
     // Overview canvases were hidden, so redraw them at their restored size.
     requestAnimationFrame(() => {
@@ -2855,14 +3103,7 @@ function bindEvents() {
     renderTable();
   }));
 
-  $('#addPlaylist').addEventListener('click', async () => {
-    const name = await requestDialog({ title: 'Create playlist', message: 'Name a new set, then drag tracks onto it from your Collection.', code: 'PLAYLIST CONTROL', label: 'PLAYLIST NAME', confirmText: 'CREATE PLAYLIST' });
-    if (!name?.trim()) return;
-    state.playlists.push({ id: crypto.randomUUID(), name: name.trim(), trackIds: [] });
-    savePlaylists();
-    renderPlaylistList();
-    showToast(`${name.trim()} created — drag tracks onto it`);
-  });
+  $('#addPlaylist').addEventListener('click', () => createPlaylist().catch(console.error));
 
   $$('.track-table th[data-sort]').forEach((heading) => heading.querySelector('button').addEventListener('click', () => {
     const field = heading.dataset.sort;
@@ -2876,23 +3117,120 @@ function bindEvents() {
   }));
 
   ui.trackTableBody.addEventListener('click', (event) => {
-    const row = event.target.closest('tr[data-id]');
-    if (!row) return;
-    const remove = event.target.closest('[data-remove-track]');
-    if (remove) {
-      removeTrack(row.dataset.id).catch(console.error);
+    if (event.target.closest('[data-empty-add]')) return ui.importButton.click();
+    if (event.target.closest('[data-clear-search]')) {
+      ui.searchInput.value = '';
+      state.search = '';
+      renderTable();
       return;
     }
-    state.selectedTrackId = row.dataset.id;
+    const row = event.target.closest('tr[data-id]');
+    if (!row) return;
+    if (event.target.closest('[data-remove-track]')) return void removeTrack(row.dataset.id).catch(console.error);
+    if (event.target.closest('[data-remove-from-playlist]')) {
+      const playlist = currentPlaylist();
+      if (playlist) removeFromPlaylist(playlist, row.dataset.id);
+      return;
+    }
+    const menuButton = event.target.closest('[data-playlist-menu]');
+    if (menuButton) {
+      const wasOpen = menuButton.getAttribute('aria-expanded') === 'true';
+      setSelectedTrack(row.dataset.id);
+      if (wasOpen) closePlaylistMenu();
+      else openPlaylistMenu(row.dataset.id, menuButton);
+      return;
+    }
     const load = event.target.closest('button[data-load]');
-    if (load) loadTrackToDeck(row.dataset.id, load.dataset.load).catch(console.error);
-    else {
-      // Update the highlight in place: re-rendering would replace the row under the
-      // pointer, and Chrome then never fires dblclick (double-click to load or edit).
-      ui.trackTableBody.querySelectorAll('tr.selected').forEach((selected) => selected.classList.remove('selected'));
-      row.classList.add('selected');
+    if (load) {
+      state.selectedTrackId = row.dataset.id;
+      loadTrackToDeck(row.dataset.id, load.dataset.load).catch(console.error);
+    } else setSelectedTrack(row.dataset.id);
+  });
+
+  // The playlist menu closes on outside clicks, Escape, scrolling or resizing.
+  const playlistMenu = $('#playlistMenu');
+  document.addEventListener('pointerdown', (event) => {
+    if (!playlistMenu.hidden && !playlistMenu.contains(event.target) && !event.target.closest('[data-playlist-menu]')) closePlaylistMenu();
+  });
+  playlistMenu.addEventListener('keydown', (event) => {
+    const items = [...playlistMenu.children];
+    const index = items.indexOf(document.activeElement);
+    if (event.key === 'Escape' || event.key === 'Tab') {
+      event.preventDefault();
+      closePlaylistMenu({ restoreFocus: true });
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      items[(index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
+    }
+    event.stopPropagation();
+  });
+  $('.track-table-wrap').addEventListener('scroll', () => closePlaylistMenu(), { passive: true });
+  window.addEventListener('resize', () => closePlaylistMenu());
+
+  // Inside a playlist, dragging a row onto another row moves it there.
+  const clearReorderMarks = () => ui.trackTableBody.querySelectorAll('.drop-before, .drop-after').forEach((row) => row.classList.remove('drop-before', 'drop-after'));
+  const reorderTarget = (event) => {
+    if (!ui.trackTableBody.classList.contains('reorderable') || ![...event.dataTransfer.types].includes('text/track-id')) return null;
+    const row = event.target.closest('tr[data-id]');
+    if (!row) return null;
+    const rect = row.getBoundingClientRect();
+    return { row, after: event.clientY > rect.top + rect.height / 2 };
+  };
+  ui.trackTableBody.addEventListener('dragover', (event) => {
+    const target = reorderTarget(event);
+    if (!target) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    clearReorderMarks();
+    target.row.classList.add(target.after ? 'drop-after' : 'drop-before');
+  });
+  ui.trackTableBody.addEventListener('dragleave', (event) => {
+    if (!ui.trackTableBody.contains(event.relatedTarget)) clearReorderMarks();
+  });
+  ui.trackTableBody.addEventListener('dragend', clearReorderMarks);
+  ui.trackTableBody.addEventListener('drop', (event) => {
+    const target = reorderTarget(event);
+    clearReorderMarks();
+    const playlist = currentPlaylist();
+    const trackId = event.dataTransfer.getData('text/track-id');
+    if (!target || !playlist || !playlist.trackIds.includes(trackId)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (target.row.dataset.id === trackId) return;
+    const order = playlist.trackIds.filter((id) => id !== trackId);
+    order.splice(order.indexOf(target.row.dataset.id) + (target.after ? 1 : 0), 0, trackId);
+    playlist.trackIds = order;
+    savePlaylists();
+    renderTable();
+  });
+
+  // Search field: arrows browse the results, Enter loads, Escape clears then leaves.
+  ui.searchInput.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveTrackSelection(event.key === 'ArrowDown' ? 1 : -1);
+    } else if (event.key === 'Enter') {
+      const tracks = getVisibleTracks();
+      const track = tracks.find((item) => item.id === state.selectedTrackId) || tracks[0];
+      if (!track) return;
+      event.preventDefault();
+      setSelectedTrack(track.id);
+      loadTrackToDeck(track.id, state.selectedDeck).catch(console.error);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      if (ui.searchInput.value) {
+        ui.searchInput.value = '';
+        state.search = '';
+        renderTable();
+      } else ui.searchInput.blur();
     }
   });
+
+  // Phone layout: jump between the stacked sections.
+  $$('.section-jump [data-jump]').forEach((button) => button.addEventListener('click', () => {
+    setLibraryMaximized(false);
+    $(button.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
 
   ui.trackTableBody.addEventListener('dragstart', (event) => {
     const row = event.target.closest('tr[data-id]');
@@ -2900,12 +3238,14 @@ function bindEvents() {
     if (!event.dataTransfer) return;
     event.dataTransfer.setData('text/track-id', row.dataset.id);
     event.dataTransfer.setData('text/plain', row.dataset.id);
-    event.dataTransfer.effectAllowed = 'copy';
+    // Copy onto a deck or playlist; move when reordering rows inside a playlist.
+    event.dataTransfer.effectAllowed = 'copyMove';
   });
 
   ui.trackTableBody.addEventListener('dblclick', async (event) => {
     const row = event.target.closest('tr[data-id]');
-    if (!row) return;
+    // A fast double press on a row button is two presses of that button, not a load.
+    if (!row || event.target.closest('button')) return;
     const editable = event.target.closest('[data-field]');
     const track = state.tracks.find((item) => item.id === row.dataset.id);
     if (editable && track) {
@@ -2935,9 +3275,43 @@ function bindEvents() {
   document.addEventListener('keydown', (event) => {
     if (event.target.closest('.sort-button, [data-select-deck]') && ['Enter', 'Space'].includes(event.code)) return;
     if (event.defaultPrevented || event.target.matches('input, textarea, select') || document.querySelector('dialog[open]')) return;
+    // Ctrl/Cmd+Z takes back the last removal while its UNDO message is showing.
+    if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'z' && pendingUndo) {
+      event.preventDefault();
+      return pendingUndo();
+    }
     // Leave browser and system shortcuts (Cmd+C, Cmd+L, Ctrl+S…) alone.
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     const deck = decks[state.selectedDeck];
+
+    // Per-deck keys work whichever deck is selected. Physical key positions, so they
+    // sit in the same place on every keyboard layout.
+    const hotCueKey = { KeyQ: ['A', 'A'], KeyW: ['A', 'B'], KeyE: ['A', 'C'], KeyR: ['A', 'D'], KeyU: ['B', 'A'], KeyI: ['B', 'B'], KeyO: ['B', 'C'], KeyP: ['B', 'D'] }[event.code];
+    if (hotCueKey) {
+      if (event.repeat) return;
+      const target = decks[hotCueKey[0]];
+      return (event.shiftKey ? target.removeHotCue(hotCueKey[1]) : target.triggerHotCue(hotCueKey[1])).catch(console.error);
+    }
+    const transportKey = { KeyZ: ['A', 'cue'], KeyX: ['A', 'play'], KeyN: ['B', 'cue'], KeyM: ['B', 'play'] }[event.code];
+    if (transportKey && !event.shiftKey) {
+      if (event.repeat) return;
+      const target = decks[transportKey[0]];
+      return transportKey[1] === 'cue' ? target.cue() : target.playPause().catch(console.error);
+    }
+    if (event.key === '/') {
+      event.preventDefault();
+      ui.searchInput.focus();
+      return ui.searchInput.select();
+    }
+    if (event.code === 'ArrowDown' || event.code === 'ArrowUp') {
+      event.preventDefault();
+      return moveTrackSelection(event.code === 'ArrowDown' ? 1 : -1);
+    }
+    if (event.shiftKey && (event.code === 'ArrowLeft' || event.code === 'ArrowRight')) {
+      event.preventDefault();
+      if (state.selectedTrackId) loadTrackToDeck(state.selectedTrackId, event.code === 'ArrowLeft' ? 'A' : 'B').catch(console.error);
+      return;
+    }
     if (event.code === 'Digit1') return setSelectedDeck('A');
     if (event.code === 'Digit2') return setSelectedDeck('B');
     if (event.code === 'Space') { event.preventDefault(); return deck.playPause().catch(console.error); }
@@ -2989,6 +3363,7 @@ async function init() {
   applyCrossfader(0);
   setSelectedDeck('A');
   setMasterDeck('A');
+  setLibraryMaximized(false);
   decks.A.updateTrackUi();
   decks.B.updateTrackUi();
   renderPlaylistList();

@@ -12,18 +12,18 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.2.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.2.1">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.2.1">
-  <link rel="stylesheet" href="styles.css?v=1.2.1">
+  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.3.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.3.0">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.3.0">
+  <link rel="stylesheet" href="styles.css?v=1.3.0">
 </head>
 <body>
   <div class="app-shell">
     <button id="topbarReveal" class="topbar-reveal" type="button" aria-label="Show application toolbar" aria-controls="appToolbar" aria-expanded="true" title="Show toolbar (Alt+T)"></button>
     <header id="appToolbar" class="topbar">
       <div class="topbar-left">
-        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.2.1" alt="" width="27" height="27">
-        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.2.1" alt="Padawan DJ" width="240" height="24">
+        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.3.0" alt="" width="27" height="27">
+        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.3.0" alt="Padawan DJ" width="240" height="24">
       </div>
       <nav class="topbar-center app-navigation" hidden aria-label="App navigation">
         <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l9-2v9M8 8l9-2"/><ellipse cx="5" cy="15" rx="3" ry="2"/><ellipse cx="14" cy="13" rx="3" ry="2"/></svg> LIBRARY</button>
@@ -33,7 +33,7 @@
       <div class="topbar-right">
         <span id="libraryStatus" class="status-text">0 TRACKS</span>
         <button id="installButton" class="top-action install-action" type="button" hidden>INSTALL APP</button>
-        <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage"><span>LOCAL STORAGE</span><strong id="storageCompact">--</strong></button>
+        <button id="storageButton" class="top-action storage-action" type="button" title="Local browser storage: library size on this device" aria-label="Local storage"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span>LOCAL STORAGE</span><strong id="storageCompact">--</strong></button>
         <button id="importButton" class="top-action primary" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg> ADD TRACKS</button>
         <button id="audioOutputButton" class="top-action" type="button" title="Master and headphone audio routing"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="8" rx="2"/><rect x="17" y="12" width="4" height="8" rx="2"/></svg> AUDIO <span id="audioCueBadge" class="audio-cue-badge">CUE OFF</span></button>
         <span class="top-divider" aria-hidden="true"></span>
@@ -61,12 +61,16 @@
       </div>
       <label for="headphoneOutput">HEADPHONE CUE OUTPUT</label>
       <div class="headphone-output-select">
-        <select id="headphoneOutput"><option value="">Select USB headphones / audio interface</option></select>
+        <select id="headphoneOutput"><option value="">Select headphones or audio interface</option></select>
       </div>
-      <p class="audio-output-note">If you only see “Audio output 1”, click DETECT OUTPUTS. Chrome may request temporary microphone permission to reveal your audio devices. The microphone is immediately released and no audio is recorded. Select a device DIFFERENT from Master.</p>
+      <p class="audio-output-note">If you only see “Audio output 1”, click DETECT OUTPUTS. Your browser may ask for temporary microphone permission to reveal your audio devices. The microphone is released immediately and nothing is recorded. Choose a different device from the master output.</p>
       <button id="detectHeadphones" class="audio-detect-button" type="button">DETECT OUTPUTS</button>
       <label for="cueVolume">HEADPHONE VOLUME</label>
       <input aria-label="Headphone volume" type="range" id="cueVolume" min="0" max="1" step="0.01" value="0.65">
+      <div class="cue-deck-levels">
+        <div><label for="cueLevelA">DECK 1 CUE LEVEL</label><input id="cueLevelA" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 headphone CUE level"></div>
+        <div><label for="cueLevelB">DECK 2 CUE LEVEL</label><input id="cueLevelB" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 2 headphone CUE level"></div>
+      </div>
       <p id="cueOutputStatus" role="status">Headphone monitoring disabled</p>
       <div class="audio-output-actions">
         <button id="enableHeadphones" type="button">ENABLE HEADPHONES</button>
@@ -103,7 +107,7 @@
           <div class="deck-display" aria-label="Deck 1 track display">
           <header class="deck-header">
             <button class="deck-number" type="button" data-select-deck="A" aria-label="Select Deck 1 for keyboard controls" aria-pressed="false" title="Select Deck 1 for keyboard controls (1)">1</button>
-            <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt=""><span id="coverFallbackA">1</span></div>
+            <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt=""><span id="coverFallbackA" aria-hidden="true"></span></div>
             <div class="track-identification track-info-box">
               <strong id="titleA">No track loaded</strong>
               <span id="artistA">Import music and load a track</span>
@@ -171,7 +175,7 @@
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playA" class="round-button play-button" type="button" aria-label="Play deck 1"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 5 11 7-11 7Z"/></svg></button>
-                <button id="syncA" class="sync-button" type="button" title="Beat sync to master deck">SYNC</button>
+                <button id="syncA" class="sync-button" type="button" title="Match tempo and beat to the master deck">SYNC</button>
               </div>
             </div>
 
@@ -182,7 +186,7 @@
                 <span class="tempo-centre-line" aria-hidden="true"></span>
                 <input id="tempoA" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 1 tempo">
               </div>
-              <button class="reset-tempo" data-deck="A" type="button">RESET</button>
+              <button class="reset-tempo" data-deck="A" type="button" aria-label="Reset Deck 1 tempo to 0%" title="Reset tempo to 0%">TEMPO 0</button>
             </div>
           </div>
         </article>
@@ -203,8 +207,8 @@
               </div>
               <button class="cue-monitor" type="button" aria-label="Monitor Deck 1 in headphones" title="Headphone monitor: select Deck 1 for CUE listening. Enable headphones in AUDIO first.">CUE</button>
               <div class="cue-level-control">
-                <span aria-hidden="true">CUE LEVEL</span>
-                <input id="cueLevelA" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 headphone CUE volume" title="Headphone CUE level (does not affect master)">
+                <span aria-hidden="true">VOLUME</span>
+                <input id="volumeA" class="channel-fader" type="range" min="0" max="1" value="1" step="0.01" aria-label="Deck 1 channel volume" title="Deck 1 volume in the master mix">
               </div>
             </div>
             <div class="level-meter" aria-label="Master level"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -221,8 +225,8 @@
               </div>
               <button class="cue-monitor active" type="button" aria-label="Monitor Deck 2 in headphones" title="Headphone monitor: select Deck 2 for CUE listening. Enable headphones in AUDIO first.">CUE</button>
               <div class="cue-level-control">
-                <span aria-hidden="true">CUE LEVEL</span>
-                <input id="cueLevelB" class="channel-fader" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 2 headphone CUE volume" title="Headphone CUE level (does not affect master)">
+                <span aria-hidden="true">VOLUME</span>
+                <input id="volumeB" class="channel-fader" type="range" min="0" max="1" value="1" step="0.01" aria-label="Deck 2 channel volume" title="Deck 2 volume in the master mix">
               </div>
             </div>
           </div>
@@ -243,7 +247,7 @@
           <div class="deck-display" aria-label="Deck 2 track display">
           <header class="deck-header">
             <button class="deck-number" type="button" data-select-deck="B" aria-label="Select Deck 2 for keyboard controls" aria-pressed="false" title="Select Deck 2 for keyboard controls (2)">2</button>
-            <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt=""><span id="coverFallbackB">2</span></div>
+            <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt=""><span id="coverFallbackB" aria-hidden="true"></span></div>
             <div class="track-identification track-info-box">
               <strong id="titleB">No track loaded</strong>
               <span id="artistB">Import music and load a track</span>
@@ -304,7 +308,7 @@
                 <span class="tempo-centre-line" aria-hidden="true"></span>
                 <input id="tempoB" class="vertical-range" type="range" min="-16" max="16" step="0.1" value="0" aria-label="Deck 2 tempo">
               </div>
-              <button class="reset-tempo" data-deck="B" type="button">RESET</button>
+              <button class="reset-tempo" data-deck="B" type="button" aria-label="Reset Deck 2 tempo to 0%" title="Reset tempo to 0%">TEMPO 0</button>
             </div>
 
             <div class="transport-panel">
@@ -321,7 +325,7 @@
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playB" class="round-button play-button" type="button" aria-label="Play deck 2"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 5 11 7-11 7Z"/></svg></button>
-                <button id="syncB" class="sync-button" type="button" title="Beat sync to master deck">SYNC</button>
+                <button id="syncB" class="sync-button" type="button" title="Match tempo and beat to the master deck">SYNC</button>
               </div>
             </div>
 
@@ -352,22 +356,23 @@
             <table class="track-table">
               <thead>
                 <tr>
-                  <th class="load-column">DECK / REMOVE</th>
+                  <th class="load-column">LOAD</th>
                   <th data-sort="title"><button class="sort-button" type="button">TITLE <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4"/></svg></button></th>
                   <th data-sort="artist"><button class="sort-button" type="button">ARTIST <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4"/></svg></button></th>
                   <th data-sort="bpm" class="numeric"><button class="sort-button" type="button">BPM <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4"/></svg></button></th>
                   <th data-sort="key"><button class="sort-button" type="button">KEY <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4"/></svg></button></th>
                   <th data-sort="duration" class="numeric"><button class="sort-button" type="button">TIME <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4"/></svg></button></th>
                   <th data-sort="addedAt"><button class="sort-button" type="button">ADDED <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 8 4-4 4 4M12 4v16m-4-4 4 4 4-4"/></svg></button></th>
+                  <th class="row-actions-column"><span class="visually-hidden">Playlist and remove actions</span></th>
                 </tr>
               </thead>
               <tbody id="trackTableBody">
-                <tr class="empty-state"><td colspan="7">Add tracks with ADD TRACKS or drag audio files here.</td></tr>
+                <tr class="empty-state"><td colspan="8">Loading your library…</td></tr>
               </tbody>
             </table>
           </div>
           <footer class="browser-footer">
-            <span id="selectionHint">Double-click to load, or drag a track directly onto a jog wheel.</span>
+            <span id="selectionHint"></span>
             <span id="totalDuration">00:00 total</span>
           </footer>
         </div>
@@ -379,16 +384,16 @@
     <form method="dialog">
       <header>
         <div class="help-dialog-heading">
-          <img src="icons/padawan-emblem.png?v=1.2.1" width="32" height="32" alt="">
+          <img src="icons/padawan-emblem.png?v=1.3.0" width="32" height="32" alt="">
           <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
         </div>
         <button type="submit" aria-label="Close help"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       </header>
         <div class="about-brand">
-          <img src="icons/padawan-emblem.png?v=1.2.1" width="82" height="82" alt="Padawan DJ logo">
+          <img src="icons/padawan-emblem.png?v=1.3.0" width="82" height="82" alt="Padawan DJ logo">
           <div>
 
-            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.2.1" alt="Padawan DJ" width="390" height="38"></h2>
+            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.3.0" alt="Padawan DJ" width="390" height="38"></h2>
             <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
             <p>Two decks. One flow.</p>
           </div>
@@ -406,7 +411,15 @@
         <kbd>C</kbd><span>While playing, pause and return to the selected deck’s cue point. While paused at a new position, set the cue point.</span>
         <kbd>S</kbd><span>Sync the selected deck to the deck marked MASTER. Load a track into both decks first.</span>
         <kbd>← / →</kbd><span>Seek backward / forward five seconds on the selected deck. Focused waveforms use their own seek steps.</span>
+        <kbd>Z / X</kbd><span>Deck 1: cue / play-pause, whichever deck is selected</span>
+        <kbd>N / M</kbd><span>Deck 2: cue / play-pause, whichever deck is selected</span>
+        <kbd>Q W E R</kbd><span>Deck 1 Hot Cues 1–4. Set an empty pad or jump to a saved one; hold Shift to delete it.</span>
+        <kbd>U I O P</kbd><span>Deck 2 Hot Cues 1–4. Hold Shift to delete.</span>
+        <kbd>↑ / ↓</kbd><span>Move through the library, also while typing in the search field</span>
         <kbd>Enter</kbd><span>Load the selected library track into the selected deck.</span>
+        <kbd>Shift + ← / →</kbd><span>Load the selected library track into Deck 1 / Deck 2</span>
+        <kbd>/</kbd><span>Jump to the library search field; Esc clears it and leaves</span>
+        <kbd>Ctrl/Cmd + Z</kbd><span>Undo the last removed track, playlist entry or Hot Cue while its UNDO message is showing</span>
         <kbd>L</kbd><span>Maximize or restore the music library (Esc also restores)</span>
         <kbd>Alt + T</kbd><span>Show toolbar and focus its pin; Esc dismisses the unpinned toolbar</span>
         <kbd>Library divider</kbd><span>Drag or use Up / Down to resize; Home / End for limits; double-click to reset</span>
@@ -416,13 +429,15 @@
         <kbd>Small waveform</kbd><span>Click or drag to seek across the complete track. When the waveform is focused, Home returns to the start.</span>
         <kbd>Elapsed time</kbd><span>Click the restart icon or elapsed-time readout beneath a deck’s small waveform to return to the start. Playback continues if the track is playing.</span>
         <kbd>Load a track</kbd><span>Use a track row’s 1 or 2 button to choose a deck, double-click its title to load the selected deck, or drag it onto a jog wheel. Replacing a playing track asks for confirmation.</span>
+        <kbd>Playlists</kbd><span>Use the playlist button at the end of a track row, or drag the track onto a playlist. Inside a playlist, drag rows to reorder them and use the row’s remove button to take a track out. Double-click a playlist name to rename it.</span>
+        <kbd>Mixer faders</kbd><span>The two vertical faders set each deck’s volume in the master mix. Headphone CUE levels are in AUDIO.</span>
         <kbd>ADD TRACKS</kbd><span>Click to choose audio files, or drop files onto the ADD TRACKS button.</span>
         <kbd>Jog platter</kbd><span>Drag around the platter to scratch / seek. Near the centre spindle, drag left or right.</span>
         <kbd>Jog rim</kbd><span>Drag the thin outer rim for fine beat nudging.</span>
         <kbd>EQ knobs</kbd><span>Drag up/down to turn; hold Shift for fine adjustment, double-click to reset, or use arrow keys.</span>
         <kbd>Mouse wheel</kbd><span>Fine seek while hovering over a jog wheel. Hold Shift for smaller steps.</span>
       </div>
-      <p>Keyboard shortcuts apply outside text fields, sliders and open dialogs. Use 1 or 2 to select a deck. Hold Shift while dragging a jog wheel for finer movement.</p>
+      <p>Keyboard shortcuts apply outside text fields, sliders and open dialogs, and never with Ctrl, Cmd or Alt held. Use 1 or 2 to select a deck. Hold Shift while dragging a jog wheel for finer movement.</p>
       </section>
       <section id="helpAboutPanel" class="help-tab-panel about-panel" role="tabpanel" aria-labelledby="helpTabAbout" tabindex="0">
         <p class="about-intro"><strong>Your music. Your mix.</strong> A two-deck workspace with hands-on mixing, Hot Cues and a library that stays on your device.</p>
@@ -507,7 +522,14 @@
     </form>
   </dialog>
 
+  <div id="playlistMenu" class="playlist-menu" role="menu" aria-label="Add to playlist" hidden></div>
+  <nav class="section-jump" aria-label="Jump to section">
+    <button type="button" data-jump=".deck-a">DECK 1</button>
+    <button type="button" data-jump=".deck-b">DECK 2</button>
+    <button type="button" data-jump=".mixer-panel">MIXER</button>
+    <button type="button" data-jump="#musicLibrary">LIBRARY</button>
+  </nav>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=1.2.1"></script>
+  <script src="app.js?v=1.3.0"></script>
 </body>
 </html>
