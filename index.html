@@ -12,18 +12,18 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.3.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.3.0">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.3.0">
-  <link rel="stylesheet" href="styles.css?v=1.3.0">
+  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.3.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.3.1">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.3.1">
+  <link rel="stylesheet" href="styles.css?v=1.3.1">
 </head>
 <body>
   <div class="app-shell">
     <button id="topbarReveal" class="topbar-reveal" type="button" aria-label="Show application toolbar" aria-controls="appToolbar" aria-expanded="true" title="Show toolbar (Alt+T)"></button>
     <header id="appToolbar" class="topbar">
       <div class="topbar-left">
-        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.3.0" alt="" width="27" height="27">
-        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.3.0" alt="Padawan DJ" width="240" height="24">
+        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.3.1" alt="" width="27" height="27">
+        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.3.1" alt="Padawan DJ" width="240" height="24">
       </div>
       <nav class="topbar-center app-navigation" hidden aria-label="App navigation">
         <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l9-2v9M8 8l9-2"/><ellipse cx="5" cy="15" rx="3" ry="2"/><ellipse cx="14" cy="13" rx="3" ry="2"/></svg> LIBRARY</button>
@@ -206,6 +206,13 @@
                 </label>
               </div>
               <button class="cue-monitor" type="button" aria-label="Monitor Deck 1 in headphones" title="Headphone monitor: select Deck 1 for CUE listening. Enable headphones in AUDIO first.">CUE</button>
+              <label class="cue-knob-control" title="Deck 1 headphone CUE level: drag up or down, arrow keys, double-click to reset">
+                <span class="cue-knob-caption">LEVEL</span>
+                <span class="eq-knob-unit">
+                  <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                  <input id="cueKnobA" class="eq-knob-input" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 1 headphone CUE level">
+                </span>
+              </label>
               <div class="cue-level-control">
                 <span aria-hidden="true">VOLUME</span>
                 <input id="volumeA" class="channel-fader" type="range" min="0" max="1" value="1" step="0.01" aria-label="Deck 1 channel volume" title="Deck 1 volume in the master mix">
@@ -224,6 +231,13 @@
                 </label>
               </div>
               <button class="cue-monitor active" type="button" aria-label="Monitor Deck 2 in headphones" title="Headphone monitor: select Deck 2 for CUE listening. Enable headphones in AUDIO first.">CUE</button>
+              <label class="cue-knob-control" title="Deck 2 headphone CUE level: drag up or down, arrow keys, double-click to reset">
+                <span class="cue-knob-caption">LEVEL</span>
+                <span class="eq-knob-unit">
+                  <span class="eq-knob-face" aria-hidden="true"><span class="eq-knob-pointer"></span></span>
+                  <input id="cueKnobB" class="eq-knob-input" type="range" min="0" max="1" value="0.9" step="0.01" aria-label="Deck 2 headphone CUE level">
+                </span>
+              </label>
               <div class="cue-level-control">
                 <span aria-hidden="true">VOLUME</span>
                 <input id="volumeB" class="channel-fader" type="range" min="0" max="1" value="1" step="0.01" aria-label="Deck 2 channel volume" title="Deck 2 volume in the master mix">
@@ -384,16 +398,16 @@
     <form method="dialog">
       <header>
         <div class="help-dialog-heading">
-          <img src="icons/padawan-emblem.png?v=1.3.0" width="32" height="32" alt="">
+          <img src="icons/padawan-emblem.png?v=1.3.1" width="32" height="32" alt="">
           <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
         </div>
         <button type="submit" aria-label="Close help"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       </header>
         <div class="about-brand">
-          <img src="icons/padawan-emblem.png?v=1.3.0" width="82" height="82" alt="Padawan DJ logo">
+          <img src="icons/padawan-emblem.png?v=1.3.1" width="82" height="82" alt="Padawan DJ logo">
           <div>
 
-            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.3.0" alt="Padawan DJ" width="390" height="38"></h2>
+            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.3.1" alt="Padawan DJ" width="390" height="38"></h2>
             <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
             <p>Two decks. One flow.</p>
           </div>
@@ -430,7 +444,7 @@
         <kbd>Elapsed time</kbd><span>Click the restart icon or elapsed-time readout beneath a deck’s small waveform to return to the start. Playback continues if the track is playing.</span>
         <kbd>Load a track</kbd><span>Use a track row’s 1 or 2 button to choose a deck, double-click its title to load the selected deck, or drag it onto a jog wheel. Replacing a playing track asks for confirmation.</span>
         <kbd>Playlists</kbd><span>Use the playlist button at the end of a track row, or drag the track onto a playlist. Inside a playlist, drag rows to reorder them and use the row’s remove button to take a track out. Double-click a playlist name to rename it.</span>
-        <kbd>Mixer faders</kbd><span>The two vertical faders set each deck’s volume in the master mix. Headphone CUE levels are in AUDIO.</span>
+        <kbd>Mixer faders</kbd><span>The two vertical faders set each deck’s volume in the master mix. The LEVEL knob under each CUE button sets that deck’s headphone level; the same levels are also in AUDIO.</span>
         <kbd>ADD TRACKS</kbd><span>Click to choose audio files, or drop files onto the ADD TRACKS button.</span>
         <kbd>Jog platter</kbd><span>Drag around the platter to scratch / seek. Near the centre spindle, drag left or right.</span>
         <kbd>Jog rim</kbd><span>Drag the thin outer rim for fine beat nudging.</span>
@@ -530,6 +544,6 @@
     <button type="button" data-jump="#musicLibrary">LIBRARY</button>
   </nav>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=1.3.0"></script>
+  <script src="app.js?v=1.3.1"></script>
 </body>
 </html>

@@ -1,5 +1,11 @@
 # Release notes
 
+## 1.3.1 — 2026-11-13
+
+- Add a LEVEL knob under each mixer CUE button for that deck’s headphone CUE level. It shares its value with the matching slider in AUDIO, so either one moves both.
+- Use the compact mixer rows up to 800px window height, so the volume faders keep more travel on 720–800px screens.
+- Update app, asset URLs and offline cache to 1.3.1.
+
 ## 1.3.0 — 2026-11-13
 
 - Make the mixer’s vertical faders channel volume (with a smooth fade curve). Per-deck headphone CUE levels move to the AUDIO dialog.

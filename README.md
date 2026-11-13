@@ -1,4 +1,4 @@
-# Padawan DJ — v1.3.0
+# Padawan DJ — v1.3.1
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -17,7 +17,7 @@ Padawan DJ is just static files, so you can also host your own copy anywhere: fo
 - Four illuminated Hot Cue pads (1–4), saved per track
 - Beatgrid, tempo, Sync, EQ, channel volume and master volume
 - Channel volume faders, and a large hardware-style crossfader with deck-colored rail, center marks and center snapping
-- Separate headphone output selection and independent per-deck CUE levels (in AUDIO)
+- Separate headphone output selection and independent per-deck CUE levels (LEVEL knobs in the mixer, also in AUDIO)
 - Exclusive headphone CUE: selecting one deck turns off the other; click again to disable
 - Segmented master level meter
 - Drag tracks from Collection directly onto a jog wheel
@@ -92,15 +92,19 @@ Removing tracks or clearing the library only removes app data, never files on th
 
 Open **AUDIO** in the top bar to detect and select a separate headphone output. Master audio uses the system default output; select a different device for headphones, then enable headphone monitoring. Device detection may request temporary microphone permission to reveal output names; the app immediately releases the microphone and does not record it.
 
-Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the other deck switches monitoring to it; clicking the selected CUE again turns monitoring off. Each deck’s CUE level and the overall headphone volume are set in the Audio dialog; the mixer’s vertical faders control each deck’s volume in the master mix.
+Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the other deck switches monitoring to it; clicking the selected CUE again turns monitoring off. Each deck’s CUE level is set with the LEVEL knob under its CUE button (also in the Audio dialog), and the overall headphone volume is in the Audio dialog; the mixer’s vertical faders control each deck’s volume in the master mix.
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.3.0
+## Latest release: 1.3.1
 
 See [release notes](CHANGELOG.md) for the version history.
 
-- **Mixer:** the two vertical faders now set each deck’s volume in the master mix. Headphone CUE levels moved to AUDIO.
+- **Headphone levels back in the mixer:** a LEVEL knob under each mixer CUE button sets that deck’s headphone level. It stays in sync with the sliders in AUDIO.
+
+Also new in 1.3.0:
+
+- **Mixer:** the two vertical faders now set each deck’s volume in the master mix.
 - **First run:** an empty library shows ADD MUSIC, and the toolbar stays visible until the first track is imported.
 - **Playlists:** add a track from the playlist button at the end of its row, remove it from a playlist without deleting it, drag rows to reorder and double-click a playlist to rename it.
 - **Undo:** removing a track, a playlist entry or a Hot Cue shows UNDO (or press Ctrl/Cmd+Z).
@@ -152,10 +156,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.3.0 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.3.1 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.3.0';
+const CACHE_VERSION = 'padawan-dj-v1.3.1';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

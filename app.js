@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.3.1';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -2353,10 +2353,12 @@ function setWaveformZoom(seconds) {
 // Hardware-style EQ dials use the existing range inputs and Web Audio listeners.
 // Vertical pointer dragging adjusts values; keyboard arrows work on the focused input.
 function bindEqDials(deckId) {
-  for (const name of ['trim', 'high', 'mid', 'low']) {
+  for (const name of ['trim', 'high', 'mid', 'low', 'cueKnob']) {
     const input = $(`#${name}${deckId}`);
     const unit = input.closest('.eq-knob-unit');
     const face = unit.querySelector('.eq-knob-face');
+    // Lets another control that shares this value move the dial without an input event.
+    input.addEventListener('dial:refresh', () => refreshDial());
     const minimum = Number(input.min);
     const maximum = Number(input.max);
     const step = Number(input.step) || 1;
@@ -2427,7 +2429,18 @@ function bindDeckControls(deck) {
   });
   $(`#tempo${deck.id}`).addEventListener('input', (event) => deck.setTempo(event.target.value));
   $(`#sync${deck.id}`).addEventListener('click', () => deck.syncTo(decks[state.masterDeck]));
-  $(`#cueLevel${deck.id}`).addEventListener('input', (event) => deck.cueLevelGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
+  // Headphone CUE level: the mixer knob and the AUDIO dialog slider share one value.
+  const cueLevelInputs = [$(`#cueKnob${deck.id}`), $(`#cueLevel${deck.id}`)];
+  for (const input of cueLevelInputs) {
+    input.addEventListener('input', () => {
+      deck.cueLevelGain.gain.setTargetAtTime(Number(input.value), audioContext.currentTime, 0.01);
+      for (const other of cueLevelInputs) {
+        if (other === input || other.value === input.value) continue;
+        other.value = input.value;
+        other.dispatchEvent(new Event('dial:refresh'));
+      }
+    });
+  }
   $(`#volume${deck.id}`).addEventListener('input', (event) => deck.channelGain.gain.setTargetAtTime(channelFaderGain(event.target.value), audioContext.currentTime, 0.01));
   $(`#trim${deck.id}`).addEventListener('input', (event) => deck.trimGain.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));
   $(`#high${deck.id}`).addEventListener('input', (event) => deck.high.gain.setTargetAtTime(Number(event.target.value), audioContext.currentTime, 0.01));

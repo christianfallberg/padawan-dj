@@ -57,6 +57,23 @@ function wav(freq) {
   assert.ok(Math.abs(gains.cue - 0.9) < 0.01, "CUE level unchanged by the channel fader");
   assert.equal(gains.cueInDialog, true, "per-deck CUE level is in the Audio dialog");
 
+  // Mixer CUE level knob and the AUDIO dialog slider share one value, in both directions.
+  const cueSync = await page.evaluate(async () => {
+    const knob = $("#cueKnobA"), slider = $("#cueLevelA");
+    knob.value = "0.4"; knob.dispatchEvent(new Event("input", { bubbles: true }));
+    await new Promise(r => setTimeout(r, 150));
+    const fromKnob = { slider: slider.value, gain: decks.A.cueLevelGain.gain.value, dial: knob.closest(".eq-knob-unit").querySelector(".eq-knob-face").style.getPropertyValue("--dial-angle") };
+    slider.value = "0.7"; slider.dispatchEvent(new Event("input", { bubbles: true }));
+    await new Promise(r => setTimeout(r, 150));
+    return { fromKnob, knob: knob.value, gain: decks.A.cueLevelGain.gain.value, dial: knob.closest(".eq-knob-unit").querySelector(".eq-knob-face").style.getPropertyValue("--dial-angle"), channel: decks.A.channelGain.gain.value };
+  });
+  assert.equal(cueSync.fromKnob.slider, "0.4", "knob moves the AUDIO slider");
+  assert.ok(Math.abs(cueSync.fromKnob.gain - 0.4) < 0.01, "knob sets the CUE gain");
+  assert.equal(cueSync.knob, "0.7", "AUDIO slider moves the knob");
+  assert.ok(Math.abs(cueSync.gain - 0.7) < 0.01, "slider sets the CUE gain");
+  assert.notEqual(cueSync.dial, cueSync.fromKnob.dial, "knob dial redraws when the slider changes");
+  assert.ok(Math.abs(cueSync.channel - 0.9 * 0.25) < 0.01, "CUE level leaves channel volume alone");
+
   // Playlist menu: add a track to a playlist from its row, then untick it.
   await page.click(`tr[data-id="${ids[1]}"] [data-playlist-menu]`);
   await page.waitForSelector("#playlistMenu:not([hidden])");
@@ -156,6 +173,6 @@ function wav(freq) {
   assert.equal(await page.evaluate((x) => decks.A.track?.id === x, order[1]), true, "cancel keeps the loaded track");
 
   assert.deepEqual(errors, []);
-  console.log("PASS library UX: first-run empty state, channel volume, playlist menu/remove/undo/reorder/rename, track removal undo, keyboard browsing and deck keys, KEY column, SYNC match");
+  console.log("PASS library UX: first-run empty state, channel volume, mixer CUE level knob, playlist menu/remove/undo/reorder/rename, track removal undo, keyboard browsing and deck keys, KEY column, SYNC match");
   await browser.close(); server.close();
 })().catch(e => { console.error(e); process.exit(1); });

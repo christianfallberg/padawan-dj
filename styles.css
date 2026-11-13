@@ -4659,7 +4659,7 @@ html,body {min-width:0;min-height:0;}
 .action-dialog .dialog-presets button:disabled { opacity: .4; cursor: default; }
 
 /* ---------------------------------------------------------------------------
-   1.3.0: mixer volume faders, first-run empty state, playlist tools, row
+   Mixer volume faders, first-run empty state, playlist tools, row
    actions, undo toast, sync state, phone section switcher.
    --------------------------------------------------------------------------- */
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -4765,3 +4765,27 @@ html,body {min-width:0;min-height:0;}
 .waveform-stage .waveform-interaction-hint { font-size: 10px; letter-spacing: .04em; }
 .deck-panel .deck-main .tempo-panel .reset-tempo { white-space: nowrap; letter-spacing: 0; }
 @media (max-width: 900px) { .deck-panel .deck-main .tempo-panel .reset-tempo { font-size: 10px; padding-inline: 2px; } }
+
+/* Headphone CUE level knob under each mixer CUE button (shares its value with AUDIO). */
+.mixer-panel .mixer-channel { grid-template-rows: 66px 32px 34px minmax(0, 1fr); }
+.mixer-panel .cue-knob-control { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; height: 34px; min-width: 0; cursor: ns-resize; }
+.mixer-panel .cue-knob-caption { color: #a0c4db; font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+.mixer-panel .cue-knob-control .eq-knob-unit { width: 32px; height: 32px; flex: none; }
+.mixer-panel .cue-knob-control .eq-knob-face { width: 26px; height: 26px; }
+.mixer-panel .cue-knob-control .eq-knob-pointer { top: 3px; width: 2px; height: 8px; }
+@media (max-height: 800px) and (min-width: 901px) {
+  .mixer-panel .mixer-channel { grid-template-rows: 56px 28px 30px minmax(0, 1fr); gap: 6px; }
+  .mixer-panel .trim-control { height: 56px; }
+  .mixer-panel .trim-control .eq-control { height: 54px; gap: 1px; }
+  .mixer-panel .trim-control .eq-knob-unit { height: 34px; }
+  .mixer-panel .mixer-channel .cue-monitor { height: 28px; min-height: 28px; }
+  .mixer-panel .cue-knob-control { height: 30px; }
+  .mixer-panel .cue-knob-control .eq-knob-unit { width: 28px; height: 28px; }
+  .mixer-panel .cue-knob-control .eq-knob-face { width: 23px; height: 23px; }
+}
+@media (max-height: 700px) {
+  .mixer-panel .mixer-channel { grid-template-rows: 56px 28px 30px minmax(0, 1fr); }
+  .mixer-panel .cue-knob-control { height: 30px; }
+  .mixer-panel .cue-knob-control .eq-knob-unit { width: 28px; height: 28px; }
+  .mixer-panel .cue-knob-control .eq-knob-face { width: 23px; height: 23px; }
+}
