@@ -1,0 +1,9 @@
+# Apache settings for hosts that read .htaccess (for example GoDaddy shared hosting).
+# Other hosts ignore this file; see "Host it yourself" in the README.
+
+<IfModule mod_headers.c>
+  # Same policy as the <meta> tag in index.html, plus frame-ancestors, which only
+  # works as a header: it stops other sites from showing the app in a frame.
+  # Keep both copies identical; when both are present the browser enforces both.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+</IfModule>

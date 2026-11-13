@@ -135,7 +135,7 @@ Padawan DJ is a static site. There is no build step, no server-side code and no 
    icons/
    ```
 
-   `README.md`, `docs/`, `start.command` and dotfiles are not needed on the server.
+   On Apache hosts (including GoDaddy shared hosting), also upload `.htaccess`; see below. `README.md`, `docs/`, `tests/`, `start.command` and other dotfiles are not needed on the server.
 
 2. Serve the site over **HTTPS**. Service workers, PWA installation, persistent storage and headphone output selection (`setSinkId()`) only work in a secure context. Most hosts provide free certificates.
 
@@ -145,7 +145,7 @@ Optional server settings:
 
 - Serve `.webmanifest` as `application/manifest+json` if your server doesn't already.
 - Avoid long cache lifetimes on `service-worker.js` so browsers notice updates quickly. Other assets are versioned with `?v=` query strings and can be cached.
-- `index.html` already sets a Content-Security-Policy in a `<meta>` tag. To also stop other sites from framing the app, send `Content-Security-Policy: frame-ancestors 'none'` as an HTTP header; that directive only works as a header.
+- `index.html` already sets a Content-Security-Policy in a `<meta>` tag. To also stop other sites from framing the app, send the policy as an HTTP header with `frame-ancestors 'none'` added; that directive only works as a header. On Apache, the included `.htaccess` does this (it needs `mod_headers`, which most hosts enable). On other hosts, copy the policy from `.htaccess` into the host's header settings. Keep the header and the `<meta>` tag in sync: browsers enforce both.
 
 Keep the final domain stable: each origin (protocol + domain + port) has its own local library, so moving the app to a new address starts users with an empty library.
 
