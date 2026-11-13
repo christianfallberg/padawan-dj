@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.3.3';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1541,13 +1541,16 @@ function removeFromPlaylist(playlist, trackId) {
 }
 
 // Small menu at a track row: tick the playlists the track belongs to.
+// The menu is a popover="auto": the browser closes it on outside clicks and Escape.
+// The 'beforetoggle' listener in the setup code resets the button's aria-expanded on every close.
+let playlistMenuAnchor = null;
+const anchoredPlaylistMenu = CSS.supports('position-area: block-end');
+
 function closePlaylistMenu({ restoreFocus = false } = {}) {
   const menu = $('#playlistMenu');
-  if (menu.hidden) return;
-  menu.hidden = true;
-  const anchor = document.querySelector('[data-playlist-menu][aria-expanded="true"]');
-  anchor?.setAttribute('aria-expanded', 'false');
-  if (restoreFocus) anchor?.focus();
+  if (!menu.matches(':popover-open')) return;
+  if (restoreFocus) playlistMenuAnchor?.focus();
+  menu.hidePopover();
 }
 
 function openPlaylistMenu(trackId, anchor) {
@@ -1587,12 +1590,16 @@ function openPlaylistMenu(trackId, anchor) {
     menu.append(create);
   };
   build();
-  menu.hidden = false;
+  playlistMenuAnchor = anchor;
   anchor.setAttribute('aria-expanded', 'true');
-  const rect = anchor.getBoundingClientRect();
-  const width = menu.offsetWidth, height = menu.offsetHeight;
-  menu.style.left = `${clamp(rect.right - width, 8, window.innerWidth - width - 8)}px`;
-  menu.style.top = `${rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4}px`;
+  // `source` makes the button the menu's implicit anchor for CSS anchor positioning.
+  menu.showPopover({ source: anchor });
+  if (!anchoredPlaylistMenu) {
+    const rect = anchor.getBoundingClientRect();
+    const width = menu.offsetWidth, height = menu.offsetHeight;
+    menu.style.left = `${clamp(rect.right - width, 8, window.innerWidth - width - 8)}px`;
+    menu.style.top = `${rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4}px`;
+  }
   menu.firstElementChild?.focus();
 }
 
@@ -3021,9 +3028,11 @@ function bindEvents() {
   });
   $('#closeAudioOutput').addEventListener('click', () => $('#audioOutputDialog').close());
   $('#closeAudioOutputX').addEventListener('click', () => $('#audioOutputDialog').close());
-  // Only dismiss when the gesture starts and ends outside the dialog itself.
-  // Clicking padding or dragging a slider beyond an edge must leave it open.
-  [ui.helpDialog, ui.storageDialog, $('#audioOutputDialog'), $('#importDialog')].forEach((dialog) => {
+  // Click-outside dismissal comes from <dialog closedby="any">. Where that is
+  // unsupported (Safari), emulate it: dismiss only when the gesture starts and
+  // ends outside the dialog, so clicking padding or dragging a slider beyond an
+  // edge leaves it open.
+  if (!('closedBy' in HTMLDialogElement.prototype)) document.querySelectorAll('dialog[closedby="any"]').forEach((dialog) => {
     let startedOutside = false;
     const isOutside = (event) => {
       const rect = dialog.getBoundingClientRect();
@@ -3138,6 +3147,13 @@ function bindEvents() {
     renderTable();
   }));
 
+  // The popover's light dismiss closes the menu on pointerup, before the button's click
+  // runs. Remember whether the pressed button's menu was open so that click closes it.
+  let pressedOpenMenuButton = null;
+  ui.trackTableBody.addEventListener('pointerdown', (event) => {
+    const button = event.target.closest('[data-playlist-menu]');
+    pressedOpenMenuButton = button && button === playlistMenuAnchor ? button : null;
+  });
   ui.trackTableBody.addEventListener('click', (event) => {
     if (event.target.closest('[data-empty-add]')) return ui.importButton.click();
     if (event.target.closest('[data-clear-search]')) {
@@ -3156,7 +3172,8 @@ function bindEvents() {
     }
     const menuButton = event.target.closest('[data-playlist-menu]');
     if (menuButton) {
-      const wasOpen = menuButton.getAttribute('aria-expanded') === 'true';
+      const wasOpen = menuButton.getAttribute('aria-expanded') === 'true' || menuButton === pressedOpenMenuButton;
+      pressedOpenMenuButton = null;
       setSelectedTrack(row.dataset.id);
       if (wasOpen) closePlaylistMenu();
       else openPlaylistMenu(row.dataset.id, menuButton);
@@ -3169,10 +3186,13 @@ function bindEvents() {
     } else setSelectedTrack(row.dataset.id);
   });
 
-  // The playlist menu closes on outside clicks, Escape, scrolling or resizing.
+  // The playlist menu closes on outside clicks and Escape (native popover), scrolling or resizing.
+  // 'beforetoggle' fires synchronously, so a quick close-and-reopen cannot reset the new button.
   const playlistMenu = $('#playlistMenu');
-  document.addEventListener('pointerdown', (event) => {
-    if (!playlistMenu.hidden && !playlistMenu.contains(event.target) && !event.target.closest('[data-playlist-menu]')) closePlaylistMenu();
+  playlistMenu.addEventListener('beforetoggle', (event) => {
+    if (event.newState !== 'closed') return;
+    playlistMenuAnchor?.setAttribute('aria-expanded', 'false');
+    playlistMenuAnchor = null;
   });
   playlistMenu.addEventListener('keydown', (event) => {
     const items = [...playlistMenu.children];

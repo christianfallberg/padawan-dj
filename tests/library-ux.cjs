@@ -75,13 +75,33 @@ function wav(freq) {
   assert.ok(Math.abs(cueSync.channel - 0.9 * 0.25) < 0.01, "CUE level leaves channel volume alone");
 
   // Playlist menu: add a track to a playlist from its row, then untick it.
-  await page.click(`tr[data-id="${ids[1]}"] [data-playlist-menu]`);
-  await page.waitForSelector("#playlistMenu:not([hidden])");
+  const menuTrigger = `tr[data-id="${ids[1]}"] [data-playlist-menu]`;
+  const menuOpen = () => page.evaluate(() => $("#playlistMenu").matches(":popover-open"));
+  await page.click(menuTrigger);
+  await page.waitForSelector("#playlistMenu:popover-open");
+  assert.equal(await page.getAttribute(menuTrigger, "aria-expanded"), "true", "open menu marks its button expanded");
+  const placement = await page.evaluate((sel) => {
+    const button = document.querySelector(sel).getBoundingClientRect(), menu = $("#playlistMenu").getBoundingClientRect();
+    return { rightGap: Math.abs(menu.right - button.right), below: menu.top >= button.bottom - 1, above: menu.bottom <= button.top + 1 };
+  }, menuTrigger);
+  assert.ok(placement.below || placement.above, "menu sits directly above or below its button");
+  assert.ok(placement.rightGap < 12, "menu is right-aligned with its button");
   await page.click("#playlistMenu [role=menuitemcheckbox]:first-child");
   assert.deepEqual(await page.evaluate(() => state.playlists[0].trackIds), [ids[1]], "added via the row menu");
   assert.equal(await page.getAttribute("#playlistMenu [role=menuitemcheckbox]:first-child", "aria-checked"), "true");
   await page.keyboard.press("Escape");
-  assert.equal(await page.evaluate(() => $("#playlistMenu").hidden), true, "Escape closes the menu");
+  assert.equal(await menuOpen(), false, "Escape closes the menu");
+  assert.equal(await page.getAttribute(menuTrigger, "aria-expanded"), "false", "closing resets aria-expanded");
+  assert.equal(await page.evaluate((sel) => document.activeElement === document.querySelector(sel), menuTrigger), true, "Escape returns focus to the button");
+  await page.click(menuTrigger);
+  await page.waitForSelector("#playlistMenu:popover-open");
+  await page.click(menuTrigger);
+  assert.equal(await menuOpen(), false, "clicking the open menu's button closes it");
+  await page.click(menuTrigger);
+  await page.waitForSelector("#playlistMenu:popover-open");
+  await page.mouse.click(5, 5);
+  assert.equal(await menuOpen(), false, "an outside click closes the menu");
+  assert.equal(await page.getAttribute(menuTrigger, "aria-expanded"), "false", "outside click resets aria-expanded");
 
   // Inside a playlist: remove one entry (the track stays in the library), then UNDO puts it back in place.
   await page.evaluate(([, b, c, d]) => { const p = state.playlists[0]; p.trackIds = [b, c, d]; savePlaylists(); renderPlaylistList(); }, ids);

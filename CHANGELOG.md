@@ -1,5 +1,13 @@
 # Release notes
 
+## 1.3.3 — 2026-11-13
+
+- Dialogs close on an outside click using the browser’s built-in `closedby="any"`; the previous script now only runs in browsers without it (Safari).
+- Scrolling inside an open dialog or over its backdrop no longer scrolls the page behind it (where the browser supports it).
+- The track-row playlist menu is now a native popover: the browser handles outside clicks, Escape and drawing it above everything else, and CSS anchor positioning places it next to its button where supported (script positioning otherwise).
+- The Help dialog’s shortcut list and the playlist menu size to the dynamic viewport height, so mobile browser toolbars no longer cut them off.
+- Update app, asset URLs and offline cache to 1.3.3.
+
 ## 1.3.2 — 2026-11-13
 
 - Raise every functional label to at least 11px: EQ, TEMPO, TRIM and LEVEL captions, toolbar buttons, waveform ruler and zoom, crossfader marks, library footer, toast, and the AUDIO, STORAGE, HELP and confirm dialogs.
