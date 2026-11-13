@@ -1,5 +1,17 @@
 # Release notes
 
+## 1.3.2 — 2026-11-13
+
+- Raise every functional label to at least 11px: EQ, TEMPO, TRIM and LEVEL captions, toolbar buttons, waveform ruler and zoom, crossfader marks, library footer, toast, and the AUDIO, STORAGE, HELP and confirm dialogs.
+- Lift faint text (waveform ruler, clock, storage size) to pass 4.5:1 contrast.
+- Give the waveform zoom buttons a 26px-tall touch area without enlarging the ruler.
+- Phones: library sources and playlists become one scrolling row above a full-width track list that drops the ARTIST and ADDED columns; the mixer volume faders get about three times the travel; the storage chip goes icon-only so the toolbar fits one row.
+- Empty-deck waveforms draw “DECK 1 — LOAD TRACK” clear of the playhead and grid lines.
+- Cover images stay hidden with no src until a track is loaded.
+- Add headings for the waveforms, both decks, the mixer and the library, so screen-reader users can jump between them.
+- Stylesheet cleanup with no visual change (verified pixel by pixel): one design-token block instead of eight, named deck colours, and 1,373 overridden declarations removed (about 800 lines).
+- Update app, asset URLs and offline cache to 1.3.2.
+
 ## 1.3.1 — 2026-11-13
 
 - Add a LEVEL knob under each mixer CUE button for that deck’s headphone CUE level. It shares its value with the matching slider in AUDIO, so either one moves both.

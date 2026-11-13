@@ -12,18 +12,18 @@
   <meta name="apple-mobile-web-app-title" content="Padawan DJ">
   <title>Padawan DJ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.3.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.3.1">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.3.1">
-  <link rel="stylesheet" href="styles.css?v=1.3.1">
+  <link rel="icon" type="image/png" href="icons/padawan-emblem.png?v=1.3.2">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1.3.2">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.3.2">
+  <link rel="stylesheet" href="styles.css?v=1.3.2">
 </head>
 <body>
   <div class="app-shell">
     <button id="topbarReveal" class="topbar-reveal" type="button" aria-label="Show application toolbar" aria-controls="appToolbar" aria-expanded="true" title="Show toolbar (Alt+T)"></button>
     <header id="appToolbar" class="topbar">
       <div class="topbar-left">
-        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.3.1" alt="" width="27" height="27">
-        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.3.1" alt="Padawan DJ" width="240" height="24">
+        <img class="brand-icon" src="icons/padawan-emblem.png?v=1.3.2" alt="" width="27" height="27">
+        <img class="brand-wordmark" src="icons/padawan-wordmark.png?v=1.3.2" alt="Padawan DJ" width="240" height="24">
       </div>
       <nav class="topbar-center app-navigation" hidden aria-label="App navigation">
         <button id="navLibrary" class="nav-pill active" type="button" title="Focus music library"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l9-2v9M8 8l9-2"/><ellipse cx="5" cy="15" rx="3" ry="2"/><ellipse cx="14" cy="13" rx="3" ry="2"/></svg> LIBRARY</button>
@@ -81,6 +81,7 @@
     </dialog>
     <main class="workspace">
       <section class="waveform-stage" aria-label="Parallel waveforms">
+        <h2 class="visually-hidden">Waveforms</h2>
         <div class="waveform-ruler">
           <div class="waveform-ruler-marks" aria-hidden="true"><span>−16</span><span>−12</span><span>−8</span><span>−4</span><span>0</span><span>+4</span><span>+8</span><span>+12</span><span>+16</span></div>
           <div class="waveform-zoom" aria-label="Waveform zoom">
@@ -103,11 +104,12 @@
       </section>
 
       <section class="decks-section">
-        <article class="deck-panel deck-a" data-deck="A">
+        <article class="deck-panel deck-a" data-deck="A" aria-labelledby="deckHeadingA">
+          <h2 id="deckHeadingA" class="visually-hidden">Deck 1</h2>
           <div class="deck-display" aria-label="Deck 1 track display">
           <header class="deck-header">
             <button class="deck-number" type="button" data-select-deck="A" aria-label="Select Deck 1 for keyboard controls" aria-pressed="false" title="Select Deck 1 for keyboard controls (1)">1</button>
-            <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt=""><span id="coverFallbackA" aria-hidden="true"></span></div>
+            <div class="deck-cover" aria-label="Deck 1 album cover"><img id="coverA" alt="" hidden><span id="coverFallbackA" aria-hidden="true"></span></div>
             <div class="track-identification track-info-box">
               <strong id="titleA">No track loaded</strong>
               <span id="artistA">Import music and load a track</span>
@@ -171,7 +173,7 @@
                 </div>
                 <button aria-label="Deck 1 cue point" title="Cue point: while playing, pause and return to cue; while paused at a new position, set cue" id="cueA" class="round-button cue-button" type="button">CUE</button>
                 <div class="jogwheel" id="jogA" tabindex="0" aria-label="Deck 1 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Platter: scratch · Thin outer rim: nudge">
-                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverA" class="jog-cover" draggable="false" alt=""><span id="jogCoverFallbackA" class="jog-cover-fallback">DD</span><strong id="bpmA">—</strong><span id="pitchA">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
+                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverA" class="jog-cover" draggable="false" alt="" hidden><span id="jogCoverFallbackA" class="jog-cover-fallback">DD</span><strong id="bpmA">—</strong><span id="pitchA">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playA" class="round-button play-button" type="button" aria-label="Play deck 1"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 5 11 7-11 7Z"/></svg></button>
@@ -192,7 +194,7 @@
         </article>
 
         <aside class="mixer-panel" aria-label="Mixer">
-          <div class="mixer-heading">MIXER</div>
+          <div class="mixer-heading" role="heading" aria-level="2">MIXER</div>
           <div class="mixer-channels">
             <div class="mixer-channel" data-deck="A">
               <div class="trim-control" aria-label="Deck 1 trim">
@@ -257,11 +259,12 @@
 
         </aside>
 
-        <article class="deck-panel deck-b" data-deck="B">
+        <article class="deck-panel deck-b" data-deck="B" aria-labelledby="deckHeadingB">
+          <h2 id="deckHeadingB" class="visually-hidden">Deck 2</h2>
           <div class="deck-display" aria-label="Deck 2 track display">
           <header class="deck-header">
             <button class="deck-number" type="button" data-select-deck="B" aria-label="Select Deck 2 for keyboard controls" aria-pressed="false" title="Select Deck 2 for keyboard controls (2)">2</button>
-            <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt=""><span id="coverFallbackB" aria-hidden="true"></span></div>
+            <div class="deck-cover" aria-label="Deck 2 album cover"><img id="coverB" alt="" hidden><span id="coverFallbackB" aria-hidden="true"></span></div>
             <div class="track-identification track-info-box">
               <strong id="titleB">No track loaded</strong>
               <span id="artistB">Import music and load a track</span>
@@ -335,7 +338,7 @@
                 </div>
                 <button aria-label="Deck 2 cue point" title="Cue point: while playing, pause and return to cue; while paused at a new position, set cue" id="cueB" class="round-button cue-button" type="button">CUE</button>
                 <div class="jogwheel" id="jogB" tabindex="0" aria-label="Deck 2 jog wheel. Drag the centre to scratch and the outer rim to nudge." title="Platter: scratch · Thin outer rim: nudge">
-                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverB" class="jog-cover" draggable="false" alt=""><span id="jogCoverFallbackB" class="jog-cover-fallback">DD</span><strong id="bpmB">—</strong><span id="pitchB">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
+                  <div class="jog-ring"><div class="jog-label"><img id="jogCoverB" class="jog-cover" draggable="false" alt="" hidden><span id="jogCoverFallbackB" class="jog-cover-fallback">DD</span><strong id="bpmB">—</strong><span id="pitchB">±0.0%</span><span class="jog-mode">SCRATCH · NUDGE</span></div></div>
                   <span class="jog-drop-label">DROP TRACK TO LOAD</span>
                 </div>
                 <button id="playB" class="round-button play-button" type="button" aria-label="Play deck 2"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 5 11 7-11 7Z"/></svg></button>
@@ -348,9 +351,9 @@
       </section>
 
       <div id="libraryResizer" class="library-resizer" role="separator" tabindex="0" aria-label="Resize music library" aria-orientation="horizontal" aria-controls="musicLibrary" aria-valuemin="20" aria-valuemax="50" aria-valuenow="30" title="Drag to resize library · Arrow keys to adjust · Double-click to reset"></div>
-      <section id="musicLibrary" class="library-section">
+      <section id="musicLibrary" class="library-section" aria-labelledby="libraryHeading">
         <aside class="browser-sidebar">
-          <div class="sidebar-title">MUSIC LIBRARY</div>
+          <div id="libraryHeading" class="sidebar-title" role="heading" aria-level="2">MUSIC LIBRARY</div>
           <button class="source-item active" data-source="collection" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>All Tracks</button>
           <button class="source-item" data-source="recent" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>Recently Added</button>
           <button class="source-item" data-source="history" type="button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6M12 7v5l3 2"/></svg>History</button>
@@ -398,16 +401,16 @@
     <form method="dialog">
       <header>
         <div class="help-dialog-heading">
-          <img src="icons/padawan-emblem.png?v=1.3.1" width="32" height="32" alt="">
+          <img src="icons/padawan-emblem.png?v=1.3.2" width="32" height="32" alt="">
           <div><strong id="helpDialogTitle">Padawan DJ</strong><small>HELP &amp; ABOUT</small></div>
         </div>
         <button type="submit" aria-label="Close help"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       </header>
         <div class="about-brand">
-          <img src="icons/padawan-emblem.png?v=1.3.1" width="82" height="82" alt="Padawan DJ logo">
+          <img src="icons/padawan-emblem.png?v=1.3.2" width="82" height="82" alt="Padawan DJ logo">
           <div>
 
-            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.3.1" alt="Padawan DJ" width="390" height="38"></h2>
+            <h2><img class="about-wordmark" src="icons/padawan-wordmark.png?v=1.3.2" alt="Padawan DJ" width="390" height="38"></h2>
             <span class="about-version">VERSION <strong id="aboutVersion">—</strong></span>
             <p>Two decks. One flow.</p>
           </div>
@@ -544,6 +547,6 @@
     <button type="button" data-jump="#musicLibrary">LIBRARY</button>
   </nav>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=1.3.1"></script>
+  <script src="app.js?v=1.3.2"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# Padawan DJ — v1.3.1
+# Padawan DJ — v1.3.2
 
 Two decks. One flow. Padawan DJ is a local-first DJ web application with hands-on mixing, interactive jog wheels, smooth waveforms and a music library that stays on your device. Built with plain HTML, CSS and JavaScript, it runs in your browser and can be installed as a PWA.
 
@@ -96,9 +96,14 @@ Use the mixer’s **CUE** buttons to preview one deck at a time. Selecting the o
 
 Separate routing requires two audio outputs and browser support for `setSinkId()`. The app keeps headphone audio muted until a separate output is configured.
 
-## Latest release: 1.3.1
+## Latest release: 1.3.2
 
 See [release notes](CHANGELOG.md) for the version history.
+
+- **Easier to read and touch:** every control label is at least 11px, the waveform zoom buttons have larger touch areas, and the faint text now passes contrast checks.
+- **Phones:** the library shows sources as one scrolling row above a full-width track list, and the mixer’s volume faders have three times the travel.
+
+Also new in 1.3.1:
 
 - **Headphone levels back in the mixer:** a LEVEL knob under each mixer CUE button sets that deck’s headphone level. It stays in sync with the sliders in AUDIO.
 
@@ -156,10 +161,10 @@ Keep the final domain stable: each origin (protocol + domain + port) has its own
 
 Upload the new HTML, CSS and JavaScript to the same address, replacing the old files. Existing IndexedDB and localStorage data normally remain untouched.
 
-When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.3.1 uses:
+When changing cached application assets, increment `CACHE_VERSION` in `service-worker.js`. Version 1.3.2 uses:
 
 ```js
-const CACHE_VERSION = 'padawan-dj-v1.3.1';
+const CACHE_VERSION = 'padawan-dj-v1.3.2';
 ```
 
 Keep `APP_VERSION` in `app.js`, asset version query strings in `index.html`, and this README in sync with the release version.

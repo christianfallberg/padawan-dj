@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1109,15 +1109,19 @@ class Deck {
     const jogLabel = jogCover?.closest('.jog-label');
     const initials = this.track ? coverInitials(this.track) : 'DD';
 
+    // No src attribute and hidden while the deck is empty; the icon fallback shows instead.
+    for (const img of [deckCover, jogCover]) if (img) img.hidden = !this.track;
+    if (!this.track) { deckCover?.removeAttribute('src'); jogCover?.removeAttribute('src'); }
+
     if (deckCover) {
-      deckCover.src = coverUrl;
+      if (this.track) deckCover.src = coverUrl;
       deckCover.alt = this.track ? `${this.track.title} cover` : '';
       deckCoverBox?.classList.toggle('has-cover', Boolean(this.track));
       $(`#coverFallback${this.id}`).innerHTML = UI_ICONS.music;
     }
     if (jogCover) {
       // Real artwork as it is; generated covers without their lettering under the BPM.
-      jogCover.src = !this.track ? '' : COVER_MIME_TYPES.has(this.track.coverBlob?.type) ? coverUrl : fallbackCoverDataUrl(this.track, true);
+      if (this.track) jogCover.src = COVER_MIME_TYPES.has(this.track.coverBlob?.type) ? coverUrl : fallbackCoverDataUrl(this.track, true);
       jogCover.alt = this.track ? `${this.track.title} cover` : '';
       jogLabel?.classList.toggle('has-cover', Boolean(this.track));
       $(`#jogCoverFallback${this.id}`).textContent = initials;
@@ -1834,14 +1838,19 @@ function drawWaveform(deck) {
 
   const track = deck.track;
   if (!track?.peaks) {
-    ctx.fillStyle = '#8193a5';
-    ctx.font = `500 ${10 * ratio}px "SFMono-Regular", Consolas, "Liberation Mono", monospace`;
-    ctx.textAlign = 'center';
-    ctx.fillText(`DECK ${deck.id === 'A' ? '1' : '2'} — LOAD TRACK`, width / 2, centerY + 3 * ratio);
     for (let x = 0; x < width; x += 80 * ratio) {
       ctx.fillStyle = '#151b23';
       ctx.fillRect(x, 0, ratio, height);
     }
+    // Drawn after the grid and ending left of the centre playhead, so neither line crosses it.
+    const label = `DECK ${deck.id === 'A' ? '1' : '2'} — LOAD TRACK`;
+    ctx.font = `500 ${11 * ratio}px "SFMono-Regular", Consolas, "Liberation Mono", monospace`;
+    ctx.textAlign = 'right';
+    const labelRight = width / 2 - 14 * ratio, labelWidth = ctx.measureText(label).width;
+    ctx.fillStyle = '#0a0e13';
+    ctx.fillRect(labelRight - labelWidth - 6 * ratio, centerY - 8 * ratio, labelWidth + 12 * ratio, 16 * ratio);
+    ctx.fillStyle = '#8fa1b3';
+    ctx.fillText(label, labelRight, centerY + 4 * ratio);
     return;
   }
 
